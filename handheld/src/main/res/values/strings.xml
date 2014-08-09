@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- config -->
+    <string name="auth_consumer_key">KshsYJ2NhJdcwKKOYdi7qkGopxYdzK68ek3HakNt</string>
+    <string name="auth_consumer_secret">STRTTZqlEbOt161diw7ZLkOWdwfzBFMztnw5PdHS</string>
+
+    <!-- localization -->
+    <string name="app_name">Pixels Around</string>
+    <string name="login_username_label">Username</string>
+    <string name="login_password_label">Password</string>
+</resources>
