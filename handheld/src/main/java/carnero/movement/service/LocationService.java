@@ -60,6 +60,13 @@ public class LocationService extends TeleportService implements LocationListener
             getLastLocation();
         }
 
+        final String distanceStr;
+        if (mDistance > 1600) {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km";
+        } else {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m";
+        }
+
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setOngoing(true)
@@ -67,7 +74,7 @@ public class LocationService extends TeleportService implements LocationListener
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
-                .setContentText(String.format(Locale.getDefault(), "%.1f", mDistance) + "m")
+                .setContentText(distanceStr)
                 .setContentIntent(PendingIntent.getActivity(
                         LocationService.this,
                         1010,
@@ -239,6 +246,13 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void notifyHandheld(float distance, Location location) {
+        final String distanceStr;
+        if (distance > 1600) {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km";
+        } else {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", distance) + " m";
+        }
+
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setOngoing(true)
@@ -246,7 +260,7 @@ public class LocationService extends TeleportService implements LocationListener
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
-                .setContentText(String.format(Locale.getDefault(), "%.1f", distance) + "m")
+                .setContentText(distanceStr)
                 .setContentIntent(PendingIntent.getActivity(
                         LocationService.this,
                         1010,

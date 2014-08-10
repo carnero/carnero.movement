@@ -93,8 +93,15 @@ public class ListenerService extends TeleportService {
         App.bus().post(location);
 
         // Update notification
+        final String distanceStr;
+        if (distance > 1600) {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km";
+        } else {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", distance) + " m";
+        }
+
         final Notification.BigTextStyle style = new Notification.BigTextStyle()
-                .bigText(String.format(Locale.getDefault(), "%.1f", distance) + "m");
+                .bigText(distanceStr);
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
