@@ -1,3 +1,2 @@
 include ':handheld'
 include ':wear'
-include ':500px-android-sdk'
