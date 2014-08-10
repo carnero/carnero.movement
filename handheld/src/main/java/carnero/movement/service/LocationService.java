@@ -118,6 +118,16 @@ public class LocationService extends TeleportService implements LocationListener
     @Override
     public void onLocationChanged(Location location) {
         if (mLastLocation == null) {
+            Log.d(Constants.TAG, "Received location: " + location.getAccuracy());
+        } else {
+            Log.d(Constants.TAG, "Received location: " + location.getAccuracy() + ", " + location.distanceTo(mLastLocation) + "m");
+        }
+
+        if (location.getAccuracy() > 1600) {
+            return;
+        }
+
+        if (mLastLocation == null) {
             mLastLocation = location;
 
             // Save first location
@@ -128,7 +138,8 @@ public class LocationService extends TeleportService implements LocationListener
             // Send to wear
             sendDataToWear(mDistance, mLastLocation);
             notifyHandheld(mDistance, mLastLocation);
-        } else if ((mLastLocation.getTime() + sLocationTimeThreshold) < location.getTime() || mLastLocation.distanceTo(location) > 200) {
+        } else if ((mLastLocation.getTime() + sLocationTimeThreshold) < location.getTime()
+                && mLastLocation.distanceTo(location) > sLocationDistanceThreshold) {
             mDistance += mLastLocation.distanceTo(location);
             mLastLocation = location;
 
