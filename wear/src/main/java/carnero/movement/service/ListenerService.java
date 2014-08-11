@@ -86,6 +86,9 @@ public class ListenerService extends TeleportService {
         Location location = new Location("HANDHELD");
         location.setLatitude(map.getDouble("latitude"));
         location.setLongitude(map.getDouble("longitude"));
+        if (map.containsKey("altitude")) {
+            location.setAltitude(map.getDouble("altitude"));
+        }
         location.setAccuracy(map.getFloat("accuracy"));
         location.setTime(map.getLong("time"));
 
@@ -93,15 +96,20 @@ public class ListenerService extends TeleportService {
         App.bus().post(location);
 
         // Update notification
-        final String distanceStr;
+        final StringBuilder status = new StringBuilder();
         if (distance > 1600) {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km";
+            status.append(String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km");
         } else {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", distance) + " m";
+            status.append(String.format(Locale.getDefault(), "%.1f", distance) + " m");
+        }
+        if (location.hasAltitude()) {
+            status.append(" | ");
+            status.append(String.format(Locale.getDefault(), "%.0f", location.getAltitude()));
+            status.append(" m");
         }
 
         final Notification.BigTextStyle style = new Notification.BigTextStyle()
-                .bigText(distanceStr);
+                .bigText(status.toString());
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

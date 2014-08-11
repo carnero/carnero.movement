@@ -187,6 +187,7 @@ public class LocationService extends TeleportService implements LocationListener
         // Set listeners for criteria-based provider, and for passive provider
         final Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_MEDIUM);
+        criteria.setVerticalAccuracy(Criteria.ACCURACY_MEDIUM);
         criteria.setPowerRequirement(Criteria.POWER_LOW);
         criteria.setCostAllowed(true);
 
@@ -234,6 +235,9 @@ public class LocationService extends TeleportService implements LocationListener
         map.putFloat("distance", distance);
         map.putDouble("latitude", location.getLatitude());
         map.putDouble("longitude", location.getLongitude());
+        if (location.hasAltitude()) {
+            map.putDouble("altitude", location.getAltitude());
+        }
         map.putDouble("accuracy", location.getAccuracy());
         map.putLong("time", location.getTime());
 
