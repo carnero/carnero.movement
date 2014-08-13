@@ -1,9 +1,12 @@
 package carnero.movement.service;
 
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -29,19 +32,25 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.ui.MainActivity;
 
-public class LocationService extends TeleportService implements LocationListener {
+public class LocationService extends TeleportService implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
     private TeleportClient mTeleport;
+    private SensorManager mSensorManager;
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
-    private float mDistance;
-    private Location mLastLocation;
     private int mWatchX = 320;
     private int mWatchY = 320;
+    // counters
+    private int mStepsStart;
+    private int mSteps;
+    private float mDistance;
+    private Location mLocation;
     //
     private static final int sLocationTimeThreshold = 5 * 60 * 1000; // 5min
     private static final int sLocationDistanceThreshold = 250; // 250m
+    private static final int sLocationTimeThresholdLong = 3 * 60 * 60 * 1000; // 3hr
+    private static final int sLocationDistanceThresholdLong = 25; // 25m
     //
     public static final String KILL = "kill_service";
 
@@ -50,21 +59,23 @@ public class LocationService extends TeleportService implements LocationListener
         super.onCreate();
 
         mPreferences = new Preferences(this);
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
+        mStepsStart = mSteps = mPreferences.getSteps();
         mDistance = mPreferences.getDistance();
-        mLastLocation = mPreferences.getLocation();
+        mLocation = mPreferences.getLocation();
 
-        if (mLastLocation == null) {
+        if (mLocation == null) {
             getLastLocation();
         }
 
         final String distanceStr;
         if (mDistance > 1600) {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km";
+            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km | " + mSteps + " steps";
         } else {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m";
+            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m | " + mSteps + " steps";
         }
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -123,46 +134,64 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+            mSteps = mStepsStart + (int) event.values[0];
+
+            mPreferences.saveSteps(mSteps);
+
+            if ((mSteps % 100) == 0) {
+                // Send to wear
+                sendDataToWear();
+                notifyHandheld();
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // empty
+    }
+
+    @Override
     public void onLocationChanged(Location location) {
-        if (mLastLocation == null) {
+        if (mLocation == null) {
             Log.d(Constants.TAG, "Received location: " + location.getAccuracy());
         } else {
-            Log.d(Constants.TAG, "Received location: " + location.getAccuracy() + ", " + location.distanceTo(mLastLocation) + "m");
+            Log.d(Constants.TAG, "Received location: " + location.getAccuracy() + ", " + location.distanceTo(mLocation) + "m");
         }
 
         if (location.getAccuracy() > 1600) {
             return;
         }
 
-        if (mLastLocation == null) {
-            mLastLocation = location;
+        if (mLocation == null) {
+            mLocation = location;
 
             // Save first location
-            mPreferences.saveLocation(mLastLocation);
-
-            Log.d(Constants.TAG, "Distance: " + mDistance + "m // Last source: " + location.getProvider() + " (first)");
+            mPreferences.saveLocation(mLocation);
 
             // Send to wear
-            sendDataToWear(mDistance, mLastLocation);
-            notifyHandheld(mDistance, mLastLocation);
-        } else if ((mLastLocation.getTime() + sLocationTimeThreshold) < location.getTime()
-                && mLastLocation.distanceTo(location) > sLocationDistanceThreshold) {
-            mDistance += mLastLocation.distanceTo(location);
-            mLastLocation = location;
+            sendDataToWear();
+            notifyHandheld();
+        } else if (
+                ((mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold)
+                || ((mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong)
+                ) {
+            mDistance += mLocation.distanceTo(location);
+            mLocation = location;
 
             // Save status
             if (mDistance > 0) {
                 mPreferences.saveDistance(mDistance);
             }
-            if (mLastLocation != null) {
-                mPreferences.saveLocation(mLastLocation);
+            if (mLocation != null) {
+                mPreferences.saveLocation(mLocation);
             }
 
-            Log.d(Constants.TAG, "Distance: " + mDistance + "m // Last source: " + location.getProvider());
-
             // Send to wear
-            sendDataToWear(mDistance, mLastLocation);
-            notifyHandheld(mDistance, mLastLocation);
+            sendDataToWear();
+            notifyHandheld();
         }
     }
 
@@ -183,6 +212,12 @@ public class LocationService extends TeleportService implements LocationListener
 
     private void init() {
         mTeleport.sendMessage(Constants.PATH_RESOLUTION, null);
+
+        // Set listener for step counter
+        Sensor stepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (stepCounter != null) {
+            mSensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL);
+        }
 
         // Set listeners for criteria-based provider, and for passive provider
         final Criteria criteria = new Criteria();
@@ -230,16 +265,17 @@ public class LocationService extends TeleportService implements LocationListener
         }
     }
 
-    private void sendDataToWear(float distance, Location location) {
+    private void sendDataToWear() {
         DataMap map = new DataMap();
-        map.putFloat("distance", distance);
-        map.putDouble("latitude", location.getLatitude());
-        map.putDouble("longitude", location.getLongitude());
-        if (location.hasAltitude()) {
-            map.putDouble("altitude", location.getAltitude());
+        map.putInt("steps", mSteps);
+        map.putFloat("distance", mDistance);
+        map.putDouble("latitude", mLocation.getLatitude());
+        map.putDouble("longitude", mLocation.getLongitude());
+        if (mLocation.hasAltitude()) {
+            map.putDouble("altitude", mLocation.getAltitude());
         }
-        map.putDouble("accuracy", location.getAccuracy());
-        map.putLong("time", location.getTime());
+        map.putDouble("accuracy", mLocation.getAccuracy());
+        map.putLong("time", mLocation.getTime());
 
         ArrayList<DataMap> mapList = new ArrayList<DataMap>();
         mapList.add(map);
@@ -249,18 +285,18 @@ public class LocationService extends TeleportService implements LocationListener
         syncDataItem(data);
     }
 
-    private void notifyHandheld(float distance, Location location) {
+    private void notifyHandheld() {
         final String distanceStr;
-        if (distance > 1600) {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km";
+        if (mDistance > 1600) {
+            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km | " + mSteps + " steps";
         } else {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", distance) + " m";
+            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m | " + mSteps + " steps";
         }
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setOngoing(true)
-                .setWhen(location.getTime())
+                .setWhen(mLocation.getTime())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))

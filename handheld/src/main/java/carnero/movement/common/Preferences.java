@@ -11,6 +11,7 @@ public class Preferences {
     private SharedPreferences mPrefs;
     //
     private static final String FILE = "movement.prefs";
+    private static final String PREF_STEPS = "steps";
     private static final String PREF_DISTANCE = "distance";
     private static final String PREF_LATITUDE = "loc_latitude";
     private static final String PREF_LONGITUDE = "loc_longitude";
@@ -19,6 +20,16 @@ public class Preferences {
 
     public Preferences(Context context) {
         mPrefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+    }
+
+    public void saveSteps(int steps) {
+        mPrefs.edit()
+                .putInt(PREF_STEPS, steps)
+                .apply();
+    }
+
+    public int getSteps() {
+        return mPrefs.getInt(PREF_STEPS, 0);
     }
 
     public void saveLocation(Location location) {
@@ -52,12 +63,5 @@ public class Preferences {
 
     public float getDistance() {
         return mPrefs.getFloat(PREF_DISTANCE, 0f);
-    }
-
-    public float addDistance(float distance) {
-        distance = distance + mPrefs.getFloat(PREF_DISTANCE, 0);
-        saveDistance(distance);
-
-        return distance;
     }
 }

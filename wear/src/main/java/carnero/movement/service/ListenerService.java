@@ -81,6 +81,7 @@ public class ListenerService extends TeleportService {
         ArrayList<DataMap> maps = data.getDataMapArrayList("status");
         DataMap map = maps.get(0);
 
+        int steps = map.getInt("steps");
         float distance = map.getFloat("distance");
 
         Location location = new Location("HANDHELD");
@@ -102,10 +103,10 @@ public class ListenerService extends TeleportService {
         } else {
             status.append(String.format(Locale.getDefault(), "%.1f", distance) + " m");
         }
-        if (location.hasAltitude()) {
+        if (steps > 0) {
             status.append(" | ");
-            status.append(String.format(Locale.getDefault(), "%.0f", location.getAltitude()));
-            status.append(" m");
+            status.append(Integer.toString(steps));
+            status.append(" steps");
         }
 
         final Notification.BigTextStyle style = new Notification.BigTextStyle()
