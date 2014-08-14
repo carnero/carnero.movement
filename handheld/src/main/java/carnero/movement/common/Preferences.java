@@ -11,6 +11,7 @@ public class Preferences {
     private SharedPreferences mPrefs;
     //
     private static final String FILE = "movement.prefs";
+    private static final String PREF_FIRST = "first";
     private static final String PREF_STEPS = "steps";
     private static final String PREF_DISTANCE = "distance";
     private static final String PREF_LATITUDE = "loc_latitude";
@@ -23,9 +24,16 @@ public class Preferences {
     }
 
     public void saveSteps(int steps) {
-        mPrefs.edit()
-                .putInt(PREF_STEPS, steps)
-                .apply();
+        if (!mPrefs.contains(PREF_FIRST)) {
+            mPrefs.edit()
+                    .putLong(PREF_FIRST, System.currentTimeMillis())
+                    .putInt(PREF_STEPS, steps)
+                    .apply();
+        } else {
+            mPrefs.edit()
+                    .putInt(PREF_STEPS, steps)
+                    .apply();
+        }
     }
 
     public int getSteps() {
@@ -33,12 +41,22 @@ public class Preferences {
     }
 
     public void saveLocation(Location location) {
-        mPrefs.edit()
-                .putFloat(PREF_LATITUDE, (float) location.getLatitude())
-                .putFloat(PREF_LONGITUDE, (float) location.getLongitude())
-                .putFloat(PREF_ACCURACY, location.getAccuracy())
-                .putLong(PREF_TIME, location.getTime())
-                .apply();
+        if (!mPrefs.contains(PREF_FIRST)) {
+            mPrefs.edit()
+                    .putLong(PREF_FIRST, System.currentTimeMillis())
+                    .putFloat(PREF_LATITUDE, (float) location.getLatitude())
+                    .putFloat(PREF_LONGITUDE, (float) location.getLongitude())
+                    .putFloat(PREF_ACCURACY, location.getAccuracy())
+                    .putLong(PREF_TIME, location.getTime())
+                    .apply();
+        } else {
+            mPrefs.edit()
+                    .putFloat(PREF_LATITUDE, (float) location.getLatitude())
+                    .putFloat(PREF_LONGITUDE, (float) location.getLongitude())
+                    .putFloat(PREF_ACCURACY, location.getAccuracy())
+                    .putLong(PREF_TIME, location.getTime())
+                    .apply();
+        }
     }
 
     public Location getLocation() {

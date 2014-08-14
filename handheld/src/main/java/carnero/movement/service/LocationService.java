@@ -43,6 +43,7 @@ public class LocationService extends TeleportService implements LocationListener
     private int mWatchY = 320;
     // counters
     private int mStepsStart;
+    private int mStepsSensor = -1;
     private int mSteps;
     private float mDistance;
     private Location mLocation;
@@ -127,6 +128,7 @@ public class LocationService extends TeleportService implements LocationListener
 
     @Override
     public void onDestroy() {
+        mSensorManager.unregisterListener(this);
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
@@ -136,7 +138,13 @@ public class LocationService extends TeleportService implements LocationListener
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            mSteps = mStepsStart + (int) event.values[0];
+            int steps = (int) event.values[0];
+            if (mStepsSensor < 0) {
+                mStepsSensor = steps;
+            }
+
+            Log.d(Constants.TAG, "Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
+            mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
 
@@ -216,7 +224,15 @@ public class LocationService extends TeleportService implements LocationListener
         // Set listener for step counter
         Sensor stepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         if (stepCounter != null) {
-            mSensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_NORMAL);
+            mStepsSensor = -1;
+            boolean batchMode = mSensorManager.registerListener(
+                    this,
+                    stepCounter,
+                    SensorManager.SENSOR_DELAY_NORMAL,
+                    20000000 // 20 seconds
+            );
+
+            Log.i(Constants.TAG, "Step counter registered (batch:" + batchMode + ")");
         }
 
         // Set listeners for criteria-based provider, and for passive provider
@@ -234,6 +250,7 @@ public class LocationService extends TeleportService implements LocationListener
                     sLocationDistanceThreshold,
                     this
             );
+            Log.i(Constants.TAG, "Location provider registered: " + bestProvider);
         }
 
         boolean isPassiveBest = LocationManager.PASSIVE_PROVIDER.equals(bestProvider);
@@ -245,6 +262,7 @@ public class LocationService extends TeleportService implements LocationListener
                     sLocationDistanceThreshold,
                     this
             );
+            Log.i(Constants.TAG, "Location provider registered: passive");
         }
     }
 
