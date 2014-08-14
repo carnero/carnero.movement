@@ -1,5 +1,6 @@
 package carnero.movement.service;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -26,21 +29,30 @@ import com.mariux.teleport.lib.TeleportService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
+import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 
 public class LocationService extends TeleportService implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
     private TeleportClient mTeleport;
+    private AlarmManager mAlarmManager;
+    private PowerManager mPowerManager;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
+    private PowerManager.WakeLock mWakeLock;
+    private boolean[] mObtained = new boolean[] {false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
+    private long mLastSentToWear = 0;
     // counters
     private int mStepsStart;
     private int mStepsSensor = -1;
@@ -53,17 +65,36 @@ public class LocationService extends TeleportService implements LocationListener
     private static final int sLocationTimeThresholdLong = 3 * 60 * 60 * 1000; // 3hr
     private static final int sLocationDistanceThresholdLong = 25; // 25m
     //
+    private static final int OBTAINED_STEPS = 0;
+    private static final int OBTAINED_LOCATION = 1;
+    //
     public static final String KILL = "kill_service";
+    public static final String WAKE = "wake_run_service";
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         mPreferences = new Preferences(this);
+        mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
+        // Set alarm for repeating
+        final Intent intent = new Intent(this, WakeupReceiver.class);
+        intent.putExtra(WAKE, true);
+
+        final PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        mAlarmManager.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(),
+                AlarmManager.INTERVAL_HALF_HOUR,
+                alarmIntent
+        );
+
+        // Load saved values
         mStepsStart = mSteps = mPreferences.getSteps();
         mDistance = mPreferences.getDistance();
         mLocation = mPreferences.getLocation();
@@ -105,7 +136,46 @@ public class LocationService extends TeleportService implements LocationListener
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getBooleanExtra(KILL, false)) {
+            Log.i(Constants.TAG, "Requested kill");
+
             stopSelf();
+        } else if (intent != null && intent.getBooleanExtra(WAKE, false)) {
+            Log.i(Constants.TAG, "Requested wake");
+
+            // Check battery level
+            final float battery = Utils.getBatteryLevel();
+            if (battery < 20) {
+                Log.i(Constants.TAG, "Wake denied, battery @ " + battery + "%");
+            } else {
+                resetObtained();
+
+                // Get wake lock
+                if (mWakeLock != null && mWakeLock.isHeld()) {
+                    mWakeLock.release();
+                }
+
+                mWakeLock = mPowerManager.newWakeLock(
+                        PowerManager.PARTIAL_WAKE_LOCK,
+                        ((Object) this).getClass().getSimpleName()
+                );
+                mWakeLock.acquire();
+
+                // Set timer for releasing wake lock
+                final TimerTask task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (mWakeLock != null && mWakeLock.isHeld()) {
+                            mWakeLock.release();
+                            mWakeLock = null;
+
+                            Log.i(Constants.TAG, "Wake lock released (timer)");
+                        }
+                    }
+                };
+
+                final Timer timer = new Timer(true);
+                timer.schedule(task, 60 * 1000); // 1 mins
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -132,6 +202,8 @@ public class LocationService extends TeleportService implements LocationListener
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
+        Log.d(Constants.TAG, "Listeners unregistered");
+
         super.onDestroy();
     }
 
@@ -148,11 +220,12 @@ public class LocationService extends TeleportService implements LocationListener
 
             mPreferences.saveSteps(mSteps);
 
-            if ((mSteps % 100) == 0) {
-                // Send to wear
-                sendDataToWear();
-                notifyHandheld();
-            }
+            // Send to wear
+            sendDataToWear();
+            notifyHandheld();
+
+            // Notify wake lock (if held)
+            setObtained(OBTAINED_STEPS);
         }
     }
 
@@ -173,6 +246,8 @@ public class LocationService extends TeleportService implements LocationListener
             return;
         }
 
+        setObtained(OBTAINED_LOCATION);
+
         if (mLocation == null) {
             mLocation = location;
 
@@ -182,6 +257,9 @@ public class LocationService extends TeleportService implements LocationListener
             // Send to wear
             sendDataToWear();
             notifyHandheld();
+
+            // Notify wake lock (if held)
+            setObtained(OBTAINED_LOCATION);
         } else if (
                 ((mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold)
                 || ((mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong)
@@ -200,6 +278,9 @@ public class LocationService extends TeleportService implements LocationListener
             // Send to wear
             sendDataToWear();
             notifyHandheld();
+
+            // Notify wake lock (if held)
+            setObtained(OBTAINED_LOCATION);
         }
     }
 
@@ -271,7 +352,7 @@ public class LocationService extends TeleportService implements LocationListener
         Location lastLoc = null;
         for (String provider : providers) {
             Location location = mLocationManager.getLastKnownLocation(provider);
-            if (lastLoc == null || lastLoc.getTime() < location.getTime()) {
+            if (location != null && (lastLoc == null || lastLoc.getTime() < location.getTime())) {
                 lastLoc = location;
             }
         }
@@ -283,7 +364,37 @@ public class LocationService extends TeleportService implements LocationListener
         }
     }
 
+    private void resetObtained() {
+        for (int i = 0; i < mObtained.length; i ++) {
+            mObtained[i] = false;
+        }
+    }
+
+    private void setObtained(int what) {
+        mObtained[what] = true;
+
+        boolean all = true;
+        for (int i = 0; i < mObtained.length; i ++) {
+            if (!mObtained[i]) {
+                all = false;
+
+                break;
+            }
+        }
+
+        if (all && mWakeLock != null && mWakeLock.isHeld()) {
+            mWakeLock.release();
+            mWakeLock = null;
+
+            Log.i(Constants.TAG, "Wake lock released (obtained)");
+        }
+    }
+
     private void sendDataToWear() {
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 60 * 1000))) { // Once in 5 mins
+            return;
+        }
+
         DataMap map = new DataMap();
         map.putInt("steps", mSteps);
         map.putFloat("distance", mDistance);
@@ -301,6 +412,8 @@ public class LocationService extends TeleportService implements LocationListener
         PutDataMapRequest data = PutDataMapRequest.createWithAutoAppendedId("/status");
         data.getDataMap().putDataMapArrayList("status", mapList);
         syncDataItem(data);
+
+        mLastSentToWear = SystemClock.elapsedRealtime();
     }
 
     private void notifyHandheld() {

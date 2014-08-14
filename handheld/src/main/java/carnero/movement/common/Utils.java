@@ -1,14 +1,30 @@
 package carnero.movement.common;
 
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.os.BatteryManager;
 import android.text.TextUtils;
 
 import com.google.android.gms.wearable.Asset;
 
 import java.io.ByteArrayOutputStream;
 
+import carnero.movement.App;
+
 public class Utils {
 
+    public static float getBatteryLevel() {
+        final Intent batteryIntent = App.get().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (batteryIntent == null) {
+            return -1f;
+        }
+
+        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+
+        return ((float)level / (float)scale) * 100.0f;
+    }
     public static String getUrlForSize(String url, int size) {
         if (TextUtils.isEmpty(url)) {
             return null;
