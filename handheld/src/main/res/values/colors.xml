@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="primary">#ff0091f5</color>
+    <color name="primary_dark">#ff0064ae</color>
+    <color name="accent">#ff0064ae</color>
+    <color name="text_primary">@android:color/white</color>
+
     <color name="bcg">@android:color/white</color>
 
-    <color name="graph_steps">#ff0064ae</color>
-    <color name="graph_distance">#ffae5b00</color>
+    <color name="graph_steps">#88008bea</color>
+    <color name="graph_distance">#88fa8b00</color>
 </resources>

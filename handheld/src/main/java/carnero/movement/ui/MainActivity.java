@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -18,6 +19,9 @@ public class MainActivity extends AbstractBaseActivity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+
+        // getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        // getWindow().setExitTransition(new Explode());
 
         // Start service
         final Intent serviceIntent = new Intent(this, LocationService.class);
@@ -34,7 +38,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         Fragment fragment = getFragmentManager().findFragmentById(R.id.container);
         if (fragment == null) {
-            fragment = new StepsGraphFragment();
+            fragment = new GraphFragment();
             getFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, fragment)

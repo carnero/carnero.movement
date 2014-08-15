@@ -3,9 +3,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.echo.holographlibrary.LineGraph
+    <com.echo.holographlibrary.SmoothLineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="4dp" />
+        android:layout_height="match_parent" />
 </LinearLayout>

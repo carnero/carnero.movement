@@ -1,5 +1,13 @@
 <resources>
-    <style name="MovementTheme" parent="android:Theme.Holo.Light">
-
+    <style name="MovementTheme" parent="android:Theme.Holo.Light.DarkActionBar">
     </style>
+
+    <!--
+    <style name="MovementTheme" parent="android:Theme.Material.Light">
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+    </style>
+    -->
 </resources>

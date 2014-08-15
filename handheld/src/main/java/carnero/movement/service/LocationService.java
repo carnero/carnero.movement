@@ -110,6 +110,7 @@ public class LocationService extends TeleportService implements LocationListener
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
+                // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -445,6 +446,7 @@ public class LocationService extends TeleportService implements LocationListener
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
+                // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(mLocation.getTime())
                 .setSmallIcon(R.drawable.ic_launcher)

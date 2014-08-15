@@ -81,7 +81,7 @@ public class Helper extends SQLiteOpenHelper {
 		return status;
 	}
 
-    public ArrayList<Model> getData() {
+    public ArrayList<Model> getLastWeek() {
         final ArrayList<Model> data = new ArrayList<Model>();
 
         Cursor cursor = null;
@@ -89,7 +89,8 @@ public class Helper extends SQLiteOpenHelper {
             cursor = getDatabaseRO().query(
                     Structure.Table.History.name,
                     Structure.Table.History.projection,
-                    null, null, null, null,
+                    Structure.Table.History.TIME + " > " + (7 * 24 * 60 * 60 * 1000), // Last 7 dat
+                    null, null, null,
                     Structure.Table.History.TIME + " asc"
             );
 

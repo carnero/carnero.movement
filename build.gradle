@@ -1,14 +1,14 @@
 buildscript {
-  repositories {
-    jcenter()
-  }
+    repositories {
+        jcenter()
+    }
   dependencies {
-    classpath 'com.android.tools.build:gradle:0.12.2'
+    classpath 'com.android.tools.build:gradle:0.12.+'
   }
 }
 
 allprojects {
-  repositories {
-    jcenter()
-  }
+    repositories {
+        jcenter()
+    }
 }
