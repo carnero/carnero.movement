@@ -86,6 +86,20 @@ public class LocationService extends TeleportService implements LocationListener
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
+        // Load saved values
+        mStepsStart = mSteps = mPreferences.getSteps();
+        mStepsSensor = mPreferences.getStepsSensor();
+        mDistance = mPreferences.getDistance();
+        mLocation = mPreferences.getLocation();
+
+        if (mLocation == null) {
+            getLastLocation();
+        }
+
+        // Initialize
+        mTeleport = new TeleportClient(this);
+        mTeleport.connect();
+
         // Fire initial notification & start service
         final String distanceStr;
         if (mDistance > 1600) {
@@ -122,20 +136,6 @@ public class LocationService extends TeleportService implements LocationListener
                 AlarmManager.INTERVAL_HALF_HOUR,
                 alarmIntent
         );
-
-        // Load saved values
-        mStepsStart = mSteps = mPreferences.getSteps();
-        mStepsSensor = mPreferences.getStepsSensor();
-        mDistance = mPreferences.getDistance();
-        mLocation = mPreferences.getLocation();
-
-        if (mLocation == null) {
-            getLastLocation();
-        }
-
-        // Initialize
-        mTeleport = new TeleportClient(this);
-        mTeleport.connect();
 
         init();
     }

@@ -2,11 +2,14 @@ package carnero.movement.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.util.Log;
+
+import java.util.ArrayList;
 
 import carnero.movement.common.Constants;
 
@@ -77,4 +80,47 @@ public class Helper extends SQLiteOpenHelper {
 
 		return status;
 	}
+
+    public ArrayList<Model> getData() {
+        final ArrayList<Model> data = new ArrayList<Model>();
+
+        Cursor cursor = null;
+        try {
+            cursor = getDatabaseRO().query(
+                    Structure.Table.History.name,
+                    Structure.Table.History.projection,
+                    null, null, null, null,
+                    Structure.Table.History.TIME + " asc"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxID = cursor.getColumnIndex(Structure.Table.History.ID);
+                int idxTime = cursor.getColumnIndex(Structure.Table.History.TIME);
+                int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
+                int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
+                int idxLatitude = cursor.getColumnIndex(Structure.Table.History.LATITUDE);
+                int idxLongitude = cursor.getColumnIndex(Structure.Table.History.LONGITUDE);
+                int idxAccuracy = cursor.getColumnIndex(Structure.Table.History.ACCURACY);
+
+                do {
+                    Model model = new Model();
+                    model.id = cursor.getLong(idxID);
+                    model.time = cursor.getLong(idxTime);
+                    model.steps = cursor.getInt(idxSteps);
+                    model.distance = cursor.getFloat(idxDistance);
+                    model.latitude = cursor.getDouble(idxLatitude);
+                    model.longitude = cursor.getDouble(idxLongitude);
+                    model.accuracy = cursor.getDouble(idxAccuracy);
+
+                    data.add(model);
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return data;
+    }
 }

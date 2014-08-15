@@ -1,7 +1,12 @@
+# Library
+holographlibrary/
+
+# Build
 build/
 .gradle/
 .DS_Store/
 
+# Stuff
 local.properties
 *.swp
 

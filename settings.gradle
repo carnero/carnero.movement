@@ -1,2 +1,4 @@
 include ':handheld'
 include ':wear'
+include ':HoloGraphLibrary'
+project(':HoloGraphLibrary').projectDir = new File('holographlibrary/HoloGraphLibrary')

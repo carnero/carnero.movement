@@ -4,7 +4,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="@dimen/margin_activity"
+    android:background="@color/bcg"
     tools:context="carnero.movement.ui.MainActivity">
 
-    <!-- TODO -->
+    <com.echo.holographlibrary.LineGraph
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>
