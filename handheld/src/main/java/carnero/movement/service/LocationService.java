@@ -36,12 +36,14 @@ import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.db.Helper;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 
 public class LocationService extends TeleportService implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
+    private Helper mDatabase;
     private TeleportClient mTeleport;
     private AlarmManager mAlarmManager;
     private PowerManager mPowerManager;
@@ -52,6 +54,7 @@ public class LocationService extends TeleportService implements LocationListener
     private boolean[] mObtained = new boolean[] {false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
+    private long mLastSaveToDB = 0;
     private long mLastSentToWear = 0;
     // counters
     private int mStepsStart;
@@ -76,6 +79,7 @@ public class LocationService extends TeleportService implements LocationListener
         super.onCreate();
 
         mPreferences = new Preferences(this);
+        mDatabase = new Helper(this);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -223,9 +227,8 @@ public class LocationService extends TeleportService implements LocationListener
             mPreferences.saveSteps(mSteps);
             mPreferences.saveStepsSensor(steps);
 
-            // Send to wear
-            sendDataToWear();
-            notifyHandheld();
+            // Save & send data
+            handleData();
 
             // Notify wake lock (if held)
             setObtained(OBTAINED_STEPS);
@@ -257,9 +260,8 @@ public class LocationService extends TeleportService implements LocationListener
             // Save first location
             mPreferences.saveLocation(mLocation);
 
-            // Send to wear
-            sendDataToWear();
-            notifyHandheld();
+            // Save & send data
+            handleData();
 
             // Notify wake lock (if held)
             setObtained(OBTAINED_LOCATION);
@@ -278,9 +280,8 @@ public class LocationService extends TeleportService implements LocationListener
                 mPreferences.saveLocation(mLocation);
             }
 
-            // Send to wear
-            sendDataToWear();
-            notifyHandheld();
+            // Save & send data
+            handleData();
 
             // Notify wake lock (if held)
             setObtained(OBTAINED_LOCATION);
@@ -392,8 +393,25 @@ public class LocationService extends TeleportService implements LocationListener
         }
     }
 
+    private void handleData() {
+        saveToDB();
+        sendDataToWear();
+        notifyHandheld();
+    }
+
+    private void saveToDB() {
+        if (mLastSaveToDB > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
+            return;
+        }
+
+        boolean status = mDatabase.saveData(mSteps, mDistance, mLocation);
+        if (status) {
+            mLastSaveToDB = SystemClock.elapsedRealtime();
+        }
+    }
+
     private void sendDataToWear() {
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 60 * 1000))) { // Once in 5 mins
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
             return;
         }
 
@@ -402,9 +420,6 @@ public class LocationService extends TeleportService implements LocationListener
         map.putFloat("distance", mDistance);
         map.putDouble("latitude", mLocation.getLatitude());
         map.putDouble("longitude", mLocation.getLongitude());
-        if (mLocation.hasAltitude()) {
-            map.putDouble("altitude", mLocation.getAltitude());
-        }
         map.putDouble("accuracy", mLocation.getAccuracy());
         map.putLong("time", mLocation.getTime());
 

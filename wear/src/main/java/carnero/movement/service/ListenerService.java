@@ -87,9 +87,6 @@ public class ListenerService extends TeleportService {
         Location location = new Location("HANDHELD");
         location.setLatitude(map.getDouble("latitude"));
         location.setLongitude(map.getDouble("longitude"));
-        if (map.containsKey("altitude")) {
-            location.setAltitude(map.getDouble("altitude"));
-        }
         location.setAccuracy(map.getFloat("accuracy"));
         location.setTime(map.getLong("time"));
 
