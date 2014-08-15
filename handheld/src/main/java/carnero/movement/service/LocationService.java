@@ -86,28 +86,7 @@ public class LocationService extends TeleportService implements LocationListener
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
-        // Set alarm for repeating
-        final Intent intent = new Intent(this, WakeupReceiver.class);
-        intent.putExtra(WAKE, true);
-
-        final PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-        mAlarmManager.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis(),
-                AlarmManager.INTERVAL_HALF_HOUR,
-                alarmIntent
-        );
-
-        // Load saved values
-        mStepsStart = mSteps = mPreferences.getSteps();
-        mStepsSensor = mPreferences.getStepsSensor();
-        mDistance = mPreferences.getDistance();
-        mLocation = mPreferences.getLocation();
-
-        if (mLocation == null) {
-            getLastLocation();
-        }
-
+        // Fire initial notification & start service
         final String distanceStr;
         if (mDistance > 1600) {
             distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km | " + mSteps + " steps";
@@ -132,6 +111,29 @@ public class LocationService extends TeleportService implements LocationListener
 
         startForeground(Constants.ID_NOTIFICATION_SERVICE, builder.build());
 
+        // Set alarm for repeating
+        final Intent intent = new Intent(this, WakeupReceiver.class);
+        intent.putExtra(WAKE, true);
+
+        final PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        mAlarmManager.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(),
+                AlarmManager.INTERVAL_HALF_HOUR,
+                alarmIntent
+        );
+
+        // Load saved values
+        mStepsStart = mSteps = mPreferences.getSteps();
+        mStepsSensor = mPreferences.getStepsSensor();
+        mDistance = mPreferences.getDistance();
+        mLocation = mPreferences.getLocation();
+
+        if (mLocation == null) {
+            getLastLocation();
+        }
+
+        // Initialize
         mTeleport = new TeleportClient(this);
         mTeleport.connect();
 
