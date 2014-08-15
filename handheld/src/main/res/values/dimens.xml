@@ -1,5 +1,5 @@
 <resources>
     <dimen name="margin_activity">16dp</dimen>
 
-    <dimen name="line_stroke">3dp</dimen>
+    <dimen name="line_stroke">5dp</dimen>
 </resources>

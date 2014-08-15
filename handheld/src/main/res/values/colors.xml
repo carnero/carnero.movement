@@ -3,4 +3,5 @@
     <color name="bcg">@android:color/white</color>
 
     <color name="graph_steps">#ff0064ae</color>
+    <color name="graph_distance">#ffae5b00</color>
 </resources>
