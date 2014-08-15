@@ -2,12 +2,15 @@ package carnero.movement.ui;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.echo.holographlibrary.Line;
-import com.echo.holographlibrary.LineGraph;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
 
@@ -28,6 +31,10 @@ public class GraphFragment extends Fragment {
     //
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
+    @InjectView(R.id.label_top)
+    TextView vTop;
+    @InjectView(R.id.label_bottom)
+    TextView vBottom;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
@@ -72,6 +79,10 @@ public class GraphFragment extends Fragment {
         private float mMinStp = Float.MAX_VALUE;
         private float mMaxDst = Float.MIN_VALUE;
         private float mMinDst = Float.MAX_VALUE;
+        private float mMaxStpLabel;
+        private float mMinStpLabel;
+        private float mMaxDstLabel;
+        private float mMinDstLabel;
 
         @Override
         public void inBackground() {
@@ -118,7 +129,47 @@ public class GraphFragment extends Fragment {
                     distancePrev = model.distance;
                 }
 
+                // Save for labels
+                mMinStpLabel = mMinStp;
+                mMaxStpLabel = mMaxStp;
+                mMinDstLabel = mMinDst;
+                mMaxDstLabel = mMaxDst;
+
                 // Normalize data
+                float shift = 0.0f;
+                int shiftLine = -1; // steps:0, distance: 1
+                if (mMinStp > mMinDst) {
+                    shift = mMinStp - mMinDst;
+                    shiftLine = 0;
+                } else if (mMinStp < mMinDst) {
+                    shift = mMinDst - mMinStp;
+                    shiftLine = 1;
+                }
+
+                float ratio = 1.0f;
+                int ratioLine = -1; // steps:0, distance:1
+                if (mMaxStp > mMaxDst) {
+                    ratio = mMaxStp / mMaxDst;
+                    ratioLine = 0;
+                } else if (mMaxStp < mMaxDst) {
+                    ratio = mMaxDst / mMaxStp;
+                    ratioLine = 1;
+                }
+
+                if (shiftLine == 0 || ratioLine == 0) {
+                    for (LinePoint point : mLineSteps.getPoints()) {
+                        point.setY((point.getY() / ratio) - shift);
+                    }
+                    mMinStp = (mMinStp / ratio) - shift;
+                    mMaxStp = (mMaxStp / ratio) - shift;
+                }
+                if (shiftLine == 1 || ratioLine == 1) {
+                    for (LinePoint point : mLineDistance.getPoints()) {
+                        point.setY((point.getY() / ratio) - shift);
+                    }
+                    mMinDst = (mMinDst / ratio) - shift;
+                    mMaxDst = (mMaxDst / ratio) - shift;
+                }
             }
         }
 
@@ -128,6 +179,45 @@ public class GraphFragment extends Fragment {
                     Math.min(mMinStp, mMinDst),
                     Math.max(mMaxStp, mMaxDst)
             );
+
+            // Format top label
+            StringBuilder topBuilder = new StringBuilder();
+            topBuilder.append(Integer.toString((int) mMaxStp));
+            topBuilder.append(" st");
+            int topDstLen = topBuilder.length();
+            topBuilder.append("\n");
+            if (mMaxDst > 1600) {
+                topBuilder.append(String.format("%.1f", mMaxDst / 1000));
+                topBuilder.append(" km");
+            } else {
+                topBuilder.append(String.format("%.1f", mMaxDst));
+                topBuilder.append(" m");
+            }
+
+            SpannableString top = new SpannableString(topBuilder.toString());
+            top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)), 0, topDstLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)), topDstLen, topBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            // Format top label
+            StringBuilder bottomBuilder = new StringBuilder();
+            bottomBuilder.append(Integer.toString((int) mMinStp));
+            bottomBuilder.append(" st");
+            int bottomDstLen = bottomBuilder.length();
+            bottomBuilder.append("\n");
+            if (mMinDst > 1600) {
+                bottomBuilder.append(String.format("%.1f", mMinDst / 1000));
+                bottomBuilder.append(" km");
+            } else {
+                bottomBuilder.append(String.format("%.1f", mMinDst));
+                bottomBuilder.append(" m");
+            }
+
+            SpannableString bottom = new SpannableString(bottomBuilder.toString());
+            bottom.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)), 0, bottomDstLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            bottom.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)), bottomDstLen, bottomBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            vTop.setText(top);
+            vBottom.setText(bottom);
         }
     }
 }
