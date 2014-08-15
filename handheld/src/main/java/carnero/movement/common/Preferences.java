@@ -13,6 +13,7 @@ public class Preferences {
     private static final String FILE = "movement.prefs";
     private static final String PREF_FIRST = "first";
     private static final String PREF_STEPS = "steps";
+    private static final String PREF_STEPS_SENSOR = "steps_last";
     private static final String PREF_DISTANCE = "distance";
     private static final String PREF_LATITUDE = "loc_latitude";
     private static final String PREF_LONGITUDE = "loc_longitude";
@@ -38,6 +39,16 @@ public class Preferences {
 
     public int getSteps() {
         return mPrefs.getInt(PREF_STEPS, 0);
+    }
+
+    public void saveStepsSensor(int steps) {
+        mPrefs.edit()
+                .putInt(PREF_STEPS_SENSOR, steps)
+                .apply();
+    }
+
+    public int getStepsSensor() {
+        return mPrefs.getInt(PREF_STEPS_SENSOR, 0);
     }
 
     public void saveLocation(Location location) {

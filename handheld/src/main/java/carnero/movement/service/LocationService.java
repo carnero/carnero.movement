@@ -55,7 +55,7 @@ public class LocationService extends TeleportService implements LocationListener
     private long mLastSentToWear = 0;
     // counters
     private int mStepsStart;
-    private int mStepsSensor = -1;
+    private int mStepsSensor;
     private int mSteps;
     private float mDistance;
     private Location mLocation;
@@ -96,6 +96,7 @@ public class LocationService extends TeleportService implements LocationListener
 
         // Load saved values
         mStepsStart = mSteps = mPreferences.getSteps();
+        mStepsSensor = mPreferences.getStepsSensor();
         mDistance = mPreferences.getDistance();
         mLocation = mPreferences.getLocation();
 
@@ -210,15 +211,17 @@ public class LocationService extends TeleportService implements LocationListener
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            int steps = (int) event.values[0];
-            if (mStepsSensor < 0) {
-                mStepsSensor = steps;
+            final int steps = (int) event.values[0];
+
+            if (mStepsSensor > steps) { // Device was probably rebooted
+                mStepsSensor = 0;
             }
 
             Log.d(Constants.TAG, "Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
             mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
+            mPreferences.saveStepsSensor(steps);
 
             // Send to wear
             sendDataToWear();
@@ -305,7 +308,6 @@ public class LocationService extends TeleportService implements LocationListener
         // Set listener for step counter
         Sensor stepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         if (stepCounter != null) {
-            mStepsSensor = -1;
             boolean batchMode = mSensorManager.registerListener(
                     this,
                     stepCounter,
