@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.google.android.gms.wearable.Asset;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Locale;
 
 import carnero.movement.App;
 
@@ -23,8 +24,17 @@ public class Utils {
         int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-        return ((float)level / (float)scale) * 100.0f;
+        return ((float) level / (float) scale) * 100.0f;
     }
+
+    public static String formatDistance(float distance) {
+        if (distance > 1600) {
+            return String.format(Locale.getDefault(), "%.1f km", distance / 1000f);
+        } else {
+            return String.format(Locale.getDefault(), "%.1f m", distance);
+        }
+    }
+
     public static String getUrlForSize(String url, int size) {
         if (TextUtils.isEmpty(url)) {
             return null;

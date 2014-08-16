@@ -2,9 +2,13 @@ package carnero.movement.ui;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
@@ -14,17 +18,24 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 
 public class GraphFragment extends Fragment {
 
+    private Preferences mPreferences;
     private Helper mHelper;
     private Line mLineSteps;
     private Line mLineDistance;
     //
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
+    @InjectView(R.id.stats_steps)
+    TextView vStatsSteps;
+    @InjectView(R.id.stats_distance)
+    TextView vStatsDistance;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
@@ -51,6 +62,7 @@ public class GraphFragment extends Fragment {
     public void onActivityCreated(Bundle state) {
         super.onActivityCreated(state);
 
+        mPreferences = new Preferences(getActivity());
         mHelper = new Helper(getActivity());
     }
 
@@ -69,6 +81,11 @@ public class GraphFragment extends Fragment {
         private double mMinStp = Double.MAX_VALUE;
         private double mMaxDst = Double.MIN_VALUE;
         private double mMinDst = Double.MAX_VALUE;
+        //
+        private int mLabelStepsMin = Integer.MAX_VALUE;
+        private int mLabelStepsMax = Integer.MIN_VALUE;
+        private float mLabelDistanceMin = Float.MAX_VALUE;
+        private float mLabelDistanceMax = Float.MIN_VALUE;
 
         @Override
         public void inBackground() {
@@ -83,6 +100,23 @@ public class GraphFragment extends Fragment {
                 for (int i = 0; i < data.length; i++) {
                     ModelData model = data[i];
 
+                    // Values for labels
+                    if (model != null) {
+                        if (model.steps > mLabelStepsMax) {
+                            mLabelStepsMax = model.steps;
+                        }
+                        if (model.steps < mLabelStepsMin) {
+                            mLabelStepsMin = model.steps;
+                        }
+                        if (model.distance > mLabelDistanceMax) {
+                            mLabelDistanceMax = model.distance;
+                        }
+                        if (model.distance < mLabelDistanceMin) {
+                            mLabelDistanceMin = model.distance;
+                        }
+                    }
+
+                    // Graph
                     float steps;
                     float distance;
                     if (model == null) {
@@ -101,39 +135,29 @@ public class GraphFragment extends Fragment {
                     }
 
                     // Steps
-                    double stepsLog = 0;
-                    if (steps > 0) {
-                        stepsLog = Math.log10(steps);
-                    }
-
                     LinePoint pointSteps = new LinePoint();
                     pointSteps.setX(i);
-                    pointSteps.setY(stepsLog);
+                    pointSteps.setY(steps);
                     mLineSteps.addPoint(pointSteps);
 
-                    if (stepsLog > mMaxStp) {
-                        mMaxStp = stepsLog;
+                    if (steps > mMaxStp) {
+                        mMaxStp = steps;
                     }
-                    if (stepsLog < mMinStp) {
-                        mMinStp = stepsLog;
+                    if (steps < mMinStp) {
+                        mMinStp = steps;
                     }
 
                     // Distance
-                    double distanceLog = 0;
-                    if (distance > 0) {
-                        distanceLog = Math.log10(distance);
-                    }
-
                     LinePoint pointDistance = new LinePoint();
                     pointDistance.setX(i);
-                    pointDistance.setY(distanceLog);
+                    pointDistance.setY(distance);
                     mLineDistance.addPoint(pointDistance);
 
-                    if (distanceLog > mMaxDst) {
-                        mMaxDst = distanceLog;
+                    if (distance > mMaxDst) {
+                        mMaxDst = distance;
                     }
-                    if (distanceLog < mMinDst) {
-                        mMinDst = distanceLog;
+                    if (distance < mMinDst) {
+                        mMinDst = distance;
                     }
                 }
 
@@ -167,6 +191,36 @@ public class GraphFragment extends Fragment {
 
         @Override
         public void postExecute() {
+            // Statistics
+            StringBuilder stB = new StringBuilder();
+            stB.append("• today ");
+            stB.append(mLabelStepsMax - mLabelStepsMin);
+            stB.append(" steps, total ");
+            stB.append(mPreferences.getSteps());
+            stB.append(" steps");
+            SpannableString stS = new SpannableString(stB.toString());
+            stS.setSpan(
+                    new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)),
+                    0, 1,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+
+            vStatsSteps.setText(stS);
+
+            StringBuilder dsB = new StringBuilder();
+            dsB.append("• today ");
+            dsB.append(Utils.formatDistance(mLabelDistanceMax - mLabelDistanceMin));
+            dsB.append(", total ");
+            dsB.append(Utils.formatDistance(mPreferences.getDistance()));
+            SpannableString dsS = new SpannableString(dsB.toString());
+            dsS.setSpan(
+                    new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)),
+                    0, 1,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+
+            vStatsDistance.setText(dsS);
+
             // Graph
             vGraph.setRangeY(
                     (float) Math.min(mMinStp, mMinDst),

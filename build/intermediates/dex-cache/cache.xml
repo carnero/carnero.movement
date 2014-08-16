@@ -24,7 +24,7 @@
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/classes-ff8ef504abbcc7898e9d50f73d3347485f9ad584.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/carnero.movement/HoloGraphLibrary/unspecified/classes.jar"
-        jumboMode="false" revision="20.0.0" sha1="f30a6100a4ae211913e64cd9f458ef35543af9a1" />
+        jumboMode="false" revision="20.0.0" sha1="954f46854e2d9c2352129c18828eeaad7ec57689" />
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/butterknife-5.1.1-a761a517687ace6f4f113b5cc296ccba5e60db83.jar"
         jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife/5.1.1/b3652dfd65ca0bcf18790ff1a1f7624af4cb2bb8/butterknife-5.1.1.jar"

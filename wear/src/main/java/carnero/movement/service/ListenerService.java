@@ -16,9 +16,7 @@ import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 import carnero.movement.App;
 import carnero.movement.R;
@@ -95,11 +93,7 @@ public class ListenerService extends TeleportService {
 
         // Update notification
         final StringBuilder status = new StringBuilder();
-        if (distance > 1600) {
-            status.append(String.format(Locale.getDefault(), "%.1f", (distance / 1000f)) + " km");
-        } else {
-            status.append(String.format(Locale.getDefault(), "%.1f", distance) + " m");
-        }
+        status.append(Utils.formatDistance(distance));
         if (steps > 0) {
             status.append(" | ");
             status.append(Integer.toString(steps));

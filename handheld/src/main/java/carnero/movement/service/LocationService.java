@@ -28,7 +28,6 @@ import com.mariux.teleport.lib.TeleportService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -51,7 +50,7 @@ public class LocationService extends TeleportService implements LocationListener
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
-    private boolean[] mObtained = new boolean[] {false, false}; // Matches OBTAINED_ constants
+    private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
     private long mLastSaveToDB = 0;
@@ -101,22 +100,15 @@ public class LocationService extends TeleportService implements LocationListener
         mTeleport.connect();
 
         // Fire initial notification & start service
-        final String distanceStr;
-        if (mDistance > 1600) {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km | " + mSteps + " steps";
-        } else {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m | " + mSteps + " steps";
-        }
-
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
-                // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
-                .setContentText(distanceStr)
+                .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
                 .setContentIntent(PendingIntent.getActivity(
                         LocationService.this,
                         1010,
@@ -270,7 +262,7 @@ public class LocationService extends TeleportService implements LocationListener
             setObtained(OBTAINED_LOCATION);
         } else if (
                 ((mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold)
-                || ((mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong)
+                        || ((mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong)
                 ) {
             mDistance += mLocation.distanceTo(location);
             mLocation = location;
@@ -371,7 +363,7 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void resetObtained() {
-        for (int i = 0; i < mObtained.length; i ++) {
+        for (int i = 0; i < mObtained.length; i++) {
             mObtained[i] = false;
         }
     }
@@ -380,7 +372,7 @@ public class LocationService extends TeleportService implements LocationListener
         mObtained[what] = true;
 
         boolean all = true;
-        for (int i = 0; i < mObtained.length; i ++) {
+        for (int i = 0; i < mObtained.length; i++) {
             if (!mObtained[i]) {
                 all = false;
 
@@ -437,22 +429,15 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void notifyHandheld() {
-        final String distanceStr;
-        if (mDistance > 1600) {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", (mDistance / 1000f)) + " km | " + mSteps + " steps";
-        } else {
-            distanceStr = String.format(Locale.getDefault(), "%.1f", mDistance) + " m | " + mSteps + " steps";
-        }
-
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
-                // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(mLocation.getTime())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
-                .setContentText(distanceStr)
+                .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
                 .setContentIntent(PendingIntent.getActivity(
                         LocationService.this,
                         1010,
