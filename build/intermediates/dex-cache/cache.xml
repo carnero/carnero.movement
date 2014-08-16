@@ -2,29 +2,57 @@
 <pre-dex-items>
 
     <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-2455a089864ff97bf4683588a4b6a5594029f3d4.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.google.android.support/wearable/1.0.0/classes.jar"
+        jumboMode="false" revision="20.0.0" sha1="6804efbb78d7facc2e1aa107c7342bee83afae45" />
+    <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/classes-0a13024182e2dccad438b9353aaae8de0e170309.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/com.google.android.gms/play-services-wearable/5.0.77/classes.jar"
         jumboMode="false" revision="20.0.0" sha1="80a6f6f2d0dfcfae8c424cf81dcdf7157e7bf4b8" />
-    <item
-        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/universal-image-loader-1.9.2-68a0010cd1d164b393ef2062b09b031e6f6ac868.jar"
-        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.nostra13.universalimageloader/universal-image-loader/1.9.2/9e025bc5b84968e7d6ac765e660a70b3e5a87432/universal-image-loader-1.9.2.jar"
-        jumboMode="false" revision="20.0.0" sha1="9e025bc5b84968e7d6ac765e660a70b3e5a87432" />
-    <item
-        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/teleportlib-0.1.1-ba8baa6ee51d2197c8293895698ab15297061b2b.jar"
-        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/Teleport/teleportlib/0.1.1/abdea6b57b4fc9efa11a114558051ab00683c586/teleportlib-0.1.1.jar"
-        jumboMode="false" revision="20.0.0" sha1="abdea6b57b4fc9efa11a114558051ab00683c586" />
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/classes-f9ea0387beb820b7da573e6bcb5481a4d9191d9b.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/classes.jar"
         jumboMode="false" revision="20.0.0" sha1="8694693636ab36910c8100ce527c258ff3ebece0" />
     <item
-        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-aafa5a2b105857d5a11e7827d679eec2f088d9a5.jar"
-        jar="/Developer/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/20.0.0/support-annotations-20.0.0.jar"
-        jumboMode="false" revision="20.0.0" sha1="9d9013e9ff35fc3756411e62873c363c70c638fa" />
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-10cac8d2547d40e1fae9f814ff2056302a2f5710.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v13/20.0.0/classes.jar"
+        jumboMode="false" revision="20.0.0" sha1="e128103d5281ddd26195a7f980b36d0d005a4e56" />
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/classes-ff8ef504abbcc7898e9d50f73d3347485f9ad584.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/carnero.movement/HoloGraphLibrary/unspecified/classes.jar"
         jumboMode="false" revision="20.0.0" sha1="954f46854e2d9c2352129c18828eeaad7ec57689" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/otto-1.3.5-b53498acbbdd020486329ea00a0b0c27646e6311.jar"
+        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.squareup/otto/1.3.5/7941cd2c2c8ec006800d75c35f8a9dacf892ab93/otto-1.3.5.jar"
+        jumboMode="false" revision="20.0.0" sha1="7941cd2c2c8ec006800d75c35f8a9dacf892ab93" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/internal_impl-20.0.0-56e1b55990c10bfc858f964ca6a0c840c8e8aa48.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/libs/internal_impl-20.0.0.jar"
+        jumboMode="false" revision="20.0.0" sha1="e40b3078e3fbd353c9f44da8df25a8fc0078209d" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-c712377a220b4a6d7dee92012d5acb724dd89a19.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v4/20.0.0/classes.jar"
+        jumboMode="false" revision="20.0.0" sha1="8694693636ab36910c8100ce527c258ff3ebece0" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/universal-image-loader-1.9.2-68a0010cd1d164b393ef2062b09b031e6f6ac868.jar"
+        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.nostra13.universalimageloader/universal-image-loader/1.9.2/9e025bc5b84968e7d6ac765e660a70b3e5a87432/universal-image-loader-1.9.2.jar"
+        jumboMode="false" revision="20.0.0" sha1="9e025bc5b84968e7d6ac765e660a70b3e5a87432" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-c26de1bcf2853934f13dd5d904d7a0f8dae23807.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.google.android.gms/play-services-wearable/5.0.77/classes.jar"
+        jumboMode="false" revision="20.0.0" sha1="80a6f6f2d0dfcfae8c424cf81dcdf7157e7bf4b8" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/teleportlib-0.1.1-ba8baa6ee51d2197c8293895698ab15297061b2b.jar"
+        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/Teleport/teleportlib/0.1.1/abdea6b57b4fc9efa11a114558051ab00683c586/teleportlib-0.1.1.jar"
+        jumboMode="false" revision="20.0.0" sha1="abdea6b57b4fc9efa11a114558051ab00683c586" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-aafa5a2b105857d5a11e7827d679eec2f088d9a5.jar"
+        jar="/Developer/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/20.0.0/support-annotations-20.0.0.jar"
+        jumboMode="false" revision="20.0.0" sha1="9d9013e9ff35fc3756411e62873c363c70c638fa" />
+    <item
+        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/internal_impl-20.0.0-be070f2803621d5ccd5e77f0d4a852cc11b08caf.jar"
+        jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v13/20.0.0/libs/internal_impl-20.0.0.jar"
+        jumboMode="false" revision="20.0.0" sha1="27bbd3982cdfe4468a9bf99c8c773734a9049e33" />
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/butterknife-5.1.1-a761a517687ace6f4f113b5cc296ccba5e60db83.jar"
         jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.jakewharton/butterknife/5.1.1/b3652dfd65ca0bcf18790ff1a1f7624af4cb2bb8/butterknife-5.1.1.jar"

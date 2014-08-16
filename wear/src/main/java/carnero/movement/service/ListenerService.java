@@ -100,15 +100,13 @@ public class ListenerService extends TeleportService {
             status.append(" steps");
         }
 
-        final Notification.BigTextStyle style = new Notification.BigTextStyle()
-                .bigText(status.toString());
-
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOngoing(false)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setStyle(style);
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(status.toString());
 
         final Notification notification = new Notification.WearableExtender()
                 .extend(builder)

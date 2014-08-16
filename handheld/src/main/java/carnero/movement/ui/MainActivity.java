@@ -37,8 +37,8 @@ public class MainActivity extends AbstractBaseActivity {
 
         Fragment fragment = getFragmentManager().findFragmentById(R.id.container);
         if (fragment == null) {
-            // fragment = GraphFragment.newInstance();
-            fragment = MapFragment.newInstance();
+            fragment = GraphFragment.newInstance();
+            // fragment = MapFragment.newInstance();
             getFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, fragment)

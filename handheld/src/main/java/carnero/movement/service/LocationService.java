@@ -105,7 +105,7 @@ public class LocationService extends TeleportService implements LocationListener
                         // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
                 .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
@@ -395,7 +395,7 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void saveToDB() {
-        if (mLastSaveToDB > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
+        if (mLastSaveToDB > (SystemClock.elapsedRealtime() - (5 * 60 * 1000))) { // Once in 10 mins
             return;
         }
 
@@ -434,7 +434,7 @@ public class LocationService extends TeleportService implements LocationListener
                         // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setWhen(mLocation.getTime())
-                .setSmallIcon(R.drawable.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
                 .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")

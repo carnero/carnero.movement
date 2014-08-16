@@ -50,11 +50,11 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment {
         map.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
             @Override
             public void onMyLocationChange(Location location) {
-                centerMap(location);
+                centerMap(location, false);
             }
         });
 
-        centerMap(map.getMyLocation());
+        centerMap(map.getMyLocation(), true);
 
         new DataLoadTask().start();
     }
@@ -66,14 +66,22 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment {
         super.onPause();
     }
 
-    private void centerMap(Location location) {
+    private void centerMap(Location location, boolean fast) {
         if (mFollowMe && location != null) {
-            getMap().animateCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(), location.getLongitude()),
-                            14
-                    )
-            );
+            if (fast) {
+                getMap().moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(location.getLatitude(), location.getLongitude()),
+                                14
+                        )
+                );
+            } else {
+                getMap().animateCamera(
+                        CameraUpdateFactory.newLatLng(
+                                new LatLng(location.getLatitude(), location.getLongitude())
+                        )
+                );
+            }
             mFollowMe = false;
         }
     }
