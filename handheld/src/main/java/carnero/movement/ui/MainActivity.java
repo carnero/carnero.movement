@@ -1,9 +1,11 @@
 package carnero.movement.ui;
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -12,8 +14,10 @@ import carnero.movement.service.LocationService;
 
 public class MainActivity extends AbstractBaseActivity {
 
-    @InjectView(R.id.container)
-    View vContainer;
+    private PagerAdapter mPagerAdapter;
+    //
+    @InjectView(R.id.pager)
+    ViewPager vPager;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -29,20 +33,36 @@ public class MainActivity extends AbstractBaseActivity {
         // Init layout
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+
+        mPagerAdapter = new PagesAdapter();
+        vPager.setAdapter(mPagerAdapter);
+        vPager.setCurrentItem(1);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    // Classes
 
-        Fragment fragment = getFragmentManager().findFragmentById(R.id.container);
-        if (fragment == null) {
-            fragment = GraphFragment.newInstance();
-            // fragment = MapFragment.newInstance();
-            getFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container, fragment)
-                    .commit();
+    private class PagesAdapter extends FragmentStatePagerAdapter {
+        public PagesAdapter() {
+            super(getSupportFragmentManager());
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return GraphFragment.newInstance(-1); // Yesterday
+                case 1:
+                    return GraphFragment.newInstance(0); // Today
+                case 2:
+                    return MapFragment.newInstance();
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 3;
         }
     }
 }

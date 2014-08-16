@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -16,7 +17,7 @@ import carnero.movement.common.LocationSource;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelLocation;
 
-public class MapFragment extends com.google.android.gms.maps.MapFragment {
+public class MapFragment extends SupportMapFragment {
 
     private Helper mHelper;
     private LocationSource mLocationSource;
@@ -94,7 +95,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment {
 
         @Override
         public void inBackground() {
-            mData = mHelper.getLocationsToday();
+            mData = mHelper.getLocationsForDay();
         }
 
         @Override

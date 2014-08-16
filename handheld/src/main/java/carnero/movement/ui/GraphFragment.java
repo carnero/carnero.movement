@@ -1,7 +1,7 @@
 package carnero.movement.ui;
 
-import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -30,6 +30,8 @@ public class GraphFragment extends Fragment {
     private Line mLineSteps;
     private Line mLineDistance;
     //
+    private static final String ARGS_DAY = "day";
+    //
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
     @InjectView(R.id.stats_steps)
@@ -37,8 +39,14 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.stats_distance)
     TextView vStatsDistance;
 
-    public static GraphFragment newInstance() {
-        return new GraphFragment();
+    public static GraphFragment newInstance(int day) {
+        Bundle arguments = new Bundle();
+        arguments.putInt(ARGS_DAY, day);
+
+        final GraphFragment fragment = new GraphFragment();
+        fragment.setArguments(arguments);
+
+        return fragment;
     }
 
     @Override
@@ -77,6 +85,10 @@ public class GraphFragment extends Fragment {
         new DataLoadTask().start();
     }
 
+    private int getDay() {
+        return getArguments().getInt(ARGS_DAY, 0);
+    }
+
     // Classes
 
     private class DataLoadTask extends BaseAsyncTask {
@@ -93,7 +105,7 @@ public class GraphFragment extends Fragment {
 
         @Override
         public void inBackground() {
-            ModelData[] data = mHelper.getDataToday();
+            ModelData[] data = mHelper.getDataForDay(getDay());
             if (data != null) {
                 mLineSteps.getPoints().clear();
                 mLineDistance.getPoints().clear();

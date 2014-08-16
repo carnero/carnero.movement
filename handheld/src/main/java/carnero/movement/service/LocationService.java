@@ -417,6 +417,7 @@ public class LocationService extends TeleportService implements LocationListener
         map.putDouble("longitude", mLocation.getLongitude());
         map.putDouble("accuracy", mLocation.getAccuracy());
         map.putLong("time", mLocation.getTime());
+        // map.putAsset("graph", null); // TODO
 
         ArrayList<DataMap> mapList = new ArrayList<DataMap>();
         mapList.add(map);

@@ -1,11 +1,11 @@
 package carnero.movement.ui;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 import com.mariux.teleport.lib.TeleportClient;
 
-public abstract class AbstractBaseActivity extends Activity {
+public abstract class AbstractBaseActivity extends FragmentActivity {
 
     private TeleportClient mTeleport;
 

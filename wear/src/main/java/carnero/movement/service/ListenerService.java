@@ -1,12 +1,18 @@
 package carnero.movement.service;
 
 import android.app.Notification;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.data.FreezableUtils;
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
@@ -24,7 +30,7 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
 import carnero.movement.data.Size;
 
-public class ListenerService extends TeleportService {
+public class ListenerService extends TeleportService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private TeleportClient mTeleport;
 
@@ -34,7 +40,6 @@ public class ListenerService extends TeleportService {
 
         mTeleport = new TeleportClient(this);
         mTeleport.connect();
-
     }
 
     @Override
@@ -75,6 +80,21 @@ public class ListenerService extends TeleportService {
         }
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        // TODO
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        // TODO
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        // TODO
+    }
+
     private void processStatus(DataMap data) {
         ArrayList<DataMap> maps = data.getDataMapArrayList("status");
         DataMap map = maps.get(0);
@@ -88,25 +108,31 @@ public class ListenerService extends TeleportService {
         location.setAccuracy(map.getFloat("accuracy"));
         location.setTime(map.getLong("time"));
 
+        Asset graph = map.getAsset("graph");
+        Bitmap graphBmp = null;
+        if (graph != null) {
+            graphBmp = Utils.loadBitmapFromAsset(mTeleport.getGoogleApiClient(), graph);
+        }
+
+        if (graphBmp == null) {
+            graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+        }
+
         App.bus().post(distance);
         App.bus().post(location);
 
         // Update notification
-        final StringBuilder status = new StringBuilder();
-        status.append(Utils.formatDistance(distance));
-        if (steps > 0) {
-            status.append(" | ");
-            status.append(Integer.toString(steps));
-            status.append(" steps");
-        }
+        final Notification.BigTextStyle style = new Notification.BigTextStyle();
+        style.setBigContentTitle(getString(R.string.app_name));
+        style.bigText(Utils.formatDistance(distance) + "\n" + Integer.toString(steps) + " steps");
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOngoing(false)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(status.toString());
+                .setLargeIcon(graphBmp)
+                .setStyle(style);
 
         final Notification notification = new Notification.WearableExtender()
                 .extend(builder)

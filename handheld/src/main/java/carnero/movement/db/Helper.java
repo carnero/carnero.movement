@@ -83,12 +83,15 @@ public class Helper extends SQLiteOpenHelper {
 		return status;
 	}
 
-    public ModelData[] getDataToday() {
+    public ModelData[] getDataForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
         long millisStart = calendar.getTimeInMillis();
+
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long millisEnd = calendar.getTimeInMillis();
 
@@ -160,7 +163,7 @@ public class Helper extends SQLiteOpenHelper {
         return data;
     }
 
-    public ArrayList<ModelLocation> getLocationsToday() {
+    public ArrayList<ModelLocation> getLocationsForDay() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
