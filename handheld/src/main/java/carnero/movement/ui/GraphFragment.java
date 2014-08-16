@@ -2,13 +2,9 @@ package carnero.movement.ui;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
@@ -29,8 +25,6 @@ public class GraphFragment extends Fragment {
     //
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
-    @InjectView(R.id.label_top)
-    TextView vTop;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
@@ -71,12 +65,10 @@ public class GraphFragment extends Fragment {
 
     private class DataLoadTask extends BaseAsyncTask {
 
-        private float mMaxStp = Float.MIN_VALUE;
-        private float mMinStp = Float.MAX_VALUE;
-        private float mMaxDst = Float.MIN_VALUE;
-        private float mMinDst = Float.MAX_VALUE;
-        private float mMaxStpLabel;
-        private float mMaxDstLabel;
+        private double mMaxStp = Double.MIN_VALUE;
+        private double mMinStp = Double.MAX_VALUE;
+        private double mMaxDst = Double.MIN_VALUE;
+        private double mMinDst = Double.MAX_VALUE;
 
         @Override
         public void inBackground() {
@@ -109,38 +101,44 @@ public class GraphFragment extends Fragment {
                     }
 
                     // Steps
+                    double stepsLog = 0;
+                    if (steps > 0) {
+                        stepsLog = Math.log10(steps);
+                    }
+
                     LinePoint pointSteps = new LinePoint();
                     pointSteps.setX(i);
-                    pointSteps.setY(steps);
+                    pointSteps.setY(stepsLog);
                     mLineSteps.addPoint(pointSteps);
 
-                    if (steps > mMaxStp) {
-                        mMaxStp = steps;
+                    if (stepsLog > mMaxStp) {
+                        mMaxStp = stepsLog;
                     }
-                    if (steps < mMinStp) {
-                        mMinStp = steps;
+                    if (stepsLog < mMinStp) {
+                        mMinStp = stepsLog;
                     }
 
                     // Distance
+                    double distanceLog = 0;
+                    if (distance > 0) {
+                        distanceLog = Math.log10(distance);
+                    }
+
                     LinePoint pointDistance = new LinePoint();
                     pointDistance.setX(i);
-                    pointDistance.setY(distance);
+                    pointDistance.setY(distanceLog);
                     mLineDistance.addPoint(pointDistance);
 
-                    if (distance > mMaxDst) {
-                        mMaxDst = distance;
+                    if (distanceLog > mMaxDst) {
+                        mMaxDst = distanceLog;
                     }
-                    if (distance < mMinDst) {
-                        mMinDst = distance;
+                    if (distanceLog < mMinDst) {
+                        mMinDst = distanceLog;
                     }
                 }
 
-                // Save for labels
-                mMaxStpLabel = mMaxStp;
-                mMaxDstLabel = mMaxDst;
-
                 // Normalize data
-                float ratio = 1.0f;
+                double ratio = 1.0f;
                 int ratioLine = -1; // steps:0, distance:1
                 if (mMaxStp > mMaxDst) {
                     ratio = mMaxStp / mMaxDst;
@@ -171,29 +169,9 @@ public class GraphFragment extends Fragment {
         public void postExecute() {
             // Graph
             vGraph.setRangeY(
-                    Math.min(mMinStp, mMinDst),
-                    Math.max(mMaxStp, mMaxDst)
+                    (float) Math.min(mMinStp, mMinDst),
+                    (float) Math.max(mMaxStp, mMaxDst)
             );
-
-            // Format top label
-            StringBuilder topBuilder = new StringBuilder();
-            topBuilder.append(Integer.toString((int) mMaxStpLabel));
-            topBuilder.append(" st");
-            int topDstLen = topBuilder.length();
-            topBuilder.append("\n");
-            if (mMaxDstLabel > 1600) {
-                topBuilder.append(String.format("%.1f", mMaxDstLabel / 1000));
-                topBuilder.append(" km");
-            } else {
-                topBuilder.append(String.format("%.1f", mMaxDstLabel));
-                topBuilder.append(" m");
-            }
-
-            SpannableString top = new SpannableString(topBuilder.toString());
-            top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)), 0, topDstLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)), topDstLen, topBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            vTop.setText(top);
         }
     }
 }

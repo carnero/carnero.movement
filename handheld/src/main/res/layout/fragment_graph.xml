@@ -3,29 +3,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- TODO: summary -->
-
-    <LinearLayout
+    <com.echo.holographlibrary.SmoothLineGraph
+        android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <com.echo.holographlibrary.SmoothLineGraph
-            android:id="@+id/graph"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="2" />
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:paddingStart="8dp">
-
-            <TextView
-                android:id="@+id/label_top"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true" />
-        </RelativeLayout>
-    </LinearLayout>
+        android:layout_height="match_parent" />
 </LinearLayout>
