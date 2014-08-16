@@ -12,7 +12,8 @@
     <color name="bcg">@android:color/white</color>
     <color name="text">#ff666666</color>
 
-    <!-- Graph -->
+    <!-- Data visualisation -->
     <color name="graph_steps">#88008bea</color>
     <color name="graph_distance">#88fa8b00</color>
+    <color name="map_history">#fffa8b00</color>
 </resources>

@@ -10,6 +10,7 @@ import android.location.Location;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import carnero.movement.common.Constants;
@@ -148,6 +149,63 @@ public class Helper extends SQLiteOpenHelper {
                         model.steps = Math.max(model.steps, cursor.getInt(idxSteps));
                         model.distance = Math.max(model.distance, cursor.getFloat(idxDistance));
                     }
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return data;
+    }
+
+    public ArrayList<ModelLocation> getLocationsToday() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        long millisStart = calendar.getTimeInMillis();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
+
+        return getLocations(millisStart, millisEnd);
+    }
+
+    public ArrayList<ModelLocation> getLocations(int days) {
+        long millisEnd = System.currentTimeMillis();
+        long millisStart = millisEnd - (DateUtils.DAY_IN_MILLIS * days);
+
+        return getLocations(millisStart, millisEnd);
+    }
+
+    public ArrayList<ModelLocation> getLocations(long start, long end) {
+        final ArrayList<ModelLocation> data = new ArrayList<ModelLocation>();
+
+        Cursor cursor = null;
+        try {
+            cursor = getDatabaseRO().query(
+                    Structure.Table.History.name,
+                    Structure.Table.History.projectionLocation,
+                    Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
+                    null, null, null,
+                    Structure.Table.History.TIME + " desc"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxTime = cursor.getColumnIndex(Structure.Table.History.TIME);
+                int idxLatitude = cursor.getColumnIndex(Structure.Table.History.LATITUDE);
+                int idxLongitude = cursor.getColumnIndex(Structure.Table.History.LONGITUDE);
+                int idxAccuracy = cursor.getColumnIndex(Structure.Table.History.ACCURACY);
+
+                do {
+                    ModelLocation model = new ModelLocation();
+                    model.time = cursor.getLong(idxTime);
+                    model.latitude = cursor.getDouble(idxLatitude);
+                    model.longitude = cursor.getDouble(idxLongitude);
+                    model.accuracy = cursor.getDouble(idxAccuracy);
+
+                    data.add(model);
                 } while (cursor.moveToNext());
             }
         } finally {

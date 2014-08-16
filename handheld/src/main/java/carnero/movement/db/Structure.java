@@ -22,6 +22,9 @@ public class Structure {
             public static final String[] projectionData = new String[]{
                     TIME, STEPS, DISTANCE
             };
+            public static final String[] projectionLocation = new String[]{
+                    TIME, LATITUDE, LONGITUDE, ACCURACY
+            };
             public static final String[] projectionFull = new String[]{
                     ID, TIME, STEPS, DISTANCE, LATITUDE, LONGITUDE, ACCURACY
 			};

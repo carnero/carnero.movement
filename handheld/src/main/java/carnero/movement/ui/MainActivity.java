@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -38,7 +37,8 @@ public class MainActivity extends AbstractBaseActivity {
 
         Fragment fragment = getFragmentManager().findFragmentById(R.id.container);
         if (fragment == null) {
-            fragment = new GraphFragment();
+            // fragment = GraphFragment.newInstance();
+            fragment = MapFragment.newInstance();
             getFragmentManager()
                     .beginTransaction()
                     .replace(R.id.container, fragment)

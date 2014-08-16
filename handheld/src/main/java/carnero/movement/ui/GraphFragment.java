@@ -37,6 +37,18 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.stats_distance)
     TextView vStatsDistance;
 
+    public static GraphFragment newInstance() {
+        return new GraphFragment();
+    }
+
+    @Override
+    public void onActivityCreated(Bundle state) {
+        super.onActivityCreated(state);
+
+        mPreferences = new Preferences(getActivity());
+        mHelper = new Helper(getActivity());
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
         View layout = inflater.inflate(R.layout.fragment_graph, container, false);
@@ -56,14 +68,6 @@ public class GraphFragment extends Fragment {
         vGraph.addLine(mLineSteps);
 
         return layout;
-    }
-
-    @Override
-    public void onActivityCreated(Bundle state) {
-        super.onActivityCreated(state);
-
-        mPreferences = new Preferences(getActivity());
-        mHelper = new Helper(getActivity());
     }
 
     @Override
