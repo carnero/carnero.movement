@@ -19,8 +19,11 @@ public class Structure {
 			public static final String LONGITUDE = "longitude"; // real
 			public static final String ACCURACY = "accuracy"; // real
 
-			public static final String[] projection = new String[] {
-					ID, TIME, STEPS, DISTANCE, LATITUDE, LONGITUDE, ACCURACY
+            public static final String[] projectionData = new String[]{
+                    TIME, STEPS, DISTANCE
+            };
+            public static final String[] projectionFull = new String[]{
+                    ID, TIME, STEPS, DISTANCE, LATITUDE, LONGITUDE, ACCURACY
 			};
 		}
 	}

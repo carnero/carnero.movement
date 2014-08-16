@@ -14,14 +14,12 @@ import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
 
-import java.util.ArrayList;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.db.Helper;
-import carnero.movement.db.Model;
+import carnero.movement.db.ModelData;
 
 public class GraphFragment extends Fragment {
 
@@ -33,8 +31,6 @@ public class GraphFragment extends Fragment {
     SmoothLineGraph vGraph;
     @InjectView(R.id.label_top)
     TextView vTop;
-    @InjectView(R.id.label_bottom)
-    TextView vBottom;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
@@ -42,17 +38,17 @@ public class GraphFragment extends Fragment {
         ButterKnife.inject(this, layout);
 
         // Graph
-        mLineSteps = new Line();
-        mLineSteps.setShowingPoints(false);
-        mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
-        mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
-        vGraph.addLine(mLineSteps);
-
         mLineDistance = new Line();
         mLineDistance.setShowingPoints(false);
         mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
         mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineDistance);
+
+        mLineSteps = new Line();
+        mLineSteps.setShowingPoints(false);
+        mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
+        mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
+        vGraph.addLine(mLineSteps);
 
         return layout;
     }
@@ -80,25 +76,39 @@ public class GraphFragment extends Fragment {
         private float mMaxDst = Float.MIN_VALUE;
         private float mMinDst = Float.MAX_VALUE;
         private float mMaxStpLabel;
-        private float mMinStpLabel;
         private float mMaxDstLabel;
-        private float mMinDstLabel;
 
         @Override
         public void inBackground() {
-            ArrayList<Model> data = mHelper.getLastWeek();
+            ModelData[] data = mHelper.getDataToday();
             if (data != null) {
                 mLineSteps.getPoints().clear();
+                mLineDistance.getPoints().clear();
 
-                float stepsPrev = 0f;
-                float distancePrev = 0f;
+                float stepsPrev = -1f;
+                float distancePrev = -1f;
 
-                for (int i = 0; i < data.size(); i++) {
-                    Model model = data.get(i);
+                for (int i = 0; i < data.length; i++) {
+                    ModelData model = data[i];
+
+                    float steps;
+                    float distance;
+                    if (model == null) {
+                        steps = 0;
+                        distance = 0;
+                    } else if (stepsPrev == -1f || distancePrev == -1f) {
+                        stepsPrev = model.steps;
+                        distancePrev = model.distance;
+
+                        continue;
+                    } else {
+                        steps = model.steps - stepsPrev;
+                        distance = model.distance - distancePrev;
+                        stepsPrev = model.steps;
+                        distancePrev = model.distance;
+                    }
 
                     // Steps
-                    float steps = model.steps - stepsPrev;
-
                     LinePoint pointSteps = new LinePoint();
                     pointSteps.setX(i);
                     pointSteps.setY(steps);
@@ -110,11 +120,8 @@ public class GraphFragment extends Fragment {
                     if (steps < mMinStp) {
                         mMinStp = steps;
                     }
-                    stepsPrev = model.steps;
 
                     // Distance
-                    float distance = model.distance - distancePrev;
-
                     LinePoint pointDistance = new LinePoint();
                     pointDistance.setX(i);
                     pointDistance.setY(distance);
@@ -126,26 +133,13 @@ public class GraphFragment extends Fragment {
                     if (distance < mMinDst) {
                         mMinDst = distance;
                     }
-                    distancePrev = model.distance;
                 }
 
                 // Save for labels
-                mMinStpLabel = mMinStp;
                 mMaxStpLabel = mMaxStp;
-                mMinDstLabel = mMinDst;
                 mMaxDstLabel = mMaxDst;
 
                 // Normalize data
-                float shift = 0.0f;
-                int shiftLine = -1; // steps:0, distance: 1
-                if (mMinStp > mMinDst) {
-                    shift = mMinStp - mMinDst;
-                    shiftLine = 0;
-                } else if (mMinStp < mMinDst) {
-                    shift = mMinDst - mMinStp;
-                    shiftLine = 1;
-                }
-
                 float ratio = 1.0f;
                 int ratioLine = -1; // steps:0, distance:1
                 if (mMaxStp > mMaxDst) {
@@ -156,25 +150,26 @@ public class GraphFragment extends Fragment {
                     ratioLine = 1;
                 }
 
-                if (shiftLine == 0 || ratioLine == 0) {
+                if (ratioLine == 0) {
                     for (LinePoint point : mLineSteps.getPoints()) {
-                        point.setY((point.getY() / ratio) - shift);
+                        point.setY(point.getY() / ratio);
                     }
-                    mMinStp = (mMinStp / ratio) - shift;
-                    mMaxStp = (mMaxStp / ratio) - shift;
+                    mMinStp = mMinStp / ratio;
+                    mMaxStp = mMaxStp / ratio;
                 }
-                if (shiftLine == 1 || ratioLine == 1) {
+                if (ratioLine == 1) {
                     for (LinePoint point : mLineDistance.getPoints()) {
-                        point.setY((point.getY() / ratio) - shift);
+                        point.setY(point.getY() / ratio);
                     }
-                    mMinDst = (mMinDst / ratio) - shift;
-                    mMaxDst = (mMaxDst / ratio) - shift;
+                    mMinDst = mMinDst / ratio;
+                    mMaxDst = mMaxDst / ratio;
                 }
             }
         }
 
         @Override
         public void postExecute() {
+            // Graph
             vGraph.setRangeY(
                     Math.min(mMinStp, mMinDst),
                     Math.max(mMaxStp, mMaxDst)
@@ -182,15 +177,15 @@ public class GraphFragment extends Fragment {
 
             // Format top label
             StringBuilder topBuilder = new StringBuilder();
-            topBuilder.append(Integer.toString((int) mMaxStp));
+            topBuilder.append(Integer.toString((int) mMaxStpLabel));
             topBuilder.append(" st");
             int topDstLen = topBuilder.length();
             topBuilder.append("\n");
-            if (mMaxDst > 1600) {
-                topBuilder.append(String.format("%.1f", mMaxDst / 1000));
+            if (mMaxDstLabel > 1600) {
+                topBuilder.append(String.format("%.1f", mMaxDstLabel / 1000));
                 topBuilder.append(" km");
             } else {
-                topBuilder.append(String.format("%.1f", mMaxDst));
+                topBuilder.append(String.format("%.1f", mMaxDstLabel));
                 topBuilder.append(" m");
             }
 
@@ -198,26 +193,7 @@ public class GraphFragment extends Fragment {
             top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)), 0, topDstLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             top.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)), topDstLen, topBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-            // Format top label
-            StringBuilder bottomBuilder = new StringBuilder();
-            bottomBuilder.append(Integer.toString((int) mMinStp));
-            bottomBuilder.append(" st");
-            int bottomDstLen = bottomBuilder.length();
-            bottomBuilder.append("\n");
-            if (mMinDst > 1600) {
-                bottomBuilder.append(String.format("%.1f", mMinDst / 1000));
-                bottomBuilder.append(" km");
-            } else {
-                bottomBuilder.append(String.format("%.1f", mMinDst));
-                bottomBuilder.append(" m");
-            }
-
-            SpannableString bottom = new SpannableString(bottomBuilder.toString());
-            bottom.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)), 0, bottomDstLen, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            bottom.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)), bottomDstLen, bottomBuilder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
             vTop.setText(top);
-            vBottom.setText(bottom);
         }
     }
 }

@@ -7,9 +7,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
+import android.text.format.DateUtils;
 import android.util.Log;
 
-import java.util.ArrayList;
+import java.util.Calendar;
 
 import carnero.movement.common.Constants;
 
@@ -81,39 +82,72 @@ public class Helper extends SQLiteOpenHelper {
 		return status;
 	}
 
-    public ArrayList<Model> getLastWeek() {
-        final ArrayList<Model> data = new ArrayList<Model>();
+    public ModelData[] getDataToday() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        long millisStart = calendar.getTimeInMillis();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
+
+        return getData(millisStart, millisEnd);
+    }
+
+    public ModelData[] getData(int days) {
+        long millisEnd = System.currentTimeMillis();
+        long millisStart = millisEnd - (DateUtils.DAY_IN_MILLIS * days);
+
+        return getData(millisStart, millisEnd);
+    }
+
+    public ModelData[] getData(long start, long end) {
+        long millisInterval;
+
+        int days = (int) ((end - start) / DateUtils.DAY_IN_MILLIS);
+        if (days <= 1) {
+            millisInterval = DateUtils.HOUR_IN_MILLIS;
+        } else if (days <= 3) {
+            millisInterval = DateUtils.HOUR_IN_MILLIS * 2;
+        } else if (days <= 7) {
+            millisInterval = DateUtils.HOUR_IN_MILLIS * 4;
+        } else {
+            millisInterval = DateUtils.HOUR_IN_MILLIS * 8;
+        }
+
+        int intervals = (int) Math.ceil((end - start) / millisInterval);
+        final ModelData[] data = new ModelData[intervals + 1];
 
         Cursor cursor = null;
         try {
             cursor = getDatabaseRO().query(
                     Structure.Table.History.name,
-                    Structure.Table.History.projection,
-                    Structure.Table.History.TIME + " > " + (7 * 24 * 60 * 60 * 1000), // Last 7 dat
+                    Structure.Table.History.projectionData,
+                    Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
                     null, null, null,
-                    Structure.Table.History.TIME + " asc"
+                    Structure.Table.History.TIME + " desc"
             );
 
             if (cursor.moveToFirst()) {
-                int idxID = cursor.getColumnIndex(Structure.Table.History.ID);
                 int idxTime = cursor.getColumnIndex(Structure.Table.History.TIME);
                 int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
                 int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
-                int idxLatitude = cursor.getColumnIndex(Structure.Table.History.LATITUDE);
-                int idxLongitude = cursor.getColumnIndex(Structure.Table.History.LONGITUDE);
-                int idxAccuracy = cursor.getColumnIndex(Structure.Table.History.ACCURACY);
 
                 do {
-                    Model model = new Model();
-                    model.id = cursor.getLong(idxID);
-                    model.time = cursor.getLong(idxTime);
-                    model.steps = cursor.getInt(idxSteps);
-                    model.distance = cursor.getFloat(idxDistance);
-                    model.latitude = cursor.getDouble(idxLatitude);
-                    model.longitude = cursor.getDouble(idxLongitude);
-                    model.accuracy = cursor.getDouble(idxAccuracy);
+                    long time = cursor.getLong(idxTime);
+                    int interval = intervals - ((int) ((end - time) / millisInterval)); // Oldest is the first interval
 
-                    data.add(model);
+                    ModelData model = data[interval];
+                    if (model == null) {
+                        model = new ModelData();
+                        model.steps = cursor.getInt(idxSteps);
+                        model.distance = cursor.getFloat(idxDistance);
+
+                        data[interval] = model;
+                    } else {
+                        model.steps = Math.max(model.steps, cursor.getInt(idxSteps));
+                        model.distance = Math.max(model.distance, cursor.getFloat(idxDistance));
+                    }
                 } while (cursor.moveToNext());
             }
         } finally {
