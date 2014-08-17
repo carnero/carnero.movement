@@ -26,6 +26,7 @@ import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
+import carnero.movement.db.ModelDataContainer;
 
 public class GraphFragment extends Fragment {
 
@@ -109,16 +110,21 @@ public class GraphFragment extends Fragment {
 
         @Override
         public void inBackground() {
-            ModelData[] data = mHelper.getDataForDay(getDay());
-            if (data != null) {
+            ModelDataContainer container = mHelper.getDataForDay(getDay());
+            if (container != null) {
                 mLineSteps.getPoints().clear();
                 mLineDistance.getPoints().clear();
 
                 float stepsPrev = -1f;
                 float distancePrev = -1f;
 
-                for (int i = 0; i < data.length; i++) {
-                    ModelData model = data[i];
+                if (container.start != null) {
+                    stepsPrev = container.start.steps;
+                    distancePrev = container.start.distance;
+                }
+
+                for (int i = 0; i < container.data.length; i++) {
+                    ModelData model = container.data[i];
 
                     // Values for labels
                     if (model != null) {
@@ -225,7 +231,7 @@ public class GraphFragment extends Fragment {
                 DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
                 String date = format.format(calendar.getTime());
 
-                vStats.setText(date);
+                vLabel.setText(date);
             }
             vStats.setText(getString(R.string.stats, Utils.formatDistance(distanceDay), stepsDay));
 

@@ -20,28 +20,28 @@ public class Helper extends SQLiteOpenHelper {
     private static SQLiteDatabase sDatabaseRO;
     private static SQLiteDatabase sDatabaseRW;
 
-	public Helper(Context context) {
-		super(context, Structure.name, null, Structure.version);
-	}
+    public Helper(Context context) {
+        super(context, Structure.name, null, Structure.version);
+    }
 
-	@Override
-	public void onCreate(SQLiteDatabase db) {
-		try {
-			db.execSQL(Structure.getHistoryStructure());
-			for (String index : Structure.getStructureIndexes()) {
-				db.execSQL(index);
-			}
-		} catch (SQLException e) {
-			Log.e(Constants.TAG, "Failed to create database");
-		}
-	}
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        try {
+            db.execSQL(Structure.getHistoryStructure());
+            for (String index : Structure.getStructureIndexes()) {
+                db.execSQL(index);
+            }
+        } catch (SQLException e) {
+            Log.e(Constants.TAG, "Failed to create database");
+        }
+    }
 
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("drop table " + Structure.Table.History.name);
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("drop table " + Structure.Table.History.name);
 
-		onCreate(db);
-	}
+        onCreate(db);
+    }
 
     private synchronized SQLiteDatabase getDatabaseRO() {
         if (sDatabaseRO == null) {
@@ -63,9 +63,9 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public boolean saveData(float steps, float distance, Location location) {
-		boolean status = false;
+        boolean status = false;
 
-		ContentValues values = new ContentValues();
+        ContentValues values = new ContentValues();
         values.put(Structure.Table.History.TIME, System.currentTimeMillis());
         values.put(Structure.Table.History.STEPS, steps);
         values.put(Structure.Table.History.DISTANCE, distance);
@@ -80,10 +80,10 @@ public class Helper extends SQLiteOpenHelper {
             status = true;
         }
 
-		return status;
-	}
+        return status;
+    }
 
-    public ModelData[] getDataForDay(int day) {
+    public ModelDataContainer getDataForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -98,14 +98,14 @@ public class Helper extends SQLiteOpenHelper {
         return getData(millisStart, millisEnd);
     }
 
-    public ModelData[] getData(int days) {
+    public ModelDataContainer getData(int days) {
         long millisEnd = System.currentTimeMillis();
         long millisStart = millisEnd - (DateUtils.DAY_IN_MILLIS * days);
 
         return getData(millisStart, millisEnd);
     }
 
-    public ModelData[] getData(long start, long end) {
+    public ModelDataContainer getData(long start, long end) {
         long millisInterval;
 
         int days = (int) ((end - start) / DateUtils.DAY_IN_MILLIS);
@@ -120,8 +120,12 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         int intervals = (int) Math.ceil((end - start) / millisInterval);
-        final ModelData[] data = new ModelData[intervals + 1];
+        long oldest = Long.MAX_VALUE;
 
+        final ModelDataContainer container = new ModelDataContainer();
+        container.data = new ModelData[intervals + 1];
+
+        // Get entries for given interval
         Cursor cursor = null;
         try {
             cursor = getDatabaseRO().query(
@@ -139,15 +143,19 @@ public class Helper extends SQLiteOpenHelper {
 
                 do {
                     long time = cursor.getLong(idxTime);
+                    if (time < oldest) {
+                        oldest = time;
+                    }
+
                     int interval = intervals - ((int) ((end - time) / millisInterval)); // Oldest is the first interval
 
-                    ModelData model = data[interval];
+                    ModelData model = container.data[interval];
                     if (model == null) {
                         model = new ModelData();
                         model.steps = cursor.getInt(idxSteps);
                         model.distance = cursor.getFloat(idxDistance);
 
-                        data[interval] = model;
+                        container.data[interval] = model;
                     } else {
                         model.steps = Math.max(model.steps, cursor.getInt(idxSteps));
                         model.distance = Math.max(model.distance, cursor.getFloat(idxDistance));
@@ -160,7 +168,35 @@ public class Helper extends SQLiteOpenHelper {
             }
         }
 
-        return data;
+        // Get oldest entry before given interval
+        try {
+            cursor = getDatabaseRO().query(
+                    Structure.Table.History.name,
+                    Structure.Table.History.projectionData,
+                    Structure.Table.History.TIME + " < " + oldest,
+                    null, null, null,
+                    Structure.Table.History.TIME + " desc",
+                    "1"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
+                int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
+
+                ModelData model = new ModelData();
+                model.steps = cursor.getInt(idxSteps);
+                model.distance = cursor.getFloat(idxDistance);
+
+                container.start = model;
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+
+        return container;
     }
 
     public ArrayList<ModelLocation> getLocationsForDay() {

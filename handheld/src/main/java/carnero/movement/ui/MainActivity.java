@@ -36,7 +36,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         mPagerAdapter = new PagesAdapter();
         vPager.setAdapter(mPagerAdapter);
-        vPager.setCurrentItem(1);
+        vPager.setCurrentItem(2);
     }
 
     // Classes
@@ -50,10 +50,12 @@ public class MainActivity extends AbstractBaseActivity {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return GraphFragment.newInstance(-1); // Yesterday
+                    return GraphFragment.newInstance(-2); // Day before yesterday
                 case 1:
-                    return GraphFragment.newInstance(0); // Today
+                    return GraphFragment.newInstance(-1); // Yesterday
                 case 2:
+                    return GraphFragment.newInstance(0); // Today
+                case 3:
                     return MapFragment.newInstance();
                 default:
                     return null;
@@ -62,7 +64,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
     }
 }
