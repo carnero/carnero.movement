@@ -73,7 +73,7 @@ public class MapFragment extends SupportMapFragment {
                 getMap().moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
                                 new LatLng(location.getLatitude(), location.getLongitude()),
-                                14
+                                12
                         )
                 );
             } else {
@@ -95,7 +95,7 @@ public class MapFragment extends SupportMapFragment {
 
         @Override
         public void inBackground() {
-            mData = mHelper.getLocationsForDay();
+            mData = mHelper.getLocationsForDay(0);
         }
 
         @Override

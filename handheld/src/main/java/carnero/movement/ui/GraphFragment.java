@@ -2,9 +2,6 @@ package carnero.movement.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +10,10 @@ import android.widget.TextView;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,6 +28,7 @@ import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
+import carnero.movement.db.ModelLocation;
 
 public class GraphFragment extends Fragment {
 
@@ -37,12 +39,14 @@ public class GraphFragment extends Fragment {
     //
     private static final String ARGS_DAY = "day";
     //
-    @InjectView(R.id.graph)
-    SmoothLineGraph vGraph;
     @InjectView(R.id.label)
     TextView vLabel;
     @InjectView(R.id.stats)
     TextView vStats;
+    @InjectView(R.id.graph)
+    SmoothLineGraph vGraph;
+    @InjectView(R.id.map)
+    MapView vMap;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -67,7 +71,47 @@ public class GraphFragment extends Fragment {
         View layout = inflater.inflate(R.layout.fragment_graph, container, false);
         ButterKnife.inject(this, layout);
 
-        // Graph
+        MapsInitializer.initialize(getActivity());
+        vMap.onCreate(state);
+
+        initMap();
+        initGraph();
+
+        return layout;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        vMap.onResume();
+
+        new DataLoadTask().start();
+    }
+
+    @Override
+    public void onPause() {
+        vMap.onPause();
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        vMap.onDestroy();
+        super.onDestroyView();
+    }
+
+    private void initMap() {
+        final GoogleMap map = vMap.getMap();
+        map.setMyLocationEnabled(false);
+        map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+
+        final UiSettings ui = map.getUiSettings();
+        ui.setMyLocationButtonEnabled(false);
+        ui.setCompassEnabled(false);
+        ui.setZoomControlsEnabled(false);
+    }
+
+    private void initGraph() {
         mLineDistance = new Line();
         mLineDistance.setShowingPoints(false);
         mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
@@ -79,15 +123,6 @@ public class GraphFragment extends Fragment {
         mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
         mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineSteps);
-
-        return layout;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        new DataLoadTask().start();
     }
 
     private int getDay() {
@@ -98,6 +133,8 @@ public class GraphFragment extends Fragment {
 
     private class DataLoadTask extends BaseAsyncTask {
 
+        private ModelDataContainer mContainer;
+        //
         private double mMaxStp = Double.MIN_VALUE;
         private double mMinStp = Double.MAX_VALUE;
         private double mMaxDst = Double.MIN_VALUE;
@@ -109,114 +146,119 @@ public class GraphFragment extends Fragment {
         private float mLabelDistanceMax = Float.MIN_VALUE;
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            if (isAdded()) {
+                getActivity().setProgressBarIndeterminateVisibility(true);
+            }
+        }
+
+        @Override
         public void inBackground() {
-            ModelDataContainer container = mHelper.getDataForDay(getDay());
-            if (container != null) {
-                mLineSteps.getPoints().clear();
-                mLineDistance.getPoints().clear();
+            mContainer = mHelper.getDataForDay(getDay());
+            if (mContainer == null) {
+                return;
+            }
 
-                float stepsPrev = -1f;
-                float distancePrev = -1f;
+            mLineSteps.getPoints().clear();
+            mLineDistance.getPoints().clear();
 
-                if (container.start != null) {
-                    stepsPrev = container.start.steps;
-                    distancePrev = container.start.distance;
+            float stepsPrev = -1f;
+            float distancePrev = -1f;
+
+            if (mContainer.previousEntry != null) {
+                stepsPrev = mContainer.previousEntry.steps;
+                distancePrev = mContainer.previousEntry.distance;
+            }
+
+            for (int i = 0; i < mContainer.movements.length; i++) {
+                ModelData model = mContainer.movements[i];
+
+                // Values for labels
+                if (model != null) {
+                    mLabelStepsMin = Math.min(mLabelStepsMin, model.steps);
+                    mLabelStepsMax = Math.max(mLabelStepsMax, model.steps);
+                    mLabelDistanceMin = Math.min(mLabelDistanceMin, model.distance);
+                    mLabelDistanceMax = Math.max(mLabelDistanceMax, model.distance);
                 }
 
-                for (int i = 0; i < container.data.length; i++) {
-                    ModelData model = container.data[i];
+                // Graph
+                float steps;
+                float distance;
+                if (model == null) {
+                    steps = 0;
+                    distance = 0;
+                } else if (stepsPrev == -1f || distancePrev == -1f) {
+                    stepsPrev = model.steps;
+                    distancePrev = model.distance;
 
-                    // Values for labels
-                    if (model != null) {
-                        if (model.steps > mLabelStepsMax) {
-                            mLabelStepsMax = model.steps;
-                        }
-                        if (model.steps < mLabelStepsMin) {
-                            mLabelStepsMin = model.steps;
-                        }
-                        if (model.distance > mLabelDistanceMax) {
-                            mLabelDistanceMax = model.distance;
-                        }
-                        if (model.distance < mLabelDistanceMin) {
-                            mLabelDistanceMin = model.distance;
-                        }
-                    }
-
-                    // Graph
-                    float steps;
-                    float distance;
-                    if (model == null) {
-                        steps = 0;
-                        distance = 0;
-                    } else if (stepsPrev == -1f || distancePrev == -1f) {
-                        stepsPrev = model.steps;
-                        distancePrev = model.distance;
-
-                        continue;
-                    } else {
-                        steps = model.steps - stepsPrev;
-                        distance = model.distance - distancePrev;
-                        stepsPrev = model.steps;
-                        distancePrev = model.distance;
-                    }
-
-                    // Steps
-                    LinePoint pointSteps = new LinePoint();
-                    pointSteps.setX(i);
-                    pointSteps.setY(steps);
-                    mLineSteps.addPoint(pointSteps);
-
-                    if (steps > mMaxStp) {
-                        mMaxStp = steps;
-                    }
-                    if (steps < mMinStp) {
-                        mMinStp = steps;
-                    }
-
-                    // Distance
-                    LinePoint pointDistance = new LinePoint();
-                    pointDistance.setX(i);
-                    pointDistance.setY(distance);
-                    mLineDistance.addPoint(pointDistance);
-
-                    if (distance > mMaxDst) {
-                        mMaxDst = distance;
-                    }
-                    if (distance < mMinDst) {
-                        mMinDst = distance;
-                    }
+                    continue;
+                } else {
+                    steps = model.steps - stepsPrev;
+                    distance = model.distance - distancePrev;
+                    stepsPrev = model.steps;
+                    distancePrev = model.distance;
                 }
 
-                // Normalize data
-                double ratio = 1.0f;
-                int ratioLine = -1; // steps:0, distance:1
-                if (mMaxStp > mMaxDst && mMaxDst > 100) {
-                    ratio = mMaxStp / mMaxDst;
-                    ratioLine = 0;
-                } else if (mMaxStp < mMaxDst && mMaxStp > 100) {
-                    ratio = mMaxDst / mMaxStp;
-                    ratioLine = 1;
-                }
+                // Steps
+                LinePoint pointSteps = new LinePoint();
+                pointSteps.setX(i);
+                pointSteps.setY(steps);
+                mLineSteps.addPoint(pointSteps);
 
-                if (ratioLine == 0) {
-                    for (LinePoint point : mLineSteps.getPoints()) {
-                        point.setY(point.getY() / ratio);
-                    }
-                    mMinStp = mMinStp / ratio;
-                    mMaxStp = mMaxStp / ratio;
+                mMinStp = Math.min(mMinStp, steps);
+                mMaxStp = Math.max(mMaxStp, steps);
+
+                // Distance
+                LinePoint pointDistance = new LinePoint();
+                pointDistance.setX(i);
+                pointDistance.setY(distance);
+                mLineDistance.addPoint(pointDistance);
+
+                mMinDst = Math.min(mMinDst, distance);
+                mMaxDst = Math.max(mMaxDst, distance);
+            }
+
+            // Normalize data
+            double ratio = 1.0f;
+            int ratioLine = -1; // steps:0, distance:1
+            if (mMaxStp > mMaxDst && mMaxDst > 100) {
+                ratio = mMaxStp / mMaxDst;
+                ratioLine = 0;
+            } else if (mMaxStp < mMaxDst && mMaxStp > 100) {
+                ratio = mMaxDst / mMaxStp;
+                ratioLine = 1;
+            }
+
+            if (ratioLine == 0) {
+                for (LinePoint point : mLineSteps.getPoints()) {
+                    point.setY(point.getY() / ratio);
                 }
-                if (ratioLine == 1) {
-                    for (LinePoint point : mLineDistance.getPoints()) {
-                        point.setY(point.getY() / ratio);
-                    }
-                    mMinDst = mMinDst / ratio;
-                    mMaxDst = mMaxDst / ratio;
+                mMinStp = mMinStp / ratio;
+                mMaxStp = mMaxStp / ratio;
+            }
+            if (ratioLine == 1) {
+                for (LinePoint point : mLineDistance.getPoints()) {
+                    point.setY(point.getY() / ratio);
                 }
+                mMinDst = mMinDst / ratio;
+                mMaxDst = mMaxDst / ratio;
             }
         }
 
         @Override
         public void postExecute() {
+            if (!isAdded()) {
+                return;
+            }
+            if (mContainer == null) {
+                // TODO: add error message
+
+                return;
+            }
+
+            // Label & stats
             float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
             int stepsDay = mLabelStepsMax - mLabelStepsMin;
 
@@ -240,6 +282,47 @@ public class GraphFragment extends Fragment {
                     (float) Math.min(mMinStp, mMinDst),
                     (float) Math.max(mMaxStp, mMaxDst)
             );
+
+            // Locations
+            final GoogleMap map = vMap.getMap();
+            map.clear();
+
+            if (mContainer.locations != null) {
+                final PolylineOptions polylineOpts = new PolylineOptions();
+                polylineOpts.zIndex(1010);
+                polylineOpts.width(getResources().getDimension(R.dimen.line_stroke));
+                polylineOpts.color(getResources().getColor(R.color.map_history));
+
+                double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+                double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+
+                for (ModelLocation model : mContainer.locations) {
+                    latBounds[0] = Math.min(latBounds[0], model.latitude);
+                    latBounds[1] = Math.max(latBounds[1], model.latitude);
+                    lonBounds[0] = Math.min(lonBounds[0], model.longitude);
+                    lonBounds[1] = Math.max(lonBounds[1], model.longitude);
+
+                    LatLng latLng = new LatLng(model.latitude, model.longitude);
+                    polylineOpts.add(latLng);
+                }
+
+                LatLng min = new LatLng(latBounds[0], lonBounds[0]);
+                LatLng max = new LatLng(latBounds[1], lonBounds[1]);
+                LatLngBounds bounds = new LatLngBounds(min, max);
+
+                map.addPolyline(polylineOpts);
+                map.moveCamera(
+                        CameraUpdateFactory.newLatLngBounds(
+                                bounds,
+                                getResources().getDimensionPixelSize(R.dimen.margin_map)
+                        )
+                );
+            }
+
+            // Progress bar
+            if (isAdded()) {
+                getActivity().setProgressBarIndeterminateVisibility(false);
+            }
         }
     }
 }

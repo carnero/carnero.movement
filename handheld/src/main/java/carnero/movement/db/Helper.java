@@ -123,14 +123,15 @@ public class Helper extends SQLiteOpenHelper {
         long oldest = Long.MAX_VALUE;
 
         final ModelDataContainer container = new ModelDataContainer();
-        container.data = new ModelData[intervals + 1];
+        container.movements = new ModelData[intervals + 1];
+        container.locations = new ArrayList<ModelLocation>();
 
         // Get entries for given interval
         Cursor cursor = null;
         try {
             cursor = getDatabaseRO().query(
                     Structure.Table.History.name,
-                    Structure.Table.History.projectionData,
+                    Structure.Table.History.projectionFull,
                     Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
                     null, null, null,
                     Structure.Table.History.TIME + " desc"
@@ -140,8 +141,12 @@ public class Helper extends SQLiteOpenHelper {
                 int idxTime = cursor.getColumnIndex(Structure.Table.History.TIME);
                 int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
                 int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
+                int idxLatitude = cursor.getColumnIndex(Structure.Table.History.LATITUDE);
+                int idxLongitude = cursor.getColumnIndex(Structure.Table.History.LONGITUDE);
+                int idxAccuracy = cursor.getColumnIndex(Structure.Table.History.ACCURACY);
 
                 do {
+                    // Movements
                     long time = cursor.getLong(idxTime);
                     if (time < oldest) {
                         oldest = time;
@@ -149,17 +154,25 @@ public class Helper extends SQLiteOpenHelper {
 
                     int interval = intervals - ((int) ((end - time) / millisInterval)); // Oldest is the first interval
 
-                    ModelData model = container.data[interval];
-                    if (model == null) {
-                        model = new ModelData();
-                        model.steps = cursor.getInt(idxSteps);
-                        model.distance = cursor.getFloat(idxDistance);
+                    ModelData movement = container.movements[interval];
+                    if (movement == null) {
+                        movement = new ModelData();
+                        movement.steps = cursor.getInt(idxSteps);
+                        movement.distance = cursor.getFloat(idxDistance);
 
-                        container.data[interval] = model;
+                        container.movements[interval] = movement;
                     } else {
-                        model.steps = Math.max(model.steps, cursor.getInt(idxSteps));
-                        model.distance = Math.max(model.distance, cursor.getFloat(idxDistance));
+                        movement.steps = Math.max(movement.steps, cursor.getInt(idxSteps));
+                        movement.distance = Math.max(movement.distance, cursor.getFloat(idxDistance));
                     }
+
+                    // Locations
+                    ModelLocation location = new ModelLocation();
+                    location.latitude = cursor.getDouble(idxLatitude);
+                    location.longitude = cursor.getDouble(idxLongitude);
+                    location.accuracy = cursor.getDouble(idxAccuracy);
+
+                    container.locations.add(location);
                 } while (cursor.moveToNext());
             }
         } finally {
@@ -187,7 +200,7 @@ public class Helper extends SQLiteOpenHelper {
                 model.steps = cursor.getInt(idxSteps);
                 model.distance = cursor.getFloat(idxDistance);
 
-                container.start = model;
+                container.previousEntry = model;
             }
         } finally {
             if (cursor != null) {
@@ -195,16 +208,18 @@ public class Helper extends SQLiteOpenHelper {
             }
         }
 
-
         return container;
     }
 
-    public ArrayList<ModelLocation> getLocationsForDay() {
+    public ArrayList<ModelLocation> getLocationsForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
         long millisStart = calendar.getTimeInMillis();
+
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long millisEnd = calendar.getTimeInMillis();
 

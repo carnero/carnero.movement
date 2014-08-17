@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class ModelDataContainer {
 
-    public ModelData start;
-    public ModelData[] data;
+    public ModelData previousEntry;
+    public ModelData[] movements;
+    public ArrayList<ModelLocation> locations;
 }

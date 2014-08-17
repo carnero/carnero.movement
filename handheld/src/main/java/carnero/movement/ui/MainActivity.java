@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.Window;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -23,8 +24,9 @@ public class MainActivity extends AbstractBaseActivity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
 
-        // getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-        // getWindow().setExitTransition(new Explode());
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        // requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        // setExitTransition(new Explode());
 
         // Start service
         final Intent serviceIntent = new Intent(this, LocationService.class);
@@ -55,8 +57,6 @@ public class MainActivity extends AbstractBaseActivity {
                     return GraphFragment.newInstance(-1); // Yesterday
                 case 2:
                     return GraphFragment.newInstance(0); // Today
-                case 3:
-                    return MapFragment.newInstance();
                 default:
                     return null;
             }
@@ -64,7 +64,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         @Override
         public int getCount() {
-            return 4;
+            return 3;
         }
     }
 }
