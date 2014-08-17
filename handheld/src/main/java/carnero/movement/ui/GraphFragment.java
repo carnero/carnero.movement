@@ -180,10 +180,10 @@ public class GraphFragment extends Fragment {
                 // Normalize data
                 double ratio = 1.0f;
                 int ratioLine = -1; // steps:0, distance:1
-                if (mMaxStp > mMaxDst) {
+                if (mMaxStp > mMaxDst && mMaxDst > 100) {
                     ratio = mMaxStp / mMaxDst;
                     ratioLine = 0;
-                } else if (mMaxStp < mMaxDst) {
+                } else if (mMaxStp < mMaxDst && mMaxStp > 100) {
                     ratio = mMaxDst / mMaxStp;
                     ratioLine = 1;
                 }
