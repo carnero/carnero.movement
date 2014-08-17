@@ -243,7 +243,7 @@ public class LocationService extends TeleportService implements LocationListener
             Log.d(Constants.TAG, "Received location: " + location.getAccuracy() + ", " + location.distanceTo(mLocation) + "m");
         }
 
-        if (location.getAccuracy() > 1600) {
+        if (location.getAccuracy() > 5000) {
             return;
         }
 

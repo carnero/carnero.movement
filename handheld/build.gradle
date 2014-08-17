@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 20 // "android-L"
+    compileSdkVersion "android-L"
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "carnero.movement"
-        minSdkVersion "L"
+        minSdkVersion 20
         targetSdkVersion "L"
         versionCode 2
         versionName "0.02.0"
