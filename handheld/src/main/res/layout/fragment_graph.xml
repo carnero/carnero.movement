@@ -4,31 +4,34 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/stats"
+    <RelativeLayout
+        android:id="@+id/stats_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="16dp" >
 
         <TextView
             style="@style/Text.Label"
-            android:id="@+id/stats_steps"
+            android:id="@+id/label"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true" />
 
         <TextView
-            style="@style/Text.Label"
-            android:id="@+id/stats_distance"
+            style="@style/Text"
+            android:id="@+id/stats"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:singleLine="true"
+            android:ellipsize="end" />
+    </RelativeLayout>
 
     <com.echo.holographlibrary.SmoothLineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/stats"
+        android:layout_below="@id/stats_container"
         app:lineAxisColor="@color/none" />
 </RelativeLayout>

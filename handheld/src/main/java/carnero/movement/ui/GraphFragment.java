@@ -14,6 +14,10 @@ import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
@@ -34,10 +38,10 @@ public class GraphFragment extends Fragment {
     //
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
-    @InjectView(R.id.stats_steps)
-    TextView vStatsSteps;
-    @InjectView(R.id.stats_distance)
-    TextView vStatsDistance;
+    @InjectView(R.id.label)
+    TextView vLabel;
+    @InjectView(R.id.stats)
+    TextView vStats;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -207,35 +211,23 @@ public class GraphFragment extends Fragment {
 
         @Override
         public void postExecute() {
-            // Statistics
-            StringBuilder stB = new StringBuilder();
-            stB.append("• today ");
-            stB.append(mLabelStepsMax - mLabelStepsMin);
-            stB.append(" steps, total ");
-            stB.append(mPreferences.getSteps());
-            stB.append(" steps");
-            SpannableString stS = new SpannableString(stB.toString());
-            stS.setSpan(
-                    new ForegroundColorSpan(getResources().getColor(R.color.graph_steps)),
-                    0, 1,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+            float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
+            int stepsDay = mLabelStepsMax - mLabelStepsMin;
 
-            vStatsSteps.setText(stS);
+            if (getDay() == 0) {
+                vLabel.setText(R.string.today);
+            } else if (getDay() == -1) {
+                vLabel.setText(R.string.yesterday);
+            } else {
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.DAY_OF_MONTH, -1);
 
-            StringBuilder dsB = new StringBuilder();
-            dsB.append("• today ");
-            dsB.append(Utils.formatDistance(mLabelDistanceMax - mLabelDistanceMin));
-            dsB.append(", total ");
-            dsB.append(Utils.formatDistance(mPreferences.getDistance()));
-            SpannableString dsS = new SpannableString(dsB.toString());
-            dsS.setSpan(
-                    new ForegroundColorSpan(getResources().getColor(R.color.graph_distance)),
-                    0, 1,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+                DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
+                String date = format.format(calendar.getTime());
 
-            vStatsDistance.setText(dsS);
+                vStats.setText(date);
+            }
+            vStats.setText(getString(R.string.stats, Utils.formatDistance(distanceDay), stepsDay));
 
             // Graph
             vGraph.setRangeY(
