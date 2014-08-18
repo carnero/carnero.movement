@@ -9,7 +9,7 @@ android {
         minSdkVersion 20
         targetSdkVersion "L"
         versionCode 2
-        versionName "0.02.1"
+        versionName "0.02.2"
     }
     buildTypes {
         release {
@@ -26,5 +26,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-wearable:5.0.77'
     compile 'com.jakewharton:butterknife:5.1.1'
     compile 'Teleport:teleportlib:0.1.1'
-    compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.2'
+    // compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.2'
 }

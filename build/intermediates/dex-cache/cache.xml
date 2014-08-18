@@ -18,7 +18,7 @@
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/carnero.movement/HoloGraphLibrary/unspecified/classes.jar"
         jumboMode="false"
         revision="20.0.0"
-        sha1="acc6c8e0639933b3dadff6b40d56b27bd5b3a36a"/>
+        sha1="0f4031e4f88d509b3348c5e6e0de8a2a3e7efa25"/>
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-10cac8d2547d40e1fae9f814ff2056302a2f5710.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v13/20.0.0/classes.jar"
@@ -67,12 +67,6 @@
         jumboMode="false"
         revision="20.0.0"
         sha1="27bbd3982cdfe4468a9bf99c8c773734a9049e33"/>
-    <item
-        dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/universal-image-loader-1.9.2-68a0010cd1d164b393ef2062b09b031e6f6ac868.jar"
-        jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.nostra13.universalimageloader/universal-image-loader/1.9.2/9e025bc5b84968e7d6ac765e660a70b3e5a87432/universal-image-loader-1.9.2.jar"
-        jumboMode="false"
-        revision="20.0.0"
-        sha1="9e025bc5b84968e7d6ac765e660a70b3e5a87432"/>
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/support-annotations-20.0.0-aafa5a2b105857d5a11e7827d679eec2f088d9a5.jar"
         jar="/Developer/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/20.0.0/support-annotations-20.0.0.jar"
