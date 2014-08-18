@@ -35,6 +35,30 @@
             android:ellipsize="end" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/no_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/stats_container"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/no_data_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_margin="16dp"
+            android:src="@drawable/no_data"
+            android:contentDescription="@string/no_data" />
+        <TextView
+            style="@style/Text.NoData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/no_data_icon"
+            android:text="@string/no_data" />
+    </RelativeLayout>
+
     <com.echo.holographlibrary.SmoothLineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"

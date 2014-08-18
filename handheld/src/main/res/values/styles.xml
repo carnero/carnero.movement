@@ -9,4 +9,8 @@
     <style name="Text.Label">
         <item name="android:textSize">24sp</item>
     </style>
+
+    <style name="Text.NoData">
+        <item name="android:textColor">@color/text_nodata</item>
+    </style>
 </resources>

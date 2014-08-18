@@ -6,11 +6,12 @@
     <color name="primary">#ff0091f5</color>
     <color name="primary_dark">#ff0064ae</color>
     <color name="accent">#ff0064ae</color>
-    <color name="text_primary">@android:color/white</color>
 
     <!-- App -->
     <color name="bcg">@android:color/white</color>
     <color name="text">#ff666666</color>
+    <color name="text_primary">@android:color/white</color>
+    <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
     <color name="graph_steps">#88008bea</color>

@@ -48,6 +48,8 @@ public class GraphFragment extends Fragment {
     SmoothLineGraph vGraph;
     @InjectView(R.id.map)
     MapView vMap;
+    @InjectView(R.id.no_data)
+    View vNoData;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -160,7 +162,7 @@ public class GraphFragment extends Fragment {
         @Override
         public void inBackground() {
             mContainer = mHelper.getDataForDay(getDay());
-            if (mContainer == null) {
+            if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
                 return;
             }
 
@@ -261,16 +263,8 @@ public class GraphFragment extends Fragment {
             if (!isAdded()) {
                 return;
             }
-            if (mContainer == null) {
-                // TODO: add error message
 
-                return;
-            }
-
-            // Label & stats
-            float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
-            int stepsDay = mLabelStepsMax - mLabelStepsMin;
-
+            // Date
             if (getDay() == 0) {
                 vLabel.setText(R.string.today);
             } else if (getDay() == -1) {
@@ -284,6 +278,26 @@ public class GraphFragment extends Fragment {
 
                 vLabel.setText(date);
             }
+
+            // No data
+            if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
+                vStats.setText(getString(R.string.stats, Utils.formatDistance(0), 0));
+                vGraph.setVisibility(View.GONE);
+                vMap.setVisibility(View.GONE);
+
+                vNoData.setVisibility(View.VISIBLE);
+
+                if (isAdded()) {
+                    getActivity().setProgressBarIndeterminateVisibility(false);
+                }
+                return;
+            }
+
+            // Stats
+            float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
+            int stepsDay = mLabelStepsMax - mLabelStepsMin;
+
+            vNoData.setVisibility(View.GONE);
             vStats.setText(getString(R.string.stats, Utils.formatDistance(distanceDay), stepsDay));
 
             // Graph
@@ -319,9 +333,9 @@ public class GraphFragment extends Fragment {
                     map.addPolyline(polylineOpts);
                 }
 
-                LatLng min = new LatLng(latBounds[0], lonBounds[0]);
-                LatLng max = new LatLng(latBounds[1], lonBounds[1]);
-                LatLngBounds bounds = new LatLngBounds(min, max);
+                LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
+                LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
+                LatLngBounds bounds = new LatLngBounds(ne, sw);
 
                 map.moveCamera(
                         CameraUpdateFactory.newLatLngBounds(
