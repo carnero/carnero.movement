@@ -114,12 +114,14 @@ public class GraphFragment extends Fragment {
 
     private void initGraph() {
         mLineDistance = new Line();
+        mLineDistance.setFill(true);
         mLineDistance.setShowingPoints(false);
         mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
         mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineDistance);
 
         mLineSteps = new Line();
+        mLineSteps.setFill(true);
         mLineSteps.setShowingPoints(false);
         mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
         mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
