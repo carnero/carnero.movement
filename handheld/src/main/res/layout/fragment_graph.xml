@@ -9,7 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:padding="16dp" >
+        android:paddingTop="16dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="16dp" >
 
         <TextView
             style="@style/Text.Label"
@@ -18,14 +21,58 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true" />
 
-        <TextView
-            style="@style/Text"
-            android:id="@+id/stats"
+        <LinearLayout
+            android:id="@+id/steps_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:singleLine="true"
-            android:ellipsize="end" />
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Text"
+                android:id="@+id/stats_steps"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:ellipsize="end" />
+            <View
+                android:id="@+id/line_steps"
+                android:layout_width="2dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="0dp"
+                android:background="@drawable/line_steps"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/distance_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/steps_container"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Text"
+                android:id="@+id/stats_distance"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:ellipsize="end" />
+            <View
+                android:id="@+id/line_distance"
+                android:layout_width="2dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="0dp"
+                android:background="@drawable/line_distance"/>
+        </LinearLayout>
     </RelativeLayout>
 
     <RelativeLayout

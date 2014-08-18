@@ -27,12 +27,38 @@
 
         <TextView
             style="@style/Text"
-            android:id="@+id/stats"
+            android:id="@+id/stats_steps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:singleLine="true"
             android:ellipsize="end" />
+        <TextView
+            style="@style/Text"
+            android:id="@+id/stats_distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/stats_steps"
+            android:layout_marginEnd="8dp"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/stats_steps"
+            android:layout_alignStart="@id/stats_steps"
+            android:layout_alignEnd="@id/stats_steps"
+            android:layout_marginTop="-3dp"
+            android:background="@drawable/line_steps"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/stats_distance"
+            android:layout_alignStart="@id/stats_distance"
+            android:layout_alignEnd="@id/stats_distance"
+            android:layout_marginTop="-3dp"
+            android:background="@drawable/line_distance"/>
     </RelativeLayout>
 
     <RelativeLayout

@@ -1,6 +1,5 @@
 package carnero.movement.ui;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -42,8 +41,10 @@ public class GraphFragment extends Fragment {
     //
     @InjectView(R.id.label)
     TextView vLabel;
-    @InjectView(R.id.stats)
-    TextView vStats;
+    @InjectView(R.id.stats_steps)
+    TextView vStatsSteps;
+    @InjectView(R.id.stats_distance)
+    TextView vStatsDistance;
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
     @InjectView(R.id.map)
@@ -281,7 +282,8 @@ public class GraphFragment extends Fragment {
 
             // No data
             if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
-                vStats.setText(getString(R.string.stats, Utils.formatDistance(0), 0));
+                vStatsSteps.setText(getString(R.string.stats_steps, 0));
+                vStatsDistance.setText(Utils.formatDistance(0));
                 vGraph.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
 
@@ -298,7 +300,8 @@ public class GraphFragment extends Fragment {
             int stepsDay = mLabelStepsMax - mLabelStepsMin;
 
             vNoData.setVisibility(View.GONE);
-            vStats.setText(getString(R.string.stats, Utils.formatDistance(distanceDay), stepsDay));
+            vStatsSteps.setText(getString(R.string.stats_steps, stepsDay));
+            vStatsDistance.setText(Utils.formatDistance(distanceDay));
 
             // Graph
             vGraph.setRangeY(

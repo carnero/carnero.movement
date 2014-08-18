@@ -9,6 +9,6 @@
     <string name="notification_title">Movement</string>
     <string name="notification_text">Watching you...</string>
 
-    <string name="stats">%1$s, %2$d steps</string>
+    <string name="stats_steps">%1$d steps</string>
     <string name="no_data">no data for this day</string>
 </resources>
