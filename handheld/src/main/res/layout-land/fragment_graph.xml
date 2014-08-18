@@ -14,8 +14,8 @@
         android:id="@+id/stats_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/map"
         android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/map"
         android:padding="16dp" >
 
         <TextView
@@ -38,27 +38,11 @@
             android:id="@+id/stats_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/stats_steps"
-            android:layout_marginEnd="8dp"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/stats_steps"
             android:singleLine="true"
             android:ellipsize="end" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/stats_steps"
-            android:layout_alignStart="@id/stats_steps"
-            android:layout_alignEnd="@id/stats_steps"
-            android:layout_marginTop="-3dp"
-            android:background="@drawable/line_steps"/>
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@id/stats_distance"
-            android:layout_alignStart="@id/stats_distance"
-            android:layout_alignEnd="@id/stats_distance"
-            android:layout_marginTop="-3dp"
-            android:background="@drawable/line_distance"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -95,4 +79,43 @@
         android:layout_marginRight="16dp"
         android:layout_marginBottom="16dp"
         app:lineAxisColor="@color/none" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@id/map"
+        android:layout_below="@id/stats_container"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+    </LinearLayout>
 </RelativeLayout>

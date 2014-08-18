@@ -9,10 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:paddingTop="16dp"
-        android:paddingEnd="0dp"
-        android:paddingBottom="16dp"
-        android:paddingStart="16dp" >
+        android:padding="16dp">
 
         <TextView
             style="@style/Text.Label"
@@ -21,58 +18,23 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true" />
 
-        <LinearLayout
-            android:id="@+id/steps_container"
+        <TextView
+            style="@style/Text"
+            android:id="@+id/stats_steps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/Text"
-                android:id="@+id/stats_steps"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:singleLine="true"
-                android:ellipsize="end" />
-            <View
-                android:id="@+id/line_steps"
-                android:layout_width="2dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_marginStart="14dp"
-                android:layout_marginEnd="0dp"
-                android:background="@drawable/line_steps"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/distance_container"
+            android:singleLine="true"
+            android:ellipsize="end" />
+        <TextView
+            style="@style/Text"
+            android:id="@+id/stats_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_below="@id/steps_container"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/Text"
-                android:id="@+id/stats_distance"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:singleLine="true"
-                android:ellipsize="end" />
-            <View
-                android:id="@+id/line_distance"
-                android:layout_width="2dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="4dp"
-                android:layout_marginStart="14dp"
-                android:layout_marginEnd="0dp"
-                android:background="@drawable/line_distance"/>
-        </LinearLayout>
+            android:layout_below="@id/stats_steps"
+            android:singleLine="true"
+            android:ellipsize="end" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -114,4 +76,42 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         app:lineAxisColor="@color/none" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/stats_container"
+        android:layout_above="@id/map"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/divider_full" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="25"/>
+    </LinearLayout>
 </RelativeLayout>
