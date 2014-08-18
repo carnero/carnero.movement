@@ -1,5 +1,6 @@
 package carnero.movement.ui;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -170,6 +171,12 @@ public class GraphFragment extends Fragment {
             if (mContainer.previousEntry != null) {
                 stepsPrev = mContainer.previousEntry.steps;
                 distancePrev = mContainer.previousEntry.distance;
+
+                // Values for labels
+                mLabelStepsMin = Math.min(mLabelStepsMin, mContainer.previousEntry.steps);
+                mLabelStepsMax = Math.max(mLabelStepsMax, mContainer.previousEntry.steps);
+                mLabelDistanceMin = Math.min(mLabelDistanceMin, mContainer.previousEntry.distance);
+                mLabelDistanceMax = Math.max(mLabelDistanceMax, mContainer.previousEntry.distance);
             }
 
             for (int i = 0; i < mContainer.movements.length; i++) {
@@ -282,16 +289,18 @@ public class GraphFragment extends Fragment {
                     (float) Math.min(mMinStp, mMinDst),
                     (float) Math.max(mMaxStp, mMaxDst)
             );
+            vGraph.invalidate();
 
             // Locations
             final GoogleMap map = vMap.getMap();
             map.clear();
 
             if (mContainer.locations != null) {
+                final int color = getResources().getColor(R.color.map_history);
                 final PolylineOptions polylineOpts = new PolylineOptions();
                 polylineOpts.zIndex(1010);
                 polylineOpts.width(getResources().getDimension(R.dimen.line_stroke));
-                polylineOpts.color(getResources().getColor(R.color.map_history));
+                polylineOpts.color(color);
 
                 double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
                 double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -304,13 +313,14 @@ public class GraphFragment extends Fragment {
 
                     LatLng latLng = new LatLng(model.latitude, model.longitude);
                     polylineOpts.add(latLng);
+
+                    map.addPolyline(polylineOpts);
                 }
 
                 LatLng min = new LatLng(latBounds[0], lonBounds[0]);
                 LatLng max = new LatLng(latBounds[1], lonBounds[1]);
                 LatLngBounds bounds = new LatLngBounds(min, max);
 
-                map.addPolyline(polylineOpts);
                 map.moveCamera(
                         CameraUpdateFactory.newLatLngBounds(
                                 bounds,
