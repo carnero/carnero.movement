@@ -43,33 +43,27 @@ public class MainActivity extends AbstractBaseActivity {
 
         mPagerAdapter = new PagesAdapter();
         vPager.setAdapter(mPagerAdapter);
-        vPager.setCurrentItem(2);
+        vPager.setCurrentItem(mPagerAdapter.getCount() - 1);
     }
 
     // Classes
 
     private class PagesAdapter extends FragmentStatePagerAdapter {
+
+        private final int mPages = 7;
+
         public PagesAdapter() {
             super(getSupportFragmentManager());
         }
 
         @Override
         public Fragment getItem(int position) {
-            switch (position) {
-                case 0:
-                    return GraphFragment.newInstance(-2); // Day before yesterday
-                case 1:
-                    return GraphFragment.newInstance(-1); // Yesterday
-                case 2:
-                    return GraphFragment.newInstance(0); // Today
-                default:
-                    return null;
-            }
+            return GraphFragment.newInstance(position - mPages + 1);
         }
 
         @Override
         public int getCount() {
-            return 3;
+            return mPages;
         }
     }
 }

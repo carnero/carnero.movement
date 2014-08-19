@@ -81,6 +81,7 @@
         app:lineAxisColor="@color/none" />
 
     <LinearLayout
+        android:id="@+id/visual_helper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toLeftOf="@id/map"

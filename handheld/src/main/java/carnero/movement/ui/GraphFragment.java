@@ -50,6 +50,8 @@ public class GraphFragment extends Fragment {
     SmoothLineGraph vGraph;
     @InjectView(R.id.map)
     MapView vMap;
+    @InjectView(R.id.visual_helper)
+    View vVisualHelper;
     @InjectView(R.id.no_data)
     View vNoData;
 
@@ -285,6 +287,7 @@ public class GraphFragment extends Fragment {
                 vStatsSteps.setText(getString(R.string.stats_steps, 0));
                 vStatsDistance.setText(Utils.formatDistance(0));
                 vGraph.setVisibility(View.GONE);
+                vVisualHelper.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
 
                 vNoData.setVisibility(View.VISIBLE);
