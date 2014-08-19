@@ -34,7 +34,6 @@ import carnero.movement.db.ModelLocation;
 
 public class GraphFragment extends Fragment {
 
-    private Preferences mPreferences;
     private Helper mHelper;
     private Line mLineSteps;
     private Line mLineDistance;
@@ -68,7 +67,6 @@ public class GraphFragment extends Fragment {
     public void onActivityCreated(Bundle state) {
         super.onActivityCreated(state);
 
-        mPreferences = new Preferences(getActivity());
         mHelper = new Helper(getActivity());
     }
 
