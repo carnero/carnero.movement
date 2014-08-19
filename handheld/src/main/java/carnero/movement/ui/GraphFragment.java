@@ -272,7 +272,7 @@ public class GraphFragment extends Fragment {
                 vLabel.setText(R.string.yesterday);
             } else {
                 Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_MONTH, -1);
+                calendar.add(Calendar.DAY_OF_MONTH, getDay());
 
                 DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
                 String date = format.format(calendar.getTime());

@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "carnero.movement"
-        minSdkVersion 19 // Ignored when compileSdkVersion == "android-L"
+        minSdkVersion 20 // Ignored when compileSdkVersion == "android-L"
         targetSdkVersion "L"
         versionCode 22
         versionName "0.02.2"

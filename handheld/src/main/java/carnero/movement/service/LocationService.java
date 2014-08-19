@@ -1,6 +1,7 @@
 package carnero.movement.service;
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -36,13 +38,14 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
+import carnero.movement.db.ModelData;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 
 public class LocationService extends TeleportService implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
-    private Helper mDatabase;
+    private Helper mHelper;
     private TeleportClient mTeleport;
     private AlarmManager mAlarmManager;
     private PowerManager mPowerManager;
@@ -78,7 +81,7 @@ public class LocationService extends TeleportService implements LocationListener
         super.onCreate();
 
         mPreferences = new Preferences(this);
-        mDatabase = new Helper(this);
+        mHelper = new Helper(this);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -399,7 +402,7 @@ public class LocationService extends TeleportService implements LocationListener
             return;
         }
 
-        boolean status = mDatabase.saveData(mSteps, mDistance, mLocation);
+        boolean status = mHelper.saveData(mSteps, mDistance, mLocation);
         if (status) {
             mLastSaveToDB = SystemClock.elapsedRealtime();
         }
@@ -410,29 +413,48 @@ public class LocationService extends TeleportService implements LocationListener
             return;
         }
 
-        DataMap map = new DataMap();
-        map.putInt("steps", mSteps);
-        map.putFloat("distance", mDistance);
-        map.putDouble("latitude", mLocation.getLatitude());
-        map.putDouble("longitude", mLocation.getLongitude());
-        map.putDouble("accuracy", mLocation.getAccuracy());
-        map.putLong("time", mLocation.getTime());
-        // map.putAsset("graph", null); // TODO
+        // Status
+        final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
-        ArrayList<DataMap> mapList = new ArrayList<DataMap>();
-        mapList.add(map);
+        DataMap statusMap = new DataMap();
+        statusMap.putInt("steps", mSteps);
+        statusMap.putFloat("distance", mDistance);
+        statusMap.putDouble("latitude", mLocation.getLatitude());
+        statusMap.putDouble("longitude", mLocation.getLongitude());
+        statusMap.putDouble("accuracy", mLocation.getAccuracy());
+        statusMap.putLong("time", mLocation.getTime());
+        // statusMap.putAsset("graph", null); // TODO
+
+        statusList.add(statusMap);
+
+        // History
+        final ArrayList<DataMap> historyList = new ArrayList<DataMap>();
+
+        for (int i = 0; i > -4; i --) {
+            ModelData data = mHelper.getSummaryForDay(i);
+            if (data == null) {
+                continue;
+            }
+
+            DataMap historyMap = new DataMap();
+            historyMap.putInt("day", i);
+            historyMap.putInt("steps", data.steps);
+            historyMap.putFloat("distance", data.distance);
+
+            historyList.add(historyMap);
+        }
 
         PutDataMapRequest data = PutDataMapRequest.createWithAutoAppendedId("/status");
-        data.getDataMap().putDataMapArrayList("status", mapList);
+        data.getDataMap().putDataMapArrayList("status", statusList);
+        data.getDataMap().putDataMapArrayList("history", historyList);
         syncDataItem(data);
 
         mLastSentToWear = SystemClock.elapsedRealtime();
     }
 
     private void notifyHandheld() {
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                        // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        final Notification.Builder builder = new Notification.Builder(this)
+                .setPriority(Notification.PRIORITY_MIN)
                 .setOngoing(true)
                 .setWhen(mLocation.getTime())
                 .setSmallIcon(R.drawable.ic_notification)
@@ -445,6 +467,12 @@ public class LocationService extends TeleportService implements LocationListener
                         new Intent(LocationService.this, MainActivity.class),
                         PendingIntent.FLAG_UPDATE_CURRENT
                 ));
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            builder
+                    .setCategory(Notification.CATEGORY_STATUS)
+                    .setVisibility(Notification.VISIBILITY_PUBLIC);
+        }
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
     }

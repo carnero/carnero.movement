@@ -83,7 +83,7 @@ public class Helper extends SQLiteOpenHelper {
         return status;
     }
 
-    public ModelDataContainer getDataForDay(int day) {
+    public ModelData getSummaryForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -95,12 +95,88 @@ public class Helper extends SQLiteOpenHelper {
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long millisEnd = calendar.getTimeInMillis();
 
-        return getData(millisStart, millisEnd);
+        return getSummary(millisStart, millisEnd);
     }
 
-    public ModelDataContainer getData(int days) {
-        long millisEnd = System.currentTimeMillis();
-        long millisStart = millisEnd - (DateUtils.DAY_IN_MILLIS * days);
+    public ModelData getSummary(long start, long end) {
+        Cursor cursor;
+        int stepsStart = -1;
+        float distanceStart = -1;
+        int stepsEnd = -1;
+        float distanceEnd = -1;
+
+        // Get last entry from previous day
+        cursor = null;
+        try {
+            cursor = getDatabaseRO().query(
+                    Structure.Table.History.name,
+                    Structure.Table.History.projectionData,
+                    Structure.Table.History.TIME + " < " + start,
+                    null, null, null,
+                    Structure.Table.History.TIME + " desc",
+                    "1"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
+                int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
+
+                stepsStart = cursor.getInt(idxSteps);
+                distanceStart = cursor.getFloat(idxDistance);
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        // Get last entry from previous day
+        cursor = null;
+        try {
+            cursor = getDatabaseRO().query(
+                    Structure.Table.History.name,
+                    Structure.Table.History.projectionData,
+                    Structure.Table.History.TIME + " <= " + end,
+                    null, null, null,
+                    Structure.Table.History.TIME + " desc",
+                    "1"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
+                int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
+
+                stepsEnd = cursor.getInt(idxSteps);
+                distanceEnd = cursor.getFloat(idxDistance);
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        if (stepsStart == -1 || stepsEnd == -1 || distanceStart == -1 || distanceEnd == -1) {
+            return null;
+        }
+
+        final ModelData summary = new ModelData();
+        summary.steps = stepsEnd - stepsStart;
+        summary.distance = distanceEnd - distanceStart;
+
+        return summary;
+    }
+
+    public ModelDataContainer getDataForDay(int day) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        long millisStart = calendar.getTimeInMillis();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
 
         return getData(millisStart, millisEnd);
     }
@@ -222,13 +298,6 @@ public class Helper extends SQLiteOpenHelper {
 
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long millisEnd = calendar.getTimeInMillis();
-
-        return getLocations(millisStart, millisEnd);
-    }
-
-    public ArrayList<ModelLocation> getLocations(int days) {
-        long millisEnd = System.currentTimeMillis();
-        long millisStart = millisEnd - (DateUtils.DAY_IN_MILLIS * days);
 
         return getLocations(millisStart, millisEnd);
     }
