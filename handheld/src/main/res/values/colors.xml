@@ -17,6 +17,6 @@
     <color name="graph_steps">#88008bea</color>
     <color name="graph_distance">#88fa8b00</color>
     <color name="graph_divider">#22000000</color>
-    <color name="graph_actionbar">#44ffffff</color>
+    <color name="graph_actionbar">#33ffffff</color>
     <color name="map_history">#88fa8b00</color>
 </resources>

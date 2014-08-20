@@ -18,7 +18,7 @@
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/carnero.movement/HoloGraphLibrary/unspecified/classes.jar"
         jumboMode="false"
         revision="20.0.0"
-        sha1="f58ae0ed876f5ec36d31f350693990b050d15e59"/>
+        sha1="c7c4ca7e07081a462688027b03b5d14e30a91485"/>
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/pre-dexed/debug/classes-10cac8d2547d40e1fae9f814ff2056302a2f5710.jar"
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/wear/build/intermediates/exploded-aar/com.android.support/support-v13/20.0.0/classes.jar"
