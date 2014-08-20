@@ -1,6 +1,8 @@
 package carnero.movement.service;
 
 import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
@@ -36,6 +38,7 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
 import carnero.movement.data.ModelData;
 import carnero.movement.data.Size;
+import carnero.movement.ui.AbstractBaseActivity;
 
 public class ListenerService extends TeleportService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -126,7 +129,7 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         }
 
         // History
-        final ArrayList<ModelData> history = new ArrayList<ModelData>();
+        List<ModelData> history = new ArrayList<ModelData>();
         if (data.containsKey("history")) {
             final ArrayList<DataMap> historyList = data.getDataMapArrayList("history");
 
@@ -143,6 +146,7 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
 
             Collections.sort(history);
             Collections.reverse(history);
+            history = history.subList(0, 2);
         }
 
         // Notify activities

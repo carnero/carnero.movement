@@ -3,4 +3,6 @@
 
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
+
+    <string name="action_more">Details</string>
 </resources>

@@ -8,8 +8,8 @@ android {
         applicationId "carnero.movement"
         minSdkVersion 20 // Ignored when compileSdkVersion == "android-L"
         targetSdkVersion "L"
-        versionCode 22
-        versionName "0.02.2"
+        versionCode 30
+        versionName "0.03.0"
     }
     buildTypes {
         release {

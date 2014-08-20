@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CalendarView;
 import android.widget.TextView;
 
 import com.echo.holographlibrary.Line;
@@ -19,13 +18,11 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
@@ -91,7 +88,7 @@ public class GraphFragment extends Fragment {
         super.onResume();
         vMap.onResume();
 
-        new DataLoadTask().start();
+        new GraphDataTask().start();
     }
 
     @Override
@@ -139,19 +136,19 @@ public class GraphFragment extends Fragment {
 
     // Classes
 
-    private class DataLoadTask extends BaseAsyncTask {
+    private class GraphDataTask extends BaseAsyncTask {
 
         private ModelDataContainer mContainer;
         //
-        private double mMaxStp = Double.MIN_VALUE;
-        private double mMinStp = Double.MAX_VALUE;
-        private double mMaxDst = Double.MIN_VALUE;
         private double mMinDst = Double.MAX_VALUE;
+        private double mMaxDst = Double.MIN_VALUE;
+        private double mMinStp = Double.MAX_VALUE;
+        private double mMaxStp = Double.MIN_VALUE;
         //
-        private int mLabelStepsMin = Integer.MAX_VALUE;
-        private int mLabelStepsMax = Integer.MIN_VALUE;
         private float mLabelDistanceMin = Float.MAX_VALUE;
         private float mLabelDistanceMax = Float.MIN_VALUE;
+        private int mLabelStepsMin = Integer.MAX_VALUE;
+        private int mLabelStepsMax = Integer.MIN_VALUE;
 
         @Override
         protected void onPreExecute() {
