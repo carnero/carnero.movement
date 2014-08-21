@@ -5,17 +5,14 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
-import android.view.Gravity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.data.FreezableUtils;
-import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
@@ -28,7 +25,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,9 +32,9 @@ import carnero.movement.App;
 import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
-import carnero.movement.data.ModelData;
+import carnero.movement.data.ModelDataContainer;
 import carnero.movement.data.Size;
-import carnero.movement.ui.AbstractBaseActivity;
+import carnero.movement.ui.DistanceActivity;
 
 public class ListenerService extends TeleportService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -106,56 +102,52 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
     }
 
     private void processStatus(DataMap data) {
-        // Status
-        final ArrayList<DataMap> statusList = data.getDataMapArrayList("status");
-        final DataMap dataMap = statusList.get(0);
+        final ModelDataContainer container = new ModelDataContainer();
 
-        int steps = dataMap.getInt("steps");
-        float distance = dataMap.getFloat("distance");
+        // Summary
+        final ArrayList<DataMap> summaryList = data.getDataMapArrayList("summary");
+        final DataMap dataMap = summaryList.get(0);
 
-        Location location = new Location("HANDHELD");
-        location.setLatitude(dataMap.getDouble("latitude"));
-        location.setLongitude(dataMap.getDouble("longitude"));
-        location.setAccuracy(dataMap.getFloat("accuracy"));
-        location.setTime(dataMap.getLong("time"));
+        container.steps = dataMap.getInt("steps");
+        container.distance = dataMap.getFloat("distance");
 
-        Asset graph = dataMap.getAsset("graph");
-        Bitmap graphBmp = null;
-        if (graph != null) {
-            graphBmp = Utils.loadBitmapFromAsset(mTeleport.getGoogleApiClient(), graph);
-        }
-        if (graphBmp == null) {
-            graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
-        }
-
-        // History
-        List<ModelData> history = new ArrayList<ModelData>();
-        if (data.containsKey("history")) {
-            final ArrayList<DataMap> historyList = data.getDataMapArrayList("history");
-
-            Log.d(Constants.TAG, "History: " + historyList.size());
-
-            for (DataMap historyMap : historyList) {
-                ModelData entry = new ModelData();
-                entry.day = historyMap.getInt("day");
-                entry.steps = historyMap.getInt("steps");
-                entry.distance = historyMap.getFloat("distance");
-
-                history.add(entry);
+        // Data
+        if (data.containsKey("steps")) {
+            final ArrayList<DataMap> stepsList = data.getDataMapArrayList("steps");
+            for (DataMap map : stepsList) {
+                container.stepsList.add(map.getDouble("value"));
             }
-
-            Collections.sort(history);
-            Collections.reverse(history);
-            history = history.subList(0, 2);
         }
+        if (data.containsKey("distance")) {
+            final ArrayList<DataMap> distanceList = data.getDataMapArrayList("distance");
+            for (DataMap map : distanceList) {
+                container.distanceList.add(map.getDouble("value"));
+            }
+        }
+
+        Log.i(Constants.TAG, "Data received: S:" + container.stepsList.size() + " | D:" + container.distanceList.size());
+
+        // Save data
+        Bundle extras = new Bundle();
+        extras.putParcelable("data", container);
 
         // Notify activities
-        App.bus().post(distance);
-        App.bus().post(location);
+        App.bus().post(container);
 
         // Base notification
+        final Intent displayIntent = new Intent(this, DistanceActivity.class);
+        displayIntent.putExtras(extras);
+
+        final PendingIntent displayPendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                displayIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        final Bitmap graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
+
         final Notification.BigTextStyle style = new Notification.BigTextStyle()
-                .bigText(Utils.formatDistance(distance) + "\n" + Integer.toString(steps) + " steps");
+                .bigText(Utils.formatDistance(container.distance) + "\n" + Integer.toString(container.steps) + " steps");
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -164,36 +156,12 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
                 .setSmallIcon(R.drawable.ic_notification)
                 .setLargeIcon(graphBmp)
                 .setContentTitle(getString(R.string.app_name))
-                .setStyle(style);
+                .setStyle(style)
+                .extend(new Notification.WearableExtender()
+                        .setDisplayIntent(displayPendingIntent)
+                        .setCustomSizePreset(Notification.WearableExtender.SIZE_MEDIUM));
 
-        // Add history to notification
-        final Notification.WearableExtender extender = new Notification.WearableExtender();
-        for (ModelData entry : history) {
-            final Notification.BigTextStyle entryStyle = new Notification.BigTextStyle();
-            entryStyle.bigText(Utils.formatDistance(entry.distance) + "\n" + Integer.toString(entry.steps) + " steps");
-
-            Notification.Builder entryBuilder = new Notification.Builder(ListenerService.this)
-                    .setLargeIcon(graphBmp)
-                    .setStyle(entryStyle);
-
-            if (entry.day == 0) {
-                entryBuilder.setContentTitle(getString(R.string.today));
-            } else if (entry.day == -1) {
-                entryBuilder.setContentTitle(getString(R.string.yesterday));
-            } else {
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_MONTH, entry.day);
-
-                DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
-                String date = format.format(calendar.getTime());
-
-                entryBuilder.setContentTitle(date);
-            }
-
-            extender.addPage(entryBuilder.build());
-        }
-
-        final Notification notification = extender.extend(builder).build();
+        final Notification notification = builder.build();
         NotificationManagerCompat.from(this).notify(1001, notification);
     }
 }

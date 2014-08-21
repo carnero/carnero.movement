@@ -9,6 +9,12 @@
 
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 
+        <activity android:name="carnero.movement.ui.DistanceActivity"
+            android:exported="true"
+            android:allowEmbedded="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.DeviceDefault.Light" />
+
         <service
             android:name="carnero.movement.service.ListenerService">
 

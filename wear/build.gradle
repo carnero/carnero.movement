@@ -8,8 +8,8 @@ android {
         applicationId "carnero.movement"
         minSdkVersion 20
         targetSdkVersion 20
-        versionCode 20
-        versionName "0.02.0"
+        versionCode 30
+        versionName "0.03.0"
     }
     buildTypes {
         release {
@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
+    compile project(':HoloGraphLibrary')
     compile 'com.google.android.support:wearable:+'
     compile 'com.google.android.gms:play-services-wearable:5.0.77'
     compile 'com.jakewharton:butterknife:5.1.1'

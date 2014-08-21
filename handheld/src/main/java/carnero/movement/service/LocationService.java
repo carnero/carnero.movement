@@ -22,6 +22,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import com.echo.holographlibrary.LinePoint;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
@@ -39,6 +40,7 @@ import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
+import carnero.movement.db.ModelDataContainer;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 
@@ -413,40 +415,102 @@ public class LocationService extends TeleportService implements LocationListener
             return;
         }
 
-        // Status
+        // Summary
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
         DataMap statusMap = new DataMap();
         statusMap.putInt("steps", mSteps);
         statusMap.putFloat("distance", mDistance);
-        statusMap.putDouble("latitude", mLocation.getLatitude());
-        statusMap.putDouble("longitude", mLocation.getLongitude());
-        statusMap.putDouble("accuracy", mLocation.getAccuracy());
-        statusMap.putLong("time", mLocation.getTime());
-        // statusMap.putAsset("graph", null); // TODO
 
         statusList.add(statusMap);
 
         // History
-        final ArrayList<DataMap> historyList = new ArrayList<DataMap>();
+        double minDst = Double.MAX_VALUE;
+        double maxDst = Double.MIN_VALUE;
+        double minStp = Double.MAX_VALUE;
+        double maxStp = Double.MIN_VALUE;
+        double stepsPrev = -1d;
+        double distancePrev = -1d;
 
-        for (int i = 0; i > -4; i --) {
-            ModelData data = mHelper.getSummaryForDay(i);
-            if (data == null) {
-                continue;
-            }
+        final ModelDataContainer container = mHelper.getDataForDay(0);
+        final ArrayList<Double> distanceArray = new ArrayList<Double>();
+        final ArrayList<Double> stepsArray = new ArrayList<Double>();
 
-            DataMap historyMap = new DataMap();
-            historyMap.putInt("day", i);
-            historyMap.putInt("steps", data.steps);
-            historyMap.putFloat("distance", data.distance);
-
-            historyList.add(historyMap);
+        if (container.previousEntry != null) {
+            stepsPrev = container.previousEntry.steps;
+            distancePrev = container.previousEntry.distance;
         }
 
+        for (int i = 0; i < container.movements.length; i++) {
+            ModelData model = container.movements[i];
+
+            double steps;
+            double distance;
+            if (model == null) {
+                steps = 0;
+                distance = 0;
+            } else if (stepsPrev == -1f || distancePrev == -1f) {
+                stepsPrev = model.steps;
+                distancePrev = model.distance;
+
+                continue;
+            } else {
+                steps = model.steps - stepsPrev;
+                distance = model.distance - distancePrev;
+                stepsPrev = model.steps;
+                distancePrev = model.distance;
+            }
+
+            distanceArray.add(distance);
+            stepsArray.add(steps);
+
+            minDst = Math.min(minDst, distance);
+            maxDst = Math.max(maxDst, distance);
+            minStp = Math.min(minStp, steps);
+            maxStp = Math.max(maxStp, steps);
+        }
+
+        // Normalize data
+        double ratio = 1.0f;
+        int ratioLine = -1; // steps:0, distance:1
+        if (maxStp > maxDst && maxDst > 100) {
+            ratio = maxStp / maxDst;
+            ratioLine = 0;
+        } else if (maxStp < maxDst && maxStp > 100) {
+            ratio = maxDst / maxStp;
+            ratioLine = 1;
+        }
+
+        // Create DataMaps
+        final ArrayList<DataMap> stepsList = new ArrayList<DataMap>();
+        for (int i = 0; i < stepsList.size(); i ++) {
+            DataMap map = new DataMap();
+            if (ratioLine == 0) {
+                map.putDouble("value", stepsArray.get(i) / ratio);
+            } else {
+                map.putDouble("value", stepsArray.get(i));
+            }
+
+            stepsList.add(map);
+        }
+
+        final ArrayList<DataMap> distanceList = new ArrayList<DataMap>();
+        for (int i = 0; i < distanceList.size(); i ++) {
+            DataMap map = new DataMap();
+            if (ratioLine == 1) {
+                map.putDouble("value", distanceArray.get(i) / ratio);
+            } else {
+                map.putDouble("value", distanceArray.get(i));
+            }
+
+            distanceList.add(map);
+        }
+
+        // Send data
         PutDataMapRequest data = PutDataMapRequest.createWithAutoAppendedId("/status");
-        data.getDataMap().putDataMapArrayList("status", statusList);
-        data.getDataMap().putDataMapArrayList("history", historyList);
+        data.getDataMap().putDataMapArrayList("summary", statusList);
+        data.getDataMap().putDataMapArrayList("steps", stepsList);
+        data.getDataMap().putDataMapArrayList("distance", distanceList);
         syncDataItem(data);
 
         mLastSentToWear = SystemClock.elapsedRealtime();
