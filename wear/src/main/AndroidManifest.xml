@@ -13,7 +13,12 @@
             android:exported="true"
             android:allowEmbedded="true"
             android:taskAffinity=""
-            android:theme="@android:style/Theme.DeviceDefault.Light" />
+            android:theme="@style/MovementTheme" />
+        <activity android:name="carnero.movement.ui.StepsActivity"
+            android:exported="true"
+            android:allowEmbedded="true"
+            android:taskAffinity=""
+            android:theme="@style/MovementTheme" />
 
         <service
             android:name="carnero.movement.service.ListenerService">

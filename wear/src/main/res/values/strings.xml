@@ -2,7 +2,5 @@
     <string name="app_name">Movement</string>
 
     <string name="today">Today</string>
-    <string name="yesterday">Yesterday</string>
-
-    <string name="action_more">Details</string>
+    <string name="stats_steps">%1$d steps</string>
 </resources>

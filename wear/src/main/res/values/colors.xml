@@ -2,11 +2,6 @@
 <resources>
     <color name="none">@android:color/transparent</color>
 
-    <!-- Material -->
-    <color name="primary">#ff0091f5</color>
-    <color name="primary_dark">#ff0064ae</color>
-    <color name="accent">#ff0064ae</color>
-
     <!-- App -->
     <color name="bcg">@android:color/white</color>
     <color name="text">#ff666666</color>
@@ -14,8 +9,8 @@
     <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
-    <color name="graph_distance">#88008bea</color>
-    <color name="graph_steps">#88fb83ff</color>
+    <color name="graph_distance">#ff008bea</color>
+    <color name="graph_steps">#fffb83ff</color>
     <color name="graph_divider">#22000000</color>
     <color name="graph_actionbar">#33ffffff</color>
     <color name="map_history">#88008bea</color>

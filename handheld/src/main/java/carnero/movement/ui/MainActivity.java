@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.transition.*;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -16,7 +15,6 @@ import android.view.Window;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
-import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -55,12 +53,6 @@ public class MainActivity extends AbstractBaseActivity {
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
         vGraph = (SmoothLineGraph) customView.findViewById(R.id.action_graph);
-
-        // System & action bar
-        SystemBarTintManager tintManager = new SystemBarTintManager(this);
-        tintManager.setStatusBarTintEnabled(true);
-        tintManager.setNavigationBarTintEnabled(false);
-        tintManager.setTintColor(getResources().getColor(R.color.primary_dark));
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {

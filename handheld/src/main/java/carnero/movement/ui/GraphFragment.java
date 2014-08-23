@@ -115,19 +115,19 @@ public class GraphFragment extends Fragment {
     }
 
     private void initGraph() {
-        mLineDistance = new Line();
-        mLineDistance.setFill(false);
-        mLineDistance.setShowingPoints(false);
-        mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
-        mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
-        vGraph.addLine(mLineDistance);
-
         mLineSteps = new Line();
         mLineSteps.setFill(false);
         mLineSteps.setShowingPoints(false);
         mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
         mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineSteps);
+
+        mLineDistance = new Line();
+        mLineDistance.setFill(false);
+        mLineDistance.setShowingPoints(false);
+        mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
+        mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
+        vGraph.addLine(mLineDistance);
     }
 
     private int getDay() {

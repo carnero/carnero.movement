@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 import carnero.movement.R;
 
-public class DistanceActivity extends AbstractGraphActivity {
+public class StepsActivity extends AbstractGraphActivity {
 
     protected int getLineColor() {
-        return getResources().getColor(R.color.graph_distance);
+        return getResources().getColor(R.color.graph_steps);
     }
 
     protected ArrayList<Double> getValues() {
-        return mContainer.distanceList;
+        return mContainer.stepsList;
     }
 }

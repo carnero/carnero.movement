@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import carnero.movement.App;
 import carnero.movement.R;
@@ -36,6 +37,7 @@ import carnero.movement.common.Utils;
 import carnero.movement.data.ModelDataContainer;
 import carnero.movement.data.Size;
 import carnero.movement.ui.DistanceActivity;
+import carnero.movement.ui.StepsActivity;
 
 public class ListenerService extends TeleportService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -81,7 +83,6 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
 
                 final Uri uri = item.getUri();
                 if (uri.getPath().startsWith("/status")) {
-                    Log.i(Constants.TAG, "Received status data");
                     processStatus(item.getDataMap());
                 }
             }
@@ -90,17 +91,17 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
 
     @Override
     public void onConnected(Bundle bundle) {
-        // TODO
+        // empty
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        // TODO
+        // empty
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        // TODO
+        // empty
     }
 
     private void processStatus(DataMap data) {
@@ -127,25 +128,51 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             }
         }
 
-        Log.i(Constants.TAG, "Data received: S:" + container.stepsList.size() + " | D:" + container.distanceList.size());
-
         // Save data
         Bundle extras = new Bundle();
         extras.putParcelable("data", container);
 
-        // Notify activities
-        App.bus().post(container);
-
-        // Base notification
-        final Intent displayIntent = new Intent(this, DistanceActivity.class);
-        displayIntent.putExtras(extras);
-
-        final PendingIntent displayPendingIntent = PendingIntent.getActivity(
+        // Distance notification
+        final Intent distanceIntent = new Intent(this, DistanceActivity.class);
+        distanceIntent.putExtras(extras);
+        final PendingIntent distancePendingIntent = PendingIntent.getActivity(
                 this,
                 0,
-                displayIntent,
+                distanceIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
+        final Notification.Builder distanceBuilder = new Notification.Builder(ListenerService.this)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(false)
+                .setWhen(System.currentTimeMillis())
+                .setContentTitle(getString(R.string.app_name));
+
+        new Notification.WearableExtender()
+                .setDisplayIntent(distancePendingIntent)
+                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
+                .extend(distanceBuilder);
+
+        // Steps notification
+        final Intent stepsIntent = new Intent(this, StepsActivity.class);
+        stepsIntent.putExtras(extras);
+        final PendingIntent stepsPendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                stepsIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        final Notification.Builder stepsBuilder = new Notification.Builder(ListenerService.this)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(false)
+                .setWhen(System.currentTimeMillis())
+                .setContentTitle(getString(R.string.app_name));
+
+        new Notification.WearableExtender()
+                .setDisplayIntent(stepsPendingIntent)
+                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
+                .extend(stepsBuilder);
+
+        // Base notification
         final Bitmap graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
 
         final Notification.BigTextStyle style = new Notification.BigTextStyle()
@@ -158,10 +185,15 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
                 .setSmallIcon(R.drawable.ic_notification)
                 .setLargeIcon(graphBmp)
                 .setContentTitle(getString(R.string.app_name))
-                .setStyle(style)
-                .extend(new Notification.WearableExtender()
-                        .setDisplayIntent(displayPendingIntent)
-                        .setCustomSizePreset(Notification.WearableExtender.SIZE_MEDIUM));
+                .setStyle(style);
+
+        final ArrayList<Notification> pages = new ArrayList<Notification>();
+        pages.add(distanceBuilder.build());
+        pages.add(stepsBuilder.build());
+
+        new Notification.WearableExtender()
+                .addPages(pages)
+                .extend(builder);
 
         final Notification notification = builder.build();
         NotificationManagerCompat.from(this).notify(1001, notification);

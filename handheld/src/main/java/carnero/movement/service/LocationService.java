@@ -379,8 +379,8 @@ public class LocationService extends TeleportService implements LocationListener
         mObtained[what] = true;
 
         boolean all = true;
-        for (int i = 0; i < mObtained.length; i++) {
-            if (!mObtained[i]) {
+        for (boolean obtained : mObtained) {
+            if (!obtained) {
                 all = false;
 
                 break;
@@ -485,7 +485,7 @@ public class LocationService extends TeleportService implements LocationListener
 
         // Create DataMaps
         final ArrayList<DataMap> stepsList = new ArrayList<DataMap>();
-        for (int i = 0; i < stepsList.size(); i ++) {
+        for (int i = 0; i < stepsArray.size(); i ++) {
             DataMap map = new DataMap();
             if (ratioLine == 0) {
                 map.putDouble("value", stepsArray.get(i) / ratio);
@@ -497,7 +497,7 @@ public class LocationService extends TeleportService implements LocationListener
         }
 
         final ArrayList<DataMap> distanceList = new ArrayList<DataMap>();
-        for (int i = 0; i < distanceList.size(); i ++) {
+        for (int i = 0; i < distanceArray.size(); i ++) {
             DataMap map = new DataMap();
             if (ratioLine == 1) {
                 map.putDouble("value", distanceArray.get(i) / ratio);
