@@ -317,6 +317,8 @@ public class LocationService extends TeleportService implements LocationListener
             );
 
             Log.i(Constants.TAG, "Step counter registered (batch:" + batchMode + ")");
+        } else {
+            Log.i(Constants.TAG, "Step counter is not present on this device");
         }
 
         // Set listeners for criteria-based provider, and for passive provider
@@ -531,12 +533,6 @@ public class LocationService extends TeleportService implements LocationListener
                         new Intent(LocationService.this, MainActivity.class),
                         PendingIntent.FLAG_UPDATE_CURRENT
                 ));
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            builder
-                    .setCategory(Notification.CATEGORY_STATUS)
-                    .setVisibility(Notification.VISIBILITY_PUBLIC);
-        }
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
     }

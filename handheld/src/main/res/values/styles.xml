@@ -1,5 +1,15 @@
 <resources>
-    <style name="MovementTheme" parent="android:Theme.Holo.Light" />
+    <style name="MovementTheme" parent="android:Theme.Holo.Light">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">@bool/translucentNavBar</item>
+
+        <item name="android:actionBarStyle">@style/ActionBar</item>
+    </style>
+
+    <style name="ActionBar" parent="@android:style/Widget.Holo.ActionBar.Solid">
+        <item name="android:background">@color/primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
 
     <style name="Text" parent="android:Widget.TextView">
         <item name="android:textSize">16sp</item>

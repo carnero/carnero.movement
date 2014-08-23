@@ -16,6 +16,7 @@ import android.view.Window;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -44,11 +45,6 @@ public class MainActivity extends AbstractBaseActivity {
 
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
-        if (Build.VERSION.SDK_INT > 20) {
-            requestWindowFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-            getWindow().setExitTransition(new Explode());
-        }
-
         // Init
         mHelper = new Helper(this);
 
@@ -59,6 +55,12 @@ public class MainActivity extends AbstractBaseActivity {
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
         vGraph = (SmoothLineGraph) customView.findViewById(R.id.action_graph);
+
+        // System & action bar
+        SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setNavigationBarTintEnabled(false);
+        tintManager.setTintColor(getResources().getColor(R.color.primary_dark));
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {

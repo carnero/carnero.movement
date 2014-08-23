@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -77,10 +78,11 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         for (DataEvent event : events) {
             if (event.getType() == DataEvent.TYPE_CHANGED) {
                 DataMapItem item = DataMapItem.fromDataItem(event.getDataItem());
-                DataMap map = item.getDataMap();
 
-                if (map.containsKey("status")) {
-                    processStatus(map);
+                final Uri uri = item.getUri();
+                if (uri.getPath().startsWith("/status")) {
+                    Log.i(Constants.TAG, "Received status data");
+                    processStatus(item.getDataMap());
                 }
             }
         }
