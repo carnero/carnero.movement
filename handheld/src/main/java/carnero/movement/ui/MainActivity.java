@@ -83,7 +83,6 @@ public class MainActivity extends AbstractBaseActivity {
         mLineDistance.setFill(true);
         mLineDistance.setShowingPoints(true);
         mLineDistance.setColor(getResources().getColor(R.color.graph_actionbar));
-        mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke_light));
         vGraph.addLine(mLineDistance);
     }
 

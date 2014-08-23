@@ -2,6 +2,5 @@
     <dimen name="margin_activity">16dp</dimen>
     <dimen name="margin_map">8dp</dimen>
 
-    <dimen name="line_stroke">5dp</dimen>
-    <dimen name="line_stroke_light">1dp</dimen>
+    <dimen name="map_line_stroke">3dp</dimen>
 </resources>

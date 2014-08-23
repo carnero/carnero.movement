@@ -14,9 +14,9 @@
     <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
-    <color name="graph_distance">#88008bea</color>
-    <color name="graph_steps">#88fb83ff</color>
+    <color name="graph_distance">#cc0098ff</color>
+    <color name="graph_steps">#ccfc8aff</color>
     <color name="graph_divider">#22000000</color>
     <color name="graph_actionbar">#33ffffff</color>
-    <color name="map_history">#88008bea</color>
+    <color name="map_history">#880098ff</color>
 </resources>

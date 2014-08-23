@@ -55,7 +55,8 @@
             android:id="@+id/graph"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:lineBackground="@color/none"
             app:lineAxisColor="@color/none"
-            app:lineBackground="@color/none" />
+            app:lineUsePadding="false" />
     </FrameLayout>
 </LinearLayout>

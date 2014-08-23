@@ -116,17 +116,15 @@ public class GraphFragment extends Fragment {
 
     private void initGraph() {
         mLineSteps = new Line();
-        mLineSteps.setFill(false);
+        mLineSteps.setFill(true);
         mLineSteps.setShowingPoints(false);
         mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
-        mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineSteps);
 
         mLineDistance = new Line();
-        mLineDistance.setFill(false);
+        mLineDistance.setFill(true);
         mLineDistance.setShowingPoints(false);
         mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
-        mLineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
         vGraph.addLine(mLineDistance);
     }
 
@@ -318,7 +316,7 @@ public class GraphFragment extends Fragment {
                 final int color = getResources().getColor(R.color.map_history);
                 final PolylineOptions polylineOpts = new PolylineOptions();
                 polylineOpts.zIndex(1010);
-                polylineOpts.width(getResources().getDimension(R.dimen.line_stroke));
+                polylineOpts.width(getResources().getDimension(R.dimen.map_line_stroke));
                 polylineOpts.color(color);
 
                 double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};

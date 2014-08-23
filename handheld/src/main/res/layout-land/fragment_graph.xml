@@ -69,6 +69,19 @@
             android:text="@string/no_data" />
     </RelativeLayout>
 
+    <com.echo.holographlibrary.SmoothLineGraph
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@id/map"
+        android:layout_below="@id/stats_container"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        app:lineBackground="@color/none"
+        app:lineAxisColor="@color/none"
+        app:lineUsePadding="false" />
+
     <LinearLayout
         android:id="@+id/visual_helper"
         android:layout_width="match_parent"
@@ -84,7 +97,7 @@
             android:layout_height="match_parent"
             android:layout_weight="25"/>
         <View
-            android:layout_width="1dp"
+            android:layout_width="1px"
             android:layout_height="match_parent"
             android:background="@drawable/divider_full" />
         <View
@@ -92,7 +105,7 @@
             android:layout_height="match_parent"
             android:layout_weight="25"/>
         <View
-            android:layout_width="1dp"
+            android:layout_width="1px"
             android:layout_height="match_parent"
             android:background="@drawable/divider_full" />
         <View
@@ -100,7 +113,7 @@
             android:layout_height="match_parent"
             android:layout_weight="25"/>
         <View
-            android:layout_width="1dp"
+            android:layout_width="1px"
             android:layout_height="match_parent"
             android:background="@drawable/divider_full" />
         <View
@@ -108,16 +121,4 @@
             android:layout_height="match_parent"
             android:layout_weight="25"/>
     </LinearLayout>
-
-    <com.echo.holographlibrary.SmoothLineGraph
-        android:id="@+id/graph"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_toLeftOf="@id/map"
-        android:layout_below="@id/stats_container"
-        android:layout_marginTop="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        app:lineBackground="@color/none"
-        app:lineAxisColor="@color/none" />
 </RelativeLayout>

@@ -44,10 +44,9 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
         ButterKnife.inject(this);
 
         mLine = new Line();
-        mLine.setFill(false);
+        mLine.setFill(true);
         mLine.setShowingPoints(false);
         mLine.setColor(getLineColor());
-        mLine.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.line_stroke));
 
         vGraph.addLine(mLine);
     }

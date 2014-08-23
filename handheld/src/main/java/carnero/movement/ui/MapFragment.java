@@ -109,7 +109,7 @@ public class MapFragment extends SupportMapFragment {
 
             final PolylineOptions polylineOpts = new PolylineOptions();
             polylineOpts.zIndex(1010);
-            polylineOpts.width(getResources().getDimension(R.dimen.line_stroke));
+            polylineOpts.width(getResources().getDimension(R.dimen.map_line_stroke));
             polylineOpts.color(getResources().getColor(R.color.map_history));
 
             for (ModelLocation model : mData) {
