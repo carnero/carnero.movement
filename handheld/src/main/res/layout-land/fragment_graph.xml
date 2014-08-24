@@ -10,12 +10,19 @@
         android:layout_height="match_parent"
         android:layout_alignParentRight="true" />
 
+    <View
+        android:id="@+id/separator"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@id/map"
+        android:background="@color/separator" />
+
     <RelativeLayout
         android:id="@+id/stats_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@id/map"
+        android:layout_toLeftOf="@id/separator"
         android:padding="16dp" >
 
         <TextView
@@ -77,7 +84,6 @@
         android:layout_below="@id/stats_container"
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
         app:lineBackground="@color/none"
         app:lineAxisColor="@color/none"
         app:lineUsePadding="false" />

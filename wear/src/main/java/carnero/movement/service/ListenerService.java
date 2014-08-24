@@ -112,7 +112,9 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         final DataMap dataMap = summaryList.get(0);
 
         container.steps = dataMap.getInt("steps");
+        container.stepsToday = dataMap.getInt("steps_today");
         container.distance = dataMap.getFloat("distance");
+        container.distanceToday = dataMap.getFloat("distance_today");
 
         // Data
         if (data.containsKey("steps")) {

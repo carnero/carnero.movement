@@ -9,7 +9,9 @@ import java.util.Collections;
 public class ModelDataContainer implements Parcelable {
 
     public int steps;
+    public int stepsToday;
     public float distance;
+    public float distanceToday;
     public final ArrayList<Double> stepsList = new ArrayList<Double>();
     public final ArrayList<Double> distanceList = new ArrayList<Double>();
 
@@ -43,7 +45,7 @@ public class ModelDataContainer implements Parcelable {
         }
 
         distanceList.clear();
-        for (double value : stepsArray) {
+        for (double value : distanceArray) {
             distanceList.add(value);
         }
     }

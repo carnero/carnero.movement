@@ -67,12 +67,19 @@
         android:layout_height="160dp"
         android:layout_alignParentBottom="true" />
 
+    <View
+        android:id="@+id/separator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/map"
+        android:background="@color/separator" />
+
     <com.echo.holographlibrary.SmoothLineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/stats_container"
-        android:layout_above="@id/map"
+        android:layout_above="@id/separator"
         android:layout_marginTop="16dp"
         app:lineBackground="@color/none"
         app:lineAxisColor="@color/none"

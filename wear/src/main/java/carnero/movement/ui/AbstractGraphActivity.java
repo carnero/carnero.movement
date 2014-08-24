@@ -57,9 +57,9 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
         // Label
         if (this instanceof DistanceActivity) {
-            vLabel.setText(getString(R.string.today) + ": " + Utils.formatDistance(mContainer.distance));
+            vLabel.setText(getString(R.string.today) + ": " + Utils.formatDistance(mContainer.distanceToday));
         } else if (this instanceof StepsActivity) {
-            vLabel.setText(getString(R.string.today) + ": " + getString(R.string.stats_steps, mContainer.steps));
+            vLabel.setText(getString(R.string.today) + ": " + getString(R.string.stats_steps, mContainer.stepsToday));
         }
 
         // Graph
@@ -70,15 +70,15 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
         ArrayList<Double> values = getValues();
         for (int i = 0; i < values.size(); i ++) {
-            Double distance = values.get(i);
+            Double value = values.get(i);
 
-            LinePoint pointDistance = new LinePoint();
-            pointDistance.setX(i);
-            pointDistance.setY(distance);
-            mLine.addPoint(pointDistance);
+            LinePoint point = new LinePoint();
+            point.setX(i);
+            point.setY(value);
+            mLine.addPoint(point);
 
-            min = Math.min(min, distance);
-            max = Math.max(max, distance);
+            min = Math.min(min, value);
+            max = Math.max(max, value);
         }
 
         vGraph.setRangeY((float) min, (float) max);

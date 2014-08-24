@@ -41,8 +41,6 @@ public class MainActivity extends AbstractBaseActivity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
 
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
         // Init
         mHelper = new Helper(this);
 

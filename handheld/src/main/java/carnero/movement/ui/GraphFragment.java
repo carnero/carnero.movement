@@ -45,6 +45,8 @@ public class GraphFragment extends Fragment {
     TextView vStatsDistance;
     @InjectView(R.id.graph)
     SmoothLineGraph vGraph;
+    @InjectView(R.id.separator)
+    View vSeparator;
     @InjectView(R.id.map)
     MapView vMap;
     @InjectView(R.id.visual_helper)
@@ -153,7 +155,7 @@ public class GraphFragment extends Fragment {
             super.onPreExecute();
 
             if (isAdded()) {
-                getActivity().setProgressBarIndeterminateVisibility(true);
+                // TODO: show progress bar
             }
         }
 
@@ -283,6 +285,7 @@ public class GraphFragment extends Fragment {
                 vStatsDistance.setText(Utils.formatDistance(0));
                 vGraph.setVisibility(View.GONE);
                 vVisualHelper.setVisibility(View.GONE);
+                vSeparator.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
 
                 vNoData.setVisibility(View.VISIBLE);
@@ -348,7 +351,7 @@ public class GraphFragment extends Fragment {
 
             // Progress bar
             if (isAdded()) {
-                getActivity().setProgressBarIndeterminateVisibility(false);
+                // TODO: hide progressbar
             }
         }
     }

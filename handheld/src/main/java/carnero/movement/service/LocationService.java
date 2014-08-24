@@ -424,6 +424,10 @@ public class LocationService extends TeleportService implements LocationListener
         statusMap.putInt("steps", mSteps);
         statusMap.putFloat("distance", mDistance);
 
+        ModelData today = mHelper.getSummaryForDay(0);
+        statusMap.putInt("steps_today", today.steps);
+        statusMap.putFloat("distance_today", today.distance);
+
         statusList.add(statusMap);
 
         // History

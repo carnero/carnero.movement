@@ -19,4 +19,7 @@
     <color name="graph_divider">#22000000</color>
     <color name="graph_actionbar">#33ffffff</color>
     <color name="map_history">#880098ff</color>
+
+    <!-- Other -->
+    <color name="separator">#ff666666</color>
 </resources>
