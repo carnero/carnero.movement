@@ -55,13 +55,6 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
     protected void onResume() {
         super.onResume();
 
-        // Label
-        if (this instanceof DistanceActivity) {
-            vLabel.setText(getString(R.string.today) + ": " + Utils.formatDistance(mContainer.distanceToday));
-        } else if (this instanceof StepsActivity) {
-            vLabel.setText(getString(R.string.today) + ": " + getString(R.string.stats_steps, mContainer.stepsToday));
-        }
-
         // Graph
         double max = Double.MIN_VALUE;
         double min = Double.MAX_VALUE;

@@ -13,4 +13,11 @@ public class StepsActivity extends AbstractGraphActivity {
     protected ArrayList<Double> getValues() {
         return mContainer.stepsList;
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        vLabel.setText(getString(R.string.today) + ": " + getString(R.string.stats_steps, mContainer.stepsToday));
+    }
 }

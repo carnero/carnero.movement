@@ -1,5 +1,6 @@
 package carnero.movement.data;
 
+import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -9,8 +10,8 @@ import java.util.Collections;
 public class ModelDataContainer implements Parcelable {
 
     public int steps;
-    public int stepsToday;
     public float distance;
+    public int stepsToday;
     public float distanceToday;
     public final ArrayList<Double> stepsList = new ArrayList<Double>();
     public final ArrayList<Double> distanceList = new ArrayList<Double>();
@@ -30,14 +31,15 @@ public class ModelDataContainer implements Parcelable {
     }
 
     private ModelDataContainer(Parcel in) {
-        steps = in.readInt();
-        distance = in.readFloat();
+        final Bundle bundle = in.readBundle();
 
-        double[] stepsArray = in.createDoubleArray();
-        in.readDoubleArray(stepsArray);
+        steps = bundle.getInt("steps");
+        distance = bundle.getFloat("distance");
+        stepsToday = bundle.getInt("stepsToday");
+        distanceToday = bundle.getFloat("distanceToday");
 
-        double[] distanceArray = in.createDoubleArray();
-        in.readDoubleArray(distanceArray);
+        double[] stepsArray = bundle.getDoubleArray("stepsList");
+        double[] distanceArray = bundle.getDoubleArray("distanceList");
 
         stepsList.clear();
         for (double value : stepsArray) {
@@ -55,15 +57,21 @@ public class ModelDataContainer implements Parcelable {
         for (int i = 0; i < stepsList.size(); i ++) {
             stepsArray[i] = stepsList.get(i);
         }
+
         double[] distanceArray = new double[distanceList.size()];
         for (int i = 0; i < distanceList.size(); i ++) {
             distanceArray[i] = distanceList.get(i);
         }
 
-        out.writeInt(steps);
-        out.writeFloat(distance);
-        out.writeDoubleArray(stepsArray);
-        out.writeDoubleArray(distanceArray);
+        final Bundle bundle = new Bundle();
+        bundle.putInt("steps", steps);
+        bundle.putFloat("distance", distance);
+        bundle.putInt("stepsToday", stepsToday);
+        bundle.putFloat("distanceToday", distanceToday);
+        bundle.putDoubleArray("stepsList", stepsArray);
+        bundle.putDoubleArray("distanceList", distanceArray);
+
+        out.writeBundle(bundle);
     }
 
     public int describeContents() {

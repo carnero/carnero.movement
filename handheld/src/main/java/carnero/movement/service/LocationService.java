@@ -413,7 +413,8 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void sendDataToWear() {
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
+        // if (mLastSentToWear > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 1000))) { // TODO: Once in 5 secs
             return;
         }
 
