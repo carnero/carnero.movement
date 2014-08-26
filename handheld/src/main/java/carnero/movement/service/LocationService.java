@@ -9,6 +9,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.TriggerEvent;
+import android.hardware.TriggerEventListener;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -29,7 +31,9 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,7 +48,9 @@ import carnero.movement.db.ModelDataContainer;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 
-public class LocationService extends TeleportService implements LocationListener, SensorEventListener {
+public class LocationService
+        extends TeleportService
+        implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
     private Helper mHelper;
@@ -55,9 +61,11 @@ public class LocationService extends TeleportService implements LocationListener
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
+    private MotionListener mMotionListener;
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
+    private long mLastMotion;
     private long mLastSaveToDB = 0;
     private long mLastSentToWear = 0;
     // counters
@@ -170,6 +178,8 @@ public class LocationService extends TeleportService implements LocationListener
                     @Override
                     public void run() {
                         if (mWakeLock != null && mWakeLock.isHeld()) {
+                            handleData(); // Send data we have to refresh Wear
+
                             mWakeLock.release();
                             mWakeLock = null;
 
@@ -252,7 +262,9 @@ public class LocationService extends TeleportService implements LocationListener
             return;
         }
 
-        setObtained(OBTAINED_LOCATION);
+        boolean distanceThrShort = (mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold;
+        boolean distanceThrLong = (mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong;
+        boolean motion = mLastMotion > System.currentTimeMillis() - (45 * 60 * 1000); // Last motion within 45 mins
 
         if (mLocation == null) {
             mLocation = location;
@@ -265,10 +277,7 @@ public class LocationService extends TeleportService implements LocationListener
 
             // Notify wake lock (if held)
             setObtained(OBTAINED_LOCATION);
-        } else if (
-                ((mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold)
-                        || ((mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong)
-                ) {
+        } else if ((motion && distanceThrShort) || distanceThrLong) {
             mDistance += mLocation.distanceTo(location);
             mLocation = location;
 
@@ -320,6 +329,9 @@ public class LocationService extends TeleportService implements LocationListener
         } else {
             Log.i(Constants.TAG, "Step counter is not present on this device");
         }
+
+        // Significant motion sensor
+        requestMotionSensor();
 
         // Set listeners for criteria-based provider, and for passive provider
         final Criteria criteria = new Criteria();
@@ -395,6 +407,17 @@ public class LocationService extends TeleportService implements LocationListener
         }
     }
 
+    private void requestMotionSensor() {
+        if (mMotionListener == null) {
+            mMotionListener = new MotionListener();
+        }
+
+        Sensor significantMotion = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+        if (significantMotion != null) {
+            mSensorManager.requestTriggerSensor(mMotionListener, significantMotion);
+        }
+    }
+
     private void handleData() {
         saveToDB();
         sendDataToWear();
@@ -413,8 +436,7 @@ public class LocationService extends TeleportService implements LocationListener
     }
 
     private void sendDataToWear() {
-        // if (mLastSentToWear > (SystemClock.elapsedRealtime() - (10 * 60 * 1000))) { // Once in 10 mins
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 1000))) { // TODO: Once in 5 secs
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) { // Once in 1 min
             return;
         }
 
@@ -424,6 +446,7 @@ public class LocationService extends TeleportService implements LocationListener
         DataMap statusMap = new DataMap();
         statusMap.putInt("steps", mSteps);
         statusMap.putFloat("distance", mDistance);
+        statusMap.putLong("motion", mLastMotion); // debug
 
         ModelData today = mHelper.getSummaryForDay(0);
         statusMap.putInt("steps_today", today.steps);
@@ -540,5 +563,17 @@ public class LocationService extends TeleportService implements LocationListener
                 ));
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
+    }
+
+    // Classes
+
+    private class MotionListener extends TriggerEventListener {
+
+        @Override
+        public void onTrigger(TriggerEvent event) {
+            mLastMotion = event.timestamp / 1000000; // ns
+
+            requestMotionSensor();
+        }
     }
 }

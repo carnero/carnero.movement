@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -111,6 +112,8 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         final ArrayList<DataMap> summaryList = data.getDataMapArrayList("summary");
         final DataMap dataMap = summaryList.get(0);
 
+        long motion = dataMap.getLong("motion"); // debug
+
         container.steps = dataMap.getInt("steps");
         container.distance = dataMap.getFloat("distance");
         container.stepsToday = dataMap.getInt("steps_today");
@@ -177,11 +180,18 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         // Base notification
         final Bitmap graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
 
-        final Notification.BigTextStyle style = new Notification.BigTextStyle()
-                .bigText(Utils.formatDistance(container.distance) + "\n" + Integer.toString(container.steps) + " steps");
+        final Notification.BigTextStyle style = new Notification.BigTextStyle();
+        style.bigText(
+                Utils.formatDistance(container.distance) + "\n" + Integer.toString(container.steps) + " steps"
+        );
+
+        int priority = Notification.PRIORITY_LOW;
+        if (motion > System.currentTimeMillis() - (30 * 60 * 1000)) {
+            priority = Notification.PRIORITY_HIGH;
+        }
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(priority)
                 .setOngoing(false)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_notification)
