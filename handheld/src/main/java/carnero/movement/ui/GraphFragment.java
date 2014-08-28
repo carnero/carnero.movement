@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import butterknife.ButterKnife;
@@ -33,7 +34,9 @@ public class GraphFragment extends Fragment {
 
     private Helper mHelper;
     private Line mLineSteps;
+    private Line mOutlineSteps;
     private Line mLineDistance;
+    private Line mOutlineDistance;
     //
     private static final String ARGS_DAY = "day";
     //
@@ -123,11 +126,25 @@ public class GraphFragment extends Fragment {
         mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
         vGraph.addLine(mLineSteps);
 
+        mOutlineSteps = new Line();
+        mOutlineSteps.setFill(false);
+        mOutlineSteps.setShowingPoints(false);
+        mOutlineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
+        mOutlineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
+        vGraph.addLine(mOutlineSteps);
+
         mLineDistance = new Line();
         mLineDistance.setFill(true);
         mLineDistance.setShowingPoints(false);
         mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
         vGraph.addLine(mLineDistance);
+
+        mOutlineDistance = new Line();
+        mOutlineDistance.setFill(false);
+        mOutlineDistance.setShowingPoints(false);
+        mOutlineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
+        mOutlineDistance.setColor(getResources().getColor(R.color.graph_distance_outline));
+        vGraph.addLine(mOutlineDistance);
     }
 
     private int getDay() {
@@ -256,6 +273,15 @@ public class GraphFragment extends Fragment {
                 mMinDst = mMinDst / ratio;
                 mMaxDst = mMaxDst / ratio;
             }
+
+            // Outline
+            final ArrayList<LinePoint> outlineStepsPoints = mOutlineSteps.getPoints();
+            outlineStepsPoints.clear();
+            outlineStepsPoints.addAll(mLineSteps.getPoints());
+
+            final ArrayList<LinePoint> outlineDistancePoints = mOutlineDistance.getPoints();
+            outlineDistancePoints.clear();
+            outlineDistancePoints.addAll(mLineDistance.getPoints());
         }
 
         @Override
