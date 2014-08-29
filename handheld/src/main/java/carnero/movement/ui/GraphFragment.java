@@ -34,9 +34,9 @@ public class GraphFragment extends Fragment {
 
     private Helper mHelper;
     private Line mLineSteps;
-    private Line mOutlineSteps;
     private Line mLineDistance;
     private Line mOutlineDistance;
+    private boolean mAbsolute = false;
     //
     private static final String ARGS_DAY = "day";
     //
@@ -79,6 +79,13 @@ public class GraphFragment extends Fragment {
         View layout = inflater.inflate(R.layout.fragment_graph, container, false);
         ButterKnife.inject(this, layout);
 
+        vVisualHelper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeGraph();
+            }
+        });
+
         MapsInitializer.initialize(getActivity());
         vMap.onCreate(state);
 
@@ -108,6 +115,12 @@ public class GraphFragment extends Fragment {
         super.onDestroyView();
     }
 
+    public void changeGraph() {
+        mAbsolute = !mAbsolute;
+
+        new GraphDataTask().start();
+    }
+
     private void initMap() {
         final GoogleMap map = vMap.getMap();
         map.setMyLocationEnabled(false);
@@ -121,17 +134,11 @@ public class GraphFragment extends Fragment {
 
     private void initGraph() {
         mLineSteps = new Line();
-        mLineSteps.setFill(true);
+        mLineSteps.setFill(false);
         mLineSteps.setShowingPoints(false);
-        mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
+        mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_stroke));
+        mLineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
         vGraph.addLine(mLineSteps);
-
-        mOutlineSteps = new Line();
-        mOutlineSteps.setFill(false);
-        mOutlineSteps.setShowingPoints(false);
-        mOutlineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
-        mOutlineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
-        vGraph.addLine(mOutlineSteps);
 
         mLineDistance = new Line();
         mLineDistance.setFill(true);
@@ -214,6 +221,7 @@ public class GraphFragment extends Fragment {
                 // Graph
                 float steps;
                 float distance;
+
                 if (model == null) {
                     steps = 0;
                     distance = 0;
@@ -225,8 +233,10 @@ public class GraphFragment extends Fragment {
                 } else {
                     steps = model.steps - stepsPrev;
                     distance = model.distance - distancePrev;
-                    stepsPrev = model.steps;
-                    distancePrev = model.distance;
+                    if (!mAbsolute) {
+                        stepsPrev = model.steps;
+                        distancePrev = model.distance;
+                    }
                 }
 
                 // Steps
@@ -275,10 +285,6 @@ public class GraphFragment extends Fragment {
             }
 
             // Outline
-            final ArrayList<LinePoint> outlineStepsPoints = mOutlineSteps.getPoints();
-            outlineStepsPoints.clear();
-            outlineStepsPoints.addAll(mLineSteps.getPoints());
-
             final ArrayList<LinePoint> outlineDistancePoints = mOutlineDistance.getPoints();
             outlineDistancePoints.clear();
             outlineDistancePoints.addAll(mLineDistance.getPoints());
@@ -333,7 +339,7 @@ public class GraphFragment extends Fragment {
             // Graph
             vGraph.setRangeY(
                     (float) Math.min(mMinStp, mMinDst),
-                    (float) Math.max(mMaxStp, mMaxDst)
+                    (float) Math.max(mMaxStp * 1.1, mMaxDst * 1.1)
             );
             vGraph.invalidate();
 
