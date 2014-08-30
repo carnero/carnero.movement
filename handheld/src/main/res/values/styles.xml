@@ -1,7 +1,7 @@
 <resources>
-    <style name="MovementTheme" parent="android:Theme.Holo">
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
+    <style name="MovementTheme" parent="android:Theme.Holo.Light">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">@bool/translucentNavBar</item>
 
         <item name="android:actionBarStyle">@style/ActionBar</item>
     </style>

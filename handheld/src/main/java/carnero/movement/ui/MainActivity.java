@@ -23,6 +23,7 @@ import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
 
@@ -56,6 +57,10 @@ public class MainActivity extends AbstractBaseActivity {
         if (actionBar != null) {
             actionBar.setCustomView(customView);
             actionBar.setDisplayShowCustomEnabled(true);
+
+            SystemBarTintManager tintManager = new SystemBarTintManager(this);
+            tintManager.setStatusBarTintEnabled(true);
+            tintManager.setStatusBarTintColor(getResources().getColor(R.color.primary_dark));
         }
         initGraph();
 

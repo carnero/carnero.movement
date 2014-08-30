@@ -36,6 +36,7 @@ public class GraphFragment extends Fragment {
     private Helper mHelper;
     private Preferences mPreferences;
     private Line mLineSteps;
+    private Line mOutlineSteps;
     private Line mLineDistance;
     private Line mOutlineDistance;
     private boolean mAbsolute = false;
@@ -141,11 +142,17 @@ public class GraphFragment extends Fragment {
 
     private void initGraph() {
         mLineSteps = new Line();
-        mLineSteps.setFill(false);
+        mLineSteps.setFill(true);
         mLineSteps.setShowingPoints(false);
-        mLineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_stroke));
-        mLineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
+        mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
         vGraph.addLine(mLineSteps);
+
+        mOutlineSteps = new Line();
+        mOutlineSteps.setFill(false);
+        mOutlineSteps.setShowingPoints(false);
+        mOutlineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
+        mOutlineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
+        vGraph.addLine(mOutlineSteps);
 
         mLineDistance = new Line();
         mLineDistance.setFill(true);
@@ -295,6 +302,10 @@ public class GraphFragment extends Fragment {
             final ArrayList<LinePoint> outlineDistancePoints = mOutlineDistance.getPoints();
             outlineDistancePoints.clear();
             outlineDistancePoints.addAll(mLineDistance.getPoints());
+
+            final ArrayList<LinePoint> outlineStepsPoints = mOutlineSteps.getPoints();
+            outlineStepsPoints.clear();
+            outlineStepsPoints.addAll(mLineSteps.getPoints());
         }
 
         @Override
