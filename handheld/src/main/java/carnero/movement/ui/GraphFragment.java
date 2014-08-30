@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import carnero.movement.common.Preferences;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
@@ -33,6 +34,7 @@ import carnero.movement.db.ModelLocation;
 public class GraphFragment extends Fragment {
 
     private Helper mHelper;
+    private Preferences mPreferences;
     private Line mLineSteps;
     private Line mLineDistance;
     private Line mOutlineDistance;
@@ -72,6 +74,9 @@ public class GraphFragment extends Fragment {
         super.onActivityCreated(state);
 
         mHelper = new Helper(getActivity());
+        mPreferences = new Preferences(getActivity());
+
+        mAbsolute = mPreferences.getGraphType();
     }
 
     @Override
@@ -117,6 +122,8 @@ public class GraphFragment extends Fragment {
 
     public void changeGraph() {
         mAbsolute = !mAbsolute;
+
+        mPreferences.setGraphType(mAbsolute);
 
         new GraphDataTask().start();
     }

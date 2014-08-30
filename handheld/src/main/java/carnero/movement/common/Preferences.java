@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 
-import carnero.movement.App;
-
 public class Preferences {
 
     private SharedPreferences mPrefs;
@@ -19,6 +17,7 @@ public class Preferences {
     private static final String PREF_LONGITUDE = "loc_longitude";
     private static final String PREF_ACCURACY = "loc_accuracy";
     private static final String PREF_TIME = "loc_time";
+    private static final String PREF_GRAPH_ABS = "graph_type";
 
     public Preferences(Context context) {
         mPrefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
@@ -92,5 +91,15 @@ public class Preferences {
 
     public float getDistance() {
         return mPrefs.getFloat(PREF_DISTANCE, 0f);
+    }
+
+    public void setGraphType(boolean absolute) {
+        mPrefs.edit()
+            .putBoolean(PREF_GRAPH_ABS, absolute)
+            .apply();
+    }
+
+    public boolean getGraphType() {
+        return mPrefs.getBoolean(PREF_GRAPH_ABS, false);
     }
 }

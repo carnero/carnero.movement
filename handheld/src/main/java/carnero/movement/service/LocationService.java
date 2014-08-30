@@ -24,6 +24,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import carnero.movement.comparator.LocationComparator;
 import com.echo.holographlibrary.LinePoint;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
@@ -32,11 +33,7 @@ import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import carnero.movement.R;
 import carnero.movement.common.Constants;
@@ -62,6 +59,7 @@ public class LocationService
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
     private MotionListener mMotionListener;
+    private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
@@ -79,6 +77,8 @@ public class LocationService
     private static final int sLocationDistanceThreshold = 250; // 250m
     private static final int sLocationTimeThresholdLong = 3 * 60 * 60 * 1000; // 3hr
     private static final int sLocationDistanceThresholdLong = 25; // 25m
+    private static final int sMotionWindowStart = 15 * 60 * 1000; // 15 min
+    private static final int sMotionWindowEnd = 30 * 60 * 1000; // 30 min
     //
     private static final int OBTAINED_STEPS = 0;
     private static final int OBTAINED_LOCATION = 1;
@@ -264,37 +264,17 @@ public class LocationService
 
         boolean distanceThrShort = (mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold;
         boolean distanceThrLong = (mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong;
-        boolean motion = mLastMotion > System.currentTimeMillis() - (45 * 60 * 1000); // Last motion within 45 mins
 
-        if (mLocation == null) {
-            mLocation = location;
-
-            // Save first location
-            mPreferences.saveLocation(mLocation);
-
-            // Save & send data
-            handleData();
-
-            // Notify wake lock (if held)
-            setObtained(OBTAINED_LOCATION);
-        } else if ((motion && distanceThrShort) || distanceThrLong) {
-            mDistance += mLocation.distanceTo(location);
-            mLocation = location;
-
-            // Save status
-            if (mDistance > 0) {
-                mPreferences.saveDistance(mDistance);
-            }
-            if (mLocation != null) {
-                mPreferences.saveLocation(mLocation);
+        if (distanceThrShort || distanceThrLong) {
+            synchronized (mLocationHistory) {
+                mLocationHistory.add(location);
             }
 
-            // Save & send data
-            handleData();
-
-            // Notify wake lock (if held)
-            setObtained(OBTAINED_LOCATION);
+            checkLocation();
         }
+
+        // Notify wake lock (if held)
+        setObtained(OBTAINED_LOCATION);
     }
 
     @Override
@@ -336,7 +316,6 @@ public class LocationService
         // Set listeners for criteria-based provider, and for passive provider
         final Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_MEDIUM);
-        criteria.setVerticalAccuracy(Criteria.ACCURACY_MEDIUM);
         criteria.setPowerRequirement(Criteria.POWER_LOW);
         criteria.setCostAllowed(true);
 
@@ -379,6 +358,58 @@ public class LocationService
 
             onLocationChanged(lastLoc);
         }
+    }
+
+    private void checkLocation() {
+        synchronized (mLocationHistory) {
+            Collections.sort(mLocationHistory, new LocationComparator());
+
+            if (mLocationHistory.isEmpty() || mLastMotion < mLocationHistory.get(0).getTime() - sMotionWindowStart) {
+                // There is no location, or last motion is before possible motion window
+                return;
+            }
+
+            long start = mLastMotion - sMotionWindowStart;
+            long end = mLastMotion + sMotionWindowEnd;
+            for (Location location : mLocationHistory) {
+                if (mLocation != null && mLocation.getTime() >= location.getTime()) {
+                    // Location from history is older than already processed location
+                    continue;
+                }
+                if (location.getTime() < start || location.getTime() > end) {
+                    // Location is not withing significant motion window
+                    continue;
+                }
+
+                if (mLocation != null) {
+                    mDistance += mLocation.distanceTo(location);
+                }
+                mLocation = location;
+
+                // Save status
+                if (mDistance > 0) {
+                    mPreferences.saveDistance(mDistance);
+                }
+                mPreferences.saveLocation(mLocation);
+            }
+
+            // Clean history
+            final ArrayList<Location> drop = new ArrayList<Location>();
+            for (Location location : mLocationHistory) {
+                if (location.getTime() <= mLocation.getTime()) {
+                    drop.add(location);
+                } else {
+                    break; // It's sorted by time
+                }
+            }
+
+            for (Location dr : drop) {
+                mLocationHistory.remove(dr);
+            }
+        }
+
+        // Save & send data
+        handleData();
     }
 
     private void resetObtained() {
@@ -446,7 +477,7 @@ public class LocationService
         DataMap statusMap = new DataMap();
         statusMap.putInt("steps", mSteps);
         statusMap.putFloat("distance", mDistance);
-        statusMap.putLong("motion", mLastMotion); // debug
+        statusMap.putLong("motion", mLastMotion);
 
         ModelData today = mHelper.getSummaryForDay(0);
         statusMap.putInt("steps_today", today.steps);
