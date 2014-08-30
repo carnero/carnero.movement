@@ -1,5 +1,10 @@
 package carnero.movement.ui;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -7,7 +12,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import carnero.movement.R;
+import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
+import carnero.movement.db.Helper;
+import carnero.movement.db.ModelData;
+import carnero.movement.db.ModelDataContainer;
+import carnero.movement.db.ModelLocation;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
@@ -15,21 +29,6 @@ import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import carnero.movement.R;
-import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.Utils;
-import carnero.movement.db.Helper;
-import carnero.movement.db.ModelData;
-import carnero.movement.db.ModelDataContainer;
-import carnero.movement.db.ModelLocation;
 
 public class GraphFragment extends Fragment {
 
@@ -356,8 +355,8 @@ public class GraphFragment extends Fragment {
 
             // Graph
             vGraph.setRangeY(
-                    (float) Math.min(mMinStp, mMinDst),
-                    (float) Math.max(mMaxStp * 1.1, mMaxDst * 1.1)
+                (float)Math.min(mMinStp, mMinDst),
+                (float)Math.max(mMaxStp * 1.1, mMaxDst * 1.1)
             );
             vGraph.invalidate();
 
@@ -392,10 +391,10 @@ public class GraphFragment extends Fragment {
                 LatLngBounds bounds = new LatLngBounds(ne, sw);
 
                 map.moveCamera(
-                        CameraUpdateFactory.newLatLngBounds(
-                                bounds,
-                                getResources().getDimensionPixelSize(R.dimen.margin_map)
-                        )
+                    CameraUpdateFactory.newLatLngBounds(
+                        bounds,
+                        getResources().getDimensionPixelSize(R.dimen.margin_map)
+                    )
                 );
             }
 
