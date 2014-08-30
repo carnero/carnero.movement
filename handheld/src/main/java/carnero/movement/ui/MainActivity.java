@@ -2,7 +2,6 @@ package carnero.movement.ui;
 
 import android.app.ActionBar;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -10,11 +9,6 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
-
-import com.echo.holographlibrary.Line;
-import com.echo.holographlibrary.LinePoint;
-import com.echo.holographlibrary.SmoothLineGraph;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -23,6 +17,9 @@ import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
+import com.echo.holographlibrary.Line;
+import com.echo.holographlibrary.LinePoint;
+import com.echo.holographlibrary.SmoothLineGraph;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
@@ -49,6 +46,10 @@ public class MainActivity extends AbstractBaseActivity {
         final Intent serviceIntent = new Intent(this, LocationService.class);
         startService(serviceIntent);
 
+        // Init layout
+        setContentView(R.layout.activity_main);
+        ButterKnife.inject(this);
+
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
         vGraph = (SmoothLineGraph) customView.findViewById(R.id.action_graph);
@@ -61,13 +62,13 @@ public class MainActivity extends AbstractBaseActivity {
             SystemBarTintManager tintManager = new SystemBarTintManager(this);
             tintManager.setStatusBarTintEnabled(true);
             tintManager.setStatusBarTintColor(getResources().getColor(R.color.primary_dark));
+
+            SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
+            vPager.setPadding(0, config.getPixelInsetTop(true), 0, 0);
         }
         initGraph();
 
-        // Init layout
-        setContentView(R.layout.activity_main);
-        ButterKnife.inject(this);
-
+        // Set ViewPager
         mPagerAdapter = new PagesAdapter();
         vPager.setAdapter(mPagerAdapter);
         vPager.setOnPageChangeListener(new PageChangeListener());
