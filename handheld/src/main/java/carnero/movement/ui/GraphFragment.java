@@ -131,7 +131,7 @@ public class GraphFragment extends Fragment {
     private void initMap() {
         final GoogleMap map = vMap.getMap();
         map.setMyLocationEnabled(false);
-        map.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         final UiSettings ui = map.getUiSettings();
         ui.setMyLocationButtonEnabled(false);
@@ -364,7 +364,7 @@ public class GraphFragment extends Fragment {
             final GoogleMap map = vMap.getMap();
             map.clear();
 
-            if (mContainer.locations != null) {
+            if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
                 final int color = getResources().getColor(R.color.map_history);
                 final PolylineOptions polylineOpts = new PolylineOptions();
                 polylineOpts.zIndex(1010);
@@ -396,6 +396,15 @@ public class GraphFragment extends Fragment {
                         getResources().getDimensionPixelSize(R.dimen.margin_map)
                     )
                 );
+                if (map.getCameraPosition().zoom > 14) {
+                    map.animateCamera(CameraUpdateFactory.zoomTo(14));
+                }
+
+                vSeparator.setVisibility(View.VISIBLE);
+                vMap.setVisibility(View.VISIBLE);
+            } else {
+                vSeparator.setVisibility(View.GONE);
+                vMap.setVisibility(View.GONE);
             }
 
             // Progress bar

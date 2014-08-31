@@ -18,7 +18,7 @@
         jar="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/exploded-aar/carnero.movement/HoloGraphLibrary/unspecified/classes.jar"
         jumboMode="false"
         revision="20.0.0"
-        sha1="bcc473145ef3502dcf7a2cc4a6601efc334a89cc"/>
+        sha1="96f3edac7c2b0a8c059c857a23b6c930a79b09ee"/>
     <item
         dex="/Users/carnero/Work/Projects/carnero/carnero.movement/handheld/build/intermediates/pre-dexed/debug/systembartint-1.0.3-ff0db3ba68632dc1becbedf8750510eeaf3edacd.jar"
         jar="/Users/carnero/.gradle/caches/modules-2/files-2.1/com.readystatesoftware.systembartint/systembartint/1.0.3/de4f7404e2f58d8f6e83cb1e85d0c2d6c2987287/systembartint-1.0.3.jar"

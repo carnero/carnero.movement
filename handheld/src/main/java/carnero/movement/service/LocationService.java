@@ -16,10 +16,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.SystemClock;
+import android.os.*;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
@@ -58,6 +55,7 @@ public class LocationService
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
+    private Sensor mMotionSensor;
     private MotionListener mMotionListener;
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
@@ -214,6 +212,9 @@ public class LocationService
     @Override
     public void onDestroy() {
         mSensorManager.unregisterListener(this);
+        if (mMotionListener != null && mMotionSensor != null) {
+            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
+        }
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
@@ -364,11 +365,6 @@ public class LocationService
         synchronized (mLocationHistory) {
             Collections.sort(mLocationHistory, new LocationComparator());
 
-            if (mLocationHistory.isEmpty() || mLastMotion < mLocationHistory.get(0).getTime() - sMotionWindowStart) {
-                // There is no location, or last motion is before possible motion window
-                return;
-            }
-
             long start = mLastMotion - sMotionWindowStart;
             long end = mLastMotion + sMotionWindowEnd;
             for (Location location : mLocationHistory) {
@@ -442,10 +438,13 @@ public class LocationService
         if (mMotionListener == null) {
             mMotionListener = new MotionListener();
         }
+        if (mMotionSensor == null) {
+            mMotionSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+        }
 
-        Sensor significantMotion = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
-        if (significantMotion != null) {
-            mSensorManager.requestTriggerSensor(mMotionListener, significantMotion);
+        if (mMotionSensor != null) {
+            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
+            mSensorManager.requestTriggerSensor(mMotionListener, mMotionSensor);
         }
     }
 
@@ -578,6 +577,8 @@ public class LocationService
     }
 
     private void notifyHandheld() {
+        String text = Utils.formatDistance(mDistance) + " | " + getString(R.string.stats_steps, mSteps);
+
         final Notification.Builder builder = new Notification.Builder(this)
                 .setPriority(Notification.PRIORITY_MIN)
                 .setOngoing(true)
@@ -585,7 +586,7 @@ public class LocationService
                 .setSmallIcon(R.drawable.ic_notification)
                 .setTicker(getString(R.string.notification_ticker))
                 .setContentTitle(getString(R.string.notification_title))
-                .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
+                .setContentText(text)
                 .setContentIntent(PendingIntent.getActivity(
                         LocationService.this,
                         1010,
@@ -603,8 +604,9 @@ public class LocationService
         @Override
         public void onTrigger(TriggerEvent event) {
             mLastMotion = event.timestamp / 1000000; // ns
-
             requestMotionSensor();
+
+            checkLocation();
         }
     }
 }
