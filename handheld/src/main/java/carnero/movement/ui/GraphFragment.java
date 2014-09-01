@@ -18,13 +18,13 @@ import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
 import carnero.movement.db.ModelLocation;
-import com.echo.holographlibrary.Line;
-import com.echo.holographlibrary.LinePoint;
-import com.echo.holographlibrary.SmoothLineGraph;
+import carnero.movement.common.graph.CubicGraph;
+import carnero.movement.ui.view.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -34,11 +34,8 @@ public class GraphFragment extends Fragment {
 
     private Helper mHelper;
     private Preferences mPreferences;
-    private Line mLineSteps;
-    private Line mOutlineSteps;
-    private Line mLineDistance;
-    private Line mOutlineDistance;
     private boolean mAbsolute = false;
+    private final ArrayList<XY> mPointsDst = new ArrayList<XY>();
     //
     private static final String ARGS_DAY = "day";
     //
@@ -49,7 +46,7 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.stats_distance)
     TextView vStatsDistance;
     @InjectView(R.id.graph)
-    SmoothLineGraph vGraph;
+    SplineGraph vGraph;
     @InjectView(R.id.separator)
     View vSeparator;
     @InjectView(R.id.map)
@@ -83,13 +80,6 @@ public class GraphFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle state) {
         View layout = inflater.inflate(R.layout.fragment_graph, container, false);
         ButterKnife.inject(this, layout);
-
-        vVisualHelper.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeGraph();
-            }
-        });
 
         MapsInitializer.initialize(getActivity());
         vMap.onCreate(state);
@@ -140,31 +130,7 @@ public class GraphFragment extends Fragment {
     }
 
     private void initGraph() {
-        mLineSteps = new Line();
-        mLineSteps.setFill(true);
-        mLineSteps.setShowingPoints(false);
-        mLineSteps.setColor(getResources().getColor(R.color.graph_steps));
-        vGraph.addLine(mLineSteps);
-
-        mOutlineSteps = new Line();
-        mOutlineSteps.setFill(false);
-        mOutlineSteps.setShowingPoints(false);
-        mOutlineSteps.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
-        mOutlineSteps.setColor(getResources().getColor(R.color.graph_steps_outline));
-        vGraph.addLine(mOutlineSteps);
-
-        mLineDistance = new Line();
-        mLineDistance.setFill(true);
-        mLineDistance.setShowingPoints(false);
-        mLineDistance.setColor(getResources().getColor(R.color.graph_distance));
-        vGraph.addLine(mLineDistance);
-
-        mOutlineDistance = new Line();
-        mOutlineDistance.setFill(false);
-        mOutlineDistance.setShowingPoints(false);
-        mOutlineDistance.setStrokeWidth(getResources().getDimensionPixelSize(R.dimen.graph_outline));
-        mOutlineDistance.setColor(getResources().getColor(R.color.graph_distance_outline));
-        vGraph.addLine(mOutlineDistance);
+        // Nothing yet
     }
 
     private int getDay() {
@@ -203,8 +169,7 @@ public class GraphFragment extends Fragment {
                 return;
             }
 
-            mLineSteps.getPoints().clear();
-            mLineDistance.getPoints().clear();
+            mPointsDst.clear();
 
             float stepsPrev = -1f;
             float distancePrev = -1f;
@@ -252,59 +217,20 @@ public class GraphFragment extends Fragment {
                     }
                 }
 
-                // Steps
-                LinePoint pointSteps = new LinePoint();
-                pointSteps.setX(i);
-                pointSteps.setY(steps);
-                mLineSteps.addPoint(pointSteps);
-
+                // Min/max values
                 mMinStp = Math.min(mMinStp, steps);
                 mMaxStp = Math.max(mMaxStp, steps);
-
-                // Distance
-                LinePoint pointDistance = new LinePoint();
-                pointDistance.setX(i);
-                pointDistance.setY(distance);
-                mLineDistance.addPoint(pointDistance);
-
                 mMinDst = Math.min(mMinDst, distance);
                 mMaxDst = Math.max(mMaxDst, distance);
-            }
 
-            // Normalize data
-            double ratio = 1.0f;
-            int ratioLine = -1; // steps:0, distance:1
-            if (mMaxStp > mMaxDst && mMaxDst > 100) {
-                ratio = mMaxStp / mMaxDst;
-                ratioLine = 0;
-            } else if (mMaxStp < mMaxDst && mMaxStp > 100) {
-                ratio = mMaxDst / mMaxStp;
-                ratioLine = 1;
-            }
+                // Distance points
+                XY point = new XY();
+                point.x = i;
+                point.y = distance;
+                mPointsDst.add(point);
 
-            if (ratioLine == 0) {
-                for (LinePoint point : mLineSteps.getPoints()) {
-                    point.setY(point.getY() / ratio);
-                }
-                mMinStp = mMinStp / ratio;
-                mMaxStp = mMaxStp / ratio;
+                // TODO: Step points
             }
-            if (ratioLine == 1) {
-                for (LinePoint point : mLineDistance.getPoints()) {
-                    point.setY(point.getY() / ratio);
-                }
-                mMinDst = mMinDst / ratio;
-                mMaxDst = mMaxDst / ratio;
-            }
-
-            // Outline
-            final ArrayList<LinePoint> outlineDistancePoints = mOutlineDistance.getPoints();
-            outlineDistancePoints.clear();
-            outlineDistancePoints.addAll(mLineDistance.getPoints());
-
-            final ArrayList<LinePoint> outlineStepsPoints = mOutlineSteps.getPoints();
-            outlineStepsPoints.clear();
-            outlineStepsPoints.addAll(mLineSteps.getPoints());
         }
 
         @Override
@@ -329,7 +255,7 @@ public class GraphFragment extends Fragment {
             }
 
             // No data
-            if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
+            if (mContainer == null || mContainer.locations == null || mContainer.locations.size() < 2) {
                 vStatsSteps.setText(getString(R.string.stats_steps, 0));
                 vStatsDistance.setText(Utils.formatDistance(0));
                 vGraph.setVisibility(View.GONE);
@@ -354,11 +280,7 @@ public class GraphFragment extends Fragment {
             vStatsDistance.setText(Utils.formatDistance(distanceDay));
 
             // Graph
-            vGraph.setRangeY(
-                (float)Math.min(mMinStp, mMinDst),
-                (float)Math.max(mMaxStp * 1.1, mMaxDst * 1.1)
-            );
-            vGraph.invalidate();
+            vGraph.setData(mPointsDst);
 
             // Locations
             final GoogleMap map = vMap.getMap();

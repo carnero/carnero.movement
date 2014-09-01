@@ -28,7 +28,7 @@ public class MainActivity extends AbstractBaseActivity {
     private Helper mHelper;
     private Line mLineDistance;
     //
-    private static final int HISTORY_PAGES = 7;
+    private static final int HISTORY_PAGES = 31;
     private static final int GRAPH_DAYS = 21;
     //
     @InjectView(R.id.pager)
