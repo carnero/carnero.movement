@@ -23,7 +23,6 @@ import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
 import carnero.movement.db.ModelLocation;
-import carnero.movement.common.graph.CubicGraph;
 import carnero.movement.ui.view.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
