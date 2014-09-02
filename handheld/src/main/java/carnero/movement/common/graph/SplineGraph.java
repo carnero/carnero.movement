@@ -27,16 +27,19 @@ public class SplineGraph extends View {
     private int[] mPadding = new int[]{0, 0, 0, 0}; // top, right, bottom, left
     // config, TODO: move to XML attrs
     private int[] mPaddingRes = new int[]{R.dimen.graph_padding_top, 0, 0, 0};
-    private int mFillColorRes = R.color.graph_distance;
+    private boolean mFillPath = true;
+    private int mFillColor1Res = R.color.graph_distance_fill;
+    private int mFillColor2Res = R.color.none;
+    private boolean mFillGradient = true;
+    private int mStrokeWidthRes = R.dimen.graph_stroke;
     private int mStrokeColor1Res = R.color.graph_distance_outline_start;
     private int mStrokeColor2Res = R.color.graph_distance_outline_end;
-    private int mStrokeWidthRes = R.dimen.graph_stroke;
+    private boolean mStrokeGradient = true;
     private int mPathWidthRes = R.dimen.graph_path;
+    private boolean mShowPoints = true;
     private int mPointColorRes = R.color.graph_distance_point;
     private int mPointSizeRes = R.dimen.graph_point;
     private int mPointPaddingRes = R.dimen.graph_point_padding;
-    private boolean mShowPoints = true;
-    private boolean mFillPath = true;
 
     @SuppressWarnings("unused")
     public SplineGraph(Context context) {
@@ -61,15 +64,11 @@ public class SplineGraph extends View {
      */
     private void init() {
         // Load resources
-        final int fillColor = getResources().getColor(mFillColorRes);
+        final int fillColor1 = getResources().getColor(mFillColor1Res);
+        final int fillColor2 = getResources().getColor(mFillColor2Res);
         final int pointColor = getResources().getColor(mPointColorRes);
-        final int stroke1Color = getResources().getColor(mStrokeColor1Res);
-        final int stroke2Color;
-        if (mStrokeColor2Res == 0) {
-            stroke2Color = 0;
-        } else {
-            stroke2Color = getResources().getColor(mStrokeColor2Res);
-        }
+        final int strokeColor1 = getResources().getColor(mStrokeColor1Res);
+        final int strokeColor2 = getResources().getColor(mStrokeColor2Res);
         final int strokeWidth = getResources().getDimensionPixelSize(mStrokeWidthRes);
         final int pathWidth = getResources().getDimensionPixelSize(mPathWidthRes);
         final int pointSize;
@@ -96,9 +95,22 @@ public class SplineGraph extends View {
 
         // Initialize paints
         mPaintFill = new Paint();
-        mPaintFill.setColor(fillColor);
+        mPaintFill.setColor(fillColor1);
         mPaintFill.setStrokeWidth(1);
-        mPaintFill.setStyle(Paint.Style.FILL);
+        mPaintFill.setStyle(Paint.Style.STROKE);
+        if (mFillGradient) {
+            final Shader shader = new LinearGradient(
+                0,
+                0,
+                0,
+                600, // TODO: move to place where we have View height
+                fillColor1,
+                fillColor2,
+                Shader.TileMode.CLAMP
+            );
+
+            mPaintFill.setShader(shader);
+        }
 
         mPaintPathBase = new Paint(); // For the transparent "corridor" for line
         mPaintPathBase.setAntiAlias(true);
@@ -111,19 +123,19 @@ public class SplineGraph extends View {
 
         mPaintPathStroke = new Paint(); // For the line itself
         mPaintPathStroke.setAntiAlias(true);
-        mPaintPathStroke.setColor(stroke2Color);
+        mPaintPathStroke.setColor(strokeColor2);
         mPaintPathStroke.setStrokeWidth(strokeWidth);
         mPaintPathStroke.setStyle(Paint.Style.STROKE);
         mPaintPathStroke.setStrokeJoin(Paint.Join.ROUND);
         mPaintPathStroke.setStrokeCap(Paint.Cap.ROUND);
-        if (stroke2Color != 0) {
+        if (mStrokeGradient) {
             final Shader shader = new LinearGradient(
                 0,
                 0,
                 800, // TODO: move to place where we have View width
                 0,
-                stroke1Color,
-                stroke2Color,
+                strokeColor1,
+                strokeColor2,
                 Shader.TileMode.CLAMP
             );
 
