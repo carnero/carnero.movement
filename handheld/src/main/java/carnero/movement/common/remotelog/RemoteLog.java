@@ -29,7 +29,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
     private static Thread.UncaughtExceptionHandler sDefaultHandler;
     private static long sLastCheck = 0;
     //
-    public static final String LOG_FILE = "inmite.log.gzip";
+    public static final String LOG_FILE = "remote.log.gzip";
 
     static {
         sHelper = new LogHelper(App.get());

@@ -174,8 +174,10 @@ public class LocationService
                             getLastLocation(); // Get last location in case LocationManager didn't fire event
                             handleData(); // Send data we have to refresh Wear
 
-                            mWakeLock.release();
-                            mWakeLock = null;
+                            if (mWakeLock != null) { // Check again, it could be released meanwhile
+                                mWakeLock.release();
+                                mWakeLock = null;
+                            }
 
                             RemoteLog.i("Wake lock released (timer)");
                         }
