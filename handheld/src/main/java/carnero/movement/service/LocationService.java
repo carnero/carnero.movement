@@ -170,14 +170,16 @@ public class LocationService
                 final TimerTask task = new TimerTask() {
                     @Override
                     public void run() {
-                        if (mWakeLock != null && mWakeLock.isHeld()) {
-                            getLastLocation(); // Get last location in case LocationManager didn't fire event
-                            handleData(); // Send data we have to refresh Wear
+                        if (mWakeLock == null) {
+                            return;
+                        }
 
-                            if (mWakeLock != null) { // Check again, it could be released meanwhile
-                                mWakeLock.release();
-                                mWakeLock = null;
-                            }
+                        getLastLocation(); // Get last location in case LocationManager didn't fire event
+                        handleData(); // Send data we have to refresh Wear
+
+                        if (mWakeLock != null && mWakeLock.isHeld()) { // Check again, it could be released meanwhile
+                            mWakeLock.release();
+                            mWakeLock = null;
 
                             RemoteLog.i("Wake lock released (timer)");
                         }
