@@ -1,21 +1,20 @@
 package carnero.movement.ui;
 
+import java.util.ArrayList;
+
 import android.location.Location;
 import android.os.Bundle;
-
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.util.ArrayList;
 
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.LocationSource;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelLocation;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MapFragment extends SupportMapFragment {
 
@@ -71,16 +70,16 @@ public class MapFragment extends SupportMapFragment {
         if (mFollowMe && location != null) {
             if (fast) {
                 getMap().moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                                new LatLng(location.getLatitude(), location.getLongitude()),
-                                12
-                        )
+                    CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(location.getLatitude(), location.getLongitude()),
+                        12
+                    )
                 );
             } else {
                 getMap().animateCamera(
-                        CameraUpdateFactory.newLatLng(
-                                new LatLng(location.getLatitude(), location.getLongitude())
-                        )
+                    CameraUpdateFactory.newLatLng(
+                        new LatLng(location.getLatitude(), location.getLongitude())
+                    )
                 );
             }
             mFollowMe = false;

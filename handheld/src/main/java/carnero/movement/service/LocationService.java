@@ -1,50 +1,45 @@
 package carnero.movement.service;
 
+import java.text.DateFormat;
+import java.util.*;
+
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.hardware.TriggerEvent;
-import android.hardware.TriggerEventListener;
+import android.hardware.*;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.*;
+import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.Log;
 
+import carnero.movement.R;
+import carnero.movement.common.Constants;
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.comparator.LocationComparator;
-import com.echo.holographlibrary.LinePoint;
+import carnero.movement.db.Helper;
+import carnero.movement.db.ModelData;
+import carnero.movement.db.ModelDataContainer;
+import carnero.movement.receiver.WakeupReceiver;
+import carnero.movement.ui.MainActivity;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
-import java.text.DateFormat;
-import java.util.*;
-
-import carnero.movement.R;
-import carnero.movement.common.Constants;
-import carnero.movement.common.Preferences;
-import carnero.movement.common.Utils;
-import carnero.movement.db.Helper;
-import carnero.movement.db.ModelData;
-import carnero.movement.db.ModelDataContainer;
-import carnero.movement.receiver.WakeupReceiver;
-import carnero.movement.ui.MainActivity;
-
 public class LocationService
-        extends TeleportService
-        implements LocationListener, SensorEventListener {
+    extends TeleportService
+    implements LocationListener, SensorEventListener {
 
     private Preferences mPreferences;
     private Helper mHelper;
@@ -75,8 +70,8 @@ public class LocationService
     private static final int sLocationDistanceThreshold = 250; // 250m
     private static final int sLocationTimeThresholdLong = 3 * 60 * 60 * 1000; // 3hr
     private static final int sLocationDistanceThresholdLong = 25; // 25m
-    private static final int sMotionWindowStart = 15 * 60 * 1000; // 15 min
-    private static final int sMotionWindowEnd = 30 * 60 * 1000; // 30 min
+    private static final int sMotionWindowStart = 10 * 60 * 1000; // 10 min
+    private static final int sMotionWindowEnd = 45 * 60 * 1000; // 45 min
     //
     private static final int OBTAINED_STEPS = 0;
     private static final int OBTAINED_LOCATION = 1;
@@ -90,10 +85,11 @@ public class LocationService
 
         mPreferences = new Preferences(this);
         mHelper = new Helper(this);
-        mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mPowerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        mPowerManager = (PowerManager)getSystemService(POWER_SERVICE);
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        mMotionSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+        mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
         // Load saved values
@@ -112,20 +108,19 @@ public class LocationService
 
         // Fire initial notification & start service
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                        // .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setOngoing(true)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_notification)
-                .setTicker(getString(R.string.notification_ticker))
-                .setContentTitle(getString(R.string.notification_title))
-                .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
-                .setContentIntent(PendingIntent.getActivity(
-                        LocationService.this,
-                        1010,
-                        new Intent(LocationService.this, MainActivity.class),
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                ));
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setOngoing(true)
+            .setWhen(System.currentTimeMillis())
+            .setSmallIcon(R.drawable.ic_notification)
+            .setTicker(getString(R.string.notification_ticker))
+            .setContentTitle(getString(R.string.notification_title))
+            .setContentText(Utils.formatDistance(mDistance) + " | " + mSteps + " steps")
+            .setContentIntent(PendingIntent.getActivity(
+                LocationService.this,
+                1010,
+                new Intent(LocationService.this, MainActivity.class),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            ));
 
         startForeground(Constants.ID_NOTIFICATION_SERVICE, builder.build());
 
@@ -135,10 +130,10 @@ public class LocationService
 
         final PendingIntent alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
         mAlarmManager.setInexactRepeating(
-                AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis(),
-                AlarmManager.INTERVAL_HALF_HOUR,
-                alarmIntent
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            SystemClock.elapsedRealtime() + (10 * 60 * 1000),
+            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+            alarmIntent
         );
 
         init();
@@ -147,16 +142,16 @@ public class LocationService
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getBooleanExtra(KILL, false)) {
-            Log.i(Constants.TAG, "Requested kill");
+            RemoteLog.i("Requested kill");
 
             stopSelf();
         } else if (intent != null && intent.getBooleanExtra(WAKE, false)) {
-            Log.i(Constants.TAG, "Requested wake");
+            RemoteLog.i("Requested wake");
 
             // Check battery level
             final float battery = Utils.getBatteryLevel();
             if (battery < 20) {
-                Log.i(Constants.TAG, "Wake denied, battery @ " + battery + "%");
+                RemoteLog.i("Wake denied, battery @ " + battery + "%");
             } else {
                 resetObtained();
 
@@ -166,8 +161,8 @@ public class LocationService
                 }
 
                 mWakeLock = mPowerManager.newWakeLock(
-                        PowerManager.PARTIAL_WAKE_LOCK,
-                        ((Object) this).getClass().getSimpleName()
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    ((Object)this).getClass().getSimpleName()
                 );
                 mWakeLock.acquire();
 
@@ -176,18 +171,22 @@ public class LocationService
                     @Override
                     public void run() {
                         if (mWakeLock != null && mWakeLock.isHeld()) {
+                            getLastLocation(); // Get last location in case LocationManager didn't fire event
                             handleData(); // Send data we have to refresh Wear
 
                             mWakeLock.release();
                             mWakeLock = null;
 
-                            Log.i(Constants.TAG, "Wake lock released (timer)");
+                            RemoteLog.i("Wake lock released (timer)");
                         }
                     }
                 };
 
                 final Timer timer = new Timer(true);
                 timer.schedule(task, 60 * 1000); // 1 mins
+
+                // Request significant motion to be sure
+                requestMotionSensor();
             }
         }
 
@@ -198,7 +197,7 @@ public class LocationService
     public void onMessageReceived(MessageEvent messageEvent) {
         final String path = messageEvent.getPath();
 
-        Log.d(Constants.TAG, "Message received: " + path);
+        RemoteLog.d("Message received: " + path);
 
         if (path.startsWith(Constants.PATH_RESOLUTION)) {
             Uri uri = Uri.parse(path);
@@ -218,7 +217,7 @@ public class LocationService
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
-        Log.d(Constants.TAG, "Listeners unregistered");
+        RemoteLog.wtf("Destroying service");
 
         super.onDestroy();
     }
@@ -226,13 +225,13 @@ public class LocationService
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            final int steps = (int) event.values[0];
+            final int steps = (int)event.values[0];
 
             if (mStepsSensor > steps) { // Device was probably rebooted
                 mStepsSensor = 0;
             }
 
-            Log.d(Constants.TAG, "Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
+            RemoteLog.d("Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
             mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
@@ -254,9 +253,16 @@ public class LocationService
     @Override
     public void onLocationChanged(Location location) {
         if (mLocation == null) {
-            Log.d(Constants.TAG, "Received location: " + location.getAccuracy());
+            RemoteLog.d(
+                "Received location from " + location.getProvider() + "..."
+                    + " accuracy: " + String.format("%.0f", location.getAccuracy()) + "m"
+            );
         } else {
-            Log.d(Constants.TAG, "Received location: " + location.getAccuracy() + ", " + location.distanceTo(mLocation) + "m");
+            RemoteLog.d(
+                "Received location from " + location.getProvider() + "..."
+                    + " accuracy: " + String.format("%.0f", location.getAccuracy()) + "m;"
+                    + " distance: " + String.format("%.1f", location.distanceTo(mLocation)) + "m"
+            );
         }
 
         if (location.getAccuracy() > 1000) {
@@ -300,15 +306,15 @@ public class LocationService
         Sensor stepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         if (stepCounter != null) {
             boolean batchMode = mSensorManager.registerListener(
-                    this,
-                    stepCounter,
-                    SensorManager.SENSOR_DELAY_NORMAL,
-                    20000000 // 20 seconds
+                this,
+                stepCounter,
+                SensorManager.SENSOR_DELAY_NORMAL,
+                20000000 // 20 seconds
             );
 
-            Log.i(Constants.TAG, "Step counter registered (batch:" + batchMode + ")");
+            RemoteLog.i("Step counter registered (batch:" + batchMode + ")");
         } else {
-            Log.i(Constants.TAG, "Step counter is not present on this device");
+            RemoteLog.i("Step counter is not present on this device");
         }
 
         // Significant motion sensor
@@ -323,24 +329,24 @@ public class LocationService
         final String bestProvider = mLocationManager.getBestProvider(criteria, true);
         if (bestProvider != null) {
             mLocationManager.requestLocationUpdates(
-                    bestProvider,
-                    sLocationTimeThreshold,
-                    sLocationDistanceThreshold,
-                    this
+                bestProvider,
+                sLocationTimeThreshold,
+                sLocationDistanceThreshold,
+                this
             );
-            Log.i(Constants.TAG, "Location provider registered: " + bestProvider);
+            RemoteLog.i("Location provider registered: " + bestProvider);
         }
 
         boolean isPassiveBest = LocationManager.PASSIVE_PROVIDER.equals(bestProvider);
         boolean isPassiveAvail = mLocationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER);
         if (!isPassiveBest && isPassiveAvail) {
             mLocationManager.requestLocationUpdates(
-                    LocationManager.PASSIVE_PROVIDER,
-                    sLocationTimeThreshold,
-                    sLocationDistanceThreshold,
-                    this
+                LocationManager.PASSIVE_PROVIDER,
+                sLocationTimeThreshold,
+                sLocationDistanceThreshold,
+                this
             );
-            Log.i(Constants.TAG, "Location provider registered: passive");
+            RemoteLog.i("Location provider registered: passive");
         }
     }
 
@@ -355,7 +361,7 @@ public class LocationService
         }
 
         if (lastLoc != null) {
-            Log.d(Constants.TAG, "Using last location");
+            RemoteLog.d("Using last location from " + lastLoc.getProvider());
 
             onLocationChanged(lastLoc);
         }
@@ -430,21 +436,20 @@ public class LocationService
             mWakeLock.release();
             mWakeLock = null;
 
-            Log.i(Constants.TAG, "Wake lock released (obtained)");
+            RemoteLog.i("Wake lock released (obtained)");
         }
     }
 
     private void requestMotionSensor() {
-        if (mMotionListener == null) {
-            mMotionListener = new MotionListener();
-        }
-        if (mMotionSensor == null) {
-            mMotionSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
+        if (mMotionListener != null && mMotionSensor != null) {
+            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
         }
 
         if (mMotionSensor != null) {
-            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
+            mMotionListener = new MotionListener();
             mSensorManager.requestTriggerSensor(mMotionListener, mMotionSensor);
+        } else {
+            mMotionListener = null;
         }
     }
 
@@ -543,7 +548,7 @@ public class LocationService
 
         // Create DataMaps
         final ArrayList<DataMap> stepsList = new ArrayList<DataMap>();
-        for (int i = 0; i < stepsArray.size(); i ++) {
+        for (int i = 0; i < stepsArray.size(); i++) {
             DataMap map = new DataMap();
             if (ratioLine == 0) {
                 map.putDouble("value", stepsArray.get(i) / ratio);
@@ -555,7 +560,7 @@ public class LocationService
         }
 
         final ArrayList<DataMap> distanceList = new ArrayList<DataMap>();
-        for (int i = 0; i < distanceArray.size(); i ++) {
+        for (int i = 0; i < distanceArray.size(); i++) {
             DataMap map = new DataMap();
             if (ratioLine == 1) {
                 map.putDouble("value", distanceArray.get(i) / ratio);
@@ -578,21 +583,25 @@ public class LocationService
 
     private void notifyHandheld() {
         String text = Utils.formatDistance(mDistance) + " | " + getString(R.string.stats_steps, mSteps);
+        text += "\n"
+            + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date(mLastMotion))
+            + " // "
+            + mLocationHistory.size();
 
         final Notification.Builder builder = new Notification.Builder(this)
-                .setPriority(Notification.PRIORITY_MIN)
-                .setOngoing(true)
-                .setWhen(mLocation.getTime())
-                .setSmallIcon(R.drawable.ic_notification)
-                .setTicker(getString(R.string.notification_ticker))
-                .setContentTitle(getString(R.string.notification_title))
-                .setContentText(text)
-                .setContentIntent(PendingIntent.getActivity(
-                        LocationService.this,
-                        1010,
-                        new Intent(LocationService.this, MainActivity.class),
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                ));
+            .setPriority(Notification.PRIORITY_MIN)
+            .setOngoing(true)
+            .setWhen(mLocation.getTime())
+            .setSmallIcon(R.drawable.ic_notification)
+            .setTicker(getString(R.string.notification_ticker))
+            .setContentTitle(getString(R.string.notification_title))
+            .setContentText(text)
+            .setContentIntent(PendingIntent.getActivity(
+                LocationService.this,
+                1010,
+                new Intent(LocationService.this, MainActivity.class),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            ));
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
     }

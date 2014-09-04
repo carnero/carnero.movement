@@ -1,5 +1,8 @@
 package carnero.movement.db;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,12 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.text.format.DateUtils;
-import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-
-import carnero.movement.common.Constants;
+import carnero.movement.common.remotelog.RemoteLog;
 
 public class Helper extends SQLiteOpenHelper {
 
@@ -32,7 +31,7 @@ public class Helper extends SQLiteOpenHelper {
                 db.execSQL(index);
             }
         } catch (SQLException e) {
-            Log.e(Constants.TAG, "Failed to create database");
+            RemoteLog.e("Failed to create database");
         }
     }
 
@@ -109,12 +108,12 @@ public class Helper extends SQLiteOpenHelper {
         cursor = null;
         try {
             cursor = getDatabaseRO().query(
-                    Structure.Table.History.name,
-                    Structure.Table.History.projectionData,
-                    Structure.Table.History.TIME + " < " + start,
-                    null, null, null,
-                    Structure.Table.History.TIME + " desc",
-                    "1"
+                Structure.Table.History.name,
+                Structure.Table.History.projectionData,
+                Structure.Table.History.TIME + " < " + start,
+                null, null, null,
+                Structure.Table.History.TIME + " desc",
+                "1"
             );
 
             if (cursor.moveToFirst()) {
@@ -134,12 +133,12 @@ public class Helper extends SQLiteOpenHelper {
         cursor = null;
         try {
             cursor = getDatabaseRO().query(
-                    Structure.Table.History.name,
-                    Structure.Table.History.projectionData,
-                    Structure.Table.History.TIME + " <= " + end,
-                    null, null, null,
-                    Structure.Table.History.TIME + " desc",
-                    "1"
+                Structure.Table.History.name,
+                Structure.Table.History.projectionData,
+                Structure.Table.History.TIME + " <= " + end,
+                null, null, null,
+                Structure.Table.History.TIME + " desc",
+                "1"
             );
 
             if (cursor.moveToFirst()) {
@@ -184,7 +183,7 @@ public class Helper extends SQLiteOpenHelper {
     public ModelDataContainer getData(long start, long end) {
         long millisInterval;
 
-        int days = (int) ((end - start) / DateUtils.DAY_IN_MILLIS);
+        int days = (int)((end - start) / DateUtils.DAY_IN_MILLIS);
         if (days <= 1) {
             millisInterval = DateUtils.HOUR_IN_MILLIS;
         } else if (days <= 3) {
@@ -195,7 +194,7 @@ public class Helper extends SQLiteOpenHelper {
             millisInterval = DateUtils.HOUR_IN_MILLIS * 8;
         }
 
-        int intervals = (int) Math.ceil((end - start) / millisInterval);
+        int intervals = (int)Math.ceil((end - start) / millisInterval);
         long oldest = Long.MAX_VALUE;
 
         final ModelDataContainer container = new ModelDataContainer();
@@ -206,11 +205,11 @@ public class Helper extends SQLiteOpenHelper {
         Cursor cursor = null;
         try {
             cursor = getDatabaseRO().query(
-                    Structure.Table.History.name,
-                    Structure.Table.History.projectionFull,
-                    Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
-                    null, null, null,
-                    Structure.Table.History.TIME + " desc"
+                Structure.Table.History.name,
+                Structure.Table.History.projectionFull,
+                Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
+                null, null, null,
+                Structure.Table.History.TIME + " desc"
             );
 
             if (cursor.moveToFirst()) {
@@ -228,7 +227,7 @@ public class Helper extends SQLiteOpenHelper {
                         oldest = time;
                     }
 
-                    int interval = intervals - ((int) ((end - time) / millisInterval)); // Oldest is the first interval
+                    int interval = intervals - ((int)((end - time) / millisInterval)); // Oldest is the first interval
 
                     ModelData movement = container.movements[interval];
                     if (movement == null) {
@@ -260,12 +259,12 @@ public class Helper extends SQLiteOpenHelper {
         // Get oldest entry before given interval
         try {
             cursor = getDatabaseRO().query(
-                    Structure.Table.History.name,
-                    Structure.Table.History.projectionData,
-                    Structure.Table.History.TIME + " < " + oldest,
-                    null, null, null,
-                    Structure.Table.History.TIME + " desc",
-                    "1"
+                Structure.Table.History.name,
+                Structure.Table.History.projectionData,
+                Structure.Table.History.TIME + " < " + oldest,
+                null, null, null,
+                Structure.Table.History.TIME + " desc",
+                "1"
             );
 
             if (cursor.moveToFirst()) {
@@ -308,11 +307,11 @@ public class Helper extends SQLiteOpenHelper {
         Cursor cursor = null;
         try {
             cursor = getDatabaseRO().query(
-                    Structure.Table.History.name,
-                    Structure.Table.History.projectionLocation,
-                    Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
-                    null, null, null,
-                    Structure.Table.History.TIME + " desc"
+                Structure.Table.History.name,
+                Structure.Table.History.projectionLocation,
+                Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
+                null, null, null,
+                Structure.Table.History.TIME + " desc"
             );
 
             if (cursor.moveToFirst()) {

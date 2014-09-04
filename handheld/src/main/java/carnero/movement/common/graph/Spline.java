@@ -20,33 +20,35 @@ import android.util.FloatMath;
 
 /**
  * Performs spline interpolation given a set of control points.
+ *
  * @hide
  */
 public final class Spline {
     private final float[] mX;
     private final float[] mY;
     private final float[] mM;
+
     private Spline(float[] x, float[] y, float[] m) {
         mX = x;
         mY = y;
         mM = m;
     }
+
     /**
      * Creates a -monotone- cubic spline from a given set of control points.
-     *
+     * <p/>
      * The spline is guaranteed to pass through each control point exactly.
      * Moreover, assuming the control points are monotonic (Y is non-decreasing or
      * non-increasing) then the interpolated values will also be monotonic.
-     *
+     * <p/>
      * This function uses the Fritsch-Carlson method for computing the spline parameters.
      * http://en.wikipedia.org/wiki/Monotone_cubic_interpolation
      *
      * @param x The X component of the control points, strictly increasing.
      * @param y The Y component of the control points, monotonic.
      * @return
-     *
      * @throws IllegalArgumentException if the X or Y arrays are null, have
-     * different lengths or have fewer than 2 values.
+     *                                  different lengths or have fewer than 2 values.
      * @throws IllegalArgumentException if the control points are not monotonic.
      */
     public static Spline createMonotoneCubicSpline(float[] x, float[] y) {
@@ -98,6 +100,7 @@ public final class Spline {
         }
         return new Spline(x, y, m);
     }
+
     /**
      * Interpolates the value of Y = f(X) for given X.
      * Clamps X to the domain of the spline.
@@ -132,6 +135,7 @@ public final class Spline {
         return (mY[i] * (1 + 2 * t) + h * mM[i] * t) * (1 - t) * (1 - t)
             + (mY[i + 1] * (3 - 2 * t) + h * mM[i + 1] * (t - 1)) * t * t;
     }
+
     // For debugging.
     @Override
     public String toString() {

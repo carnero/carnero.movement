@@ -52,7 +52,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
-        vGraph = (SmoothLineGraph) customView.findViewById(R.id.action_graph);
+        vGraph = (SmoothLineGraph)customView.findViewById(R.id.action_graph);
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -138,7 +138,7 @@ public class MainActivity extends AbstractBaseActivity {
         public void inBackground() {
             mLineDistance.getPoints().clear();
 
-            for (int i = -GRAPH_DAYS; i <= 0; i ++) {
+            for (int i = -GRAPH_DAYS; i <= 0; i++) {
                 ModelData summary = mHelper.getSummaryForDay(i);
                 LinePoint pointDistance = new LinePoint();
 
@@ -162,8 +162,8 @@ public class MainActivity extends AbstractBaseActivity {
         @Override
         public void postExecute() {
             vGraph.setRangeY(
-                    0,
-                    mMaxDst
+                0,
+                mMaxDst
             );
             vGraph.invalidate();
         }

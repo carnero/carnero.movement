@@ -18,7 +18,10 @@ import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.common.graph.DistancePath;
 import carnero.movement.common.graph.SplineGraph;
+import carnero.movement.common.graph.SplinePath;
+import carnero.movement.common.graph.StepsPath;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
@@ -34,7 +37,11 @@ public class GraphFragment extends Fragment {
     private Helper mHelper;
     private Preferences mPreferences;
     private boolean mAbsolute = false;
-    private final ArrayList<XY> mPointsDst = new ArrayList<XY>();
+    private final ArrayList<XY> mPointsDistance = new ArrayList<XY>();
+    private final ArrayList<XY> mPointsSteps = new ArrayList<XY>();
+    private final SplinePath mPathDistance = new DistancePath();
+    private final SplinePath mPathSteps = new StepsPath();
+    private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     //
     private static final String ARGS_DAY = "day";
     //
@@ -129,7 +136,9 @@ public class GraphFragment extends Fragment {
     }
 
     private void initGraph() {
-        // Nothing yet
+        mPaths.clear();
+        mPaths.add(mPathSteps); // steps are below
+        mPaths.add(mPathDistance);
     }
 
     private int getDay() {
@@ -168,10 +177,11 @@ public class GraphFragment extends Fragment {
                 return;
             }
 
-            mPointsDst.clear();
+            mPointsDistance.clear();
+            mPointsSteps.clear();
 
-            float stepsPrev = -1f;
             float distancePrev = -1f;
+            float stepsPrev = -1f;
 
             if (mContainer.previousEntry != null) {
                 stepsPrev = mContainer.previousEntry.steps;
@@ -222,14 +232,23 @@ public class GraphFragment extends Fragment {
                 mMinDst = Math.min(mMinDst, distance);
                 mMaxDst = Math.max(mMaxDst, distance);
 
+                XY point;
+
                 // Distance points
-                XY point = new XY();
+                point = new XY();
                 point.x = i;
                 point.y = distance;
-                mPointsDst.add(point);
+                mPointsDistance.add(point);
 
-                // TODO: Step points
+                // Steps points
+                point = new XY();
+                point.x = i;
+                point.y = steps;
+                mPointsSteps.add(point);
             }
+
+            mPathDistance.setData(mPointsDistance);
+            mPathSteps.setData(mPointsSteps);
         }
 
         @Override
@@ -279,7 +298,8 @@ public class GraphFragment extends Fragment {
             vStatsDistance.setText(Utils.formatDistance(distanceDay));
 
             // Graph
-            vGraph.setData(mPointsDst);
+            vGraph.setData(mPaths);
+            vGraph.invalidate();
 
             // Locations
             final GoogleMap map = vMap.getMap();

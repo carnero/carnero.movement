@@ -1,14 +1,10 @@
 package carnero.movement.common;
 
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import android.os.AsyncTask;
 import android.os.Build;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Parallel task execution for Honeycomb+, prior Honeycomb it processes tasks one by one.
@@ -31,12 +27,12 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, Void, Void> {
 
     private static final BlockingQueue<Runnable> sPoolWorkQueue = new LinkedBlockingQueue<Runnable>(256);
     private static ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            CPU_CORES + 1,
-            (CPU_CORES + 1) * 2,
-            1,
-            TimeUnit.SECONDS,
-            sPoolWorkQueue,
-            sThreadFactory
+        CPU_CORES + 1,
+        (CPU_CORES + 1) * 2,
+        1,
+        TimeUnit.SECONDS,
+        sPoolWorkQueue,
+        sThreadFactory
     );
 
     public void start() {

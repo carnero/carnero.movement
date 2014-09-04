@@ -1,17 +1,16 @@
 package carnero.movement.common;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Locale;
+
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.os.BatteryManager;
 import android.text.TextUtils;
 
-import com.google.android.gms.wearable.Asset;
-
-import java.io.ByteArrayOutputStream;
-import java.util.Locale;
-
 import carnero.movement.App;
+import com.google.android.gms.wearable.Asset;
 
 public class Utils {
 
@@ -24,7 +23,7 @@ public class Utils {
         int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-        return ((float) level / (float) scale) * 100.0f;
+        return ((float)level / (float)scale) * 100.0f;
     }
 
     public static String formatDistance(float distance) {

@@ -26,13 +26,13 @@ public class Preferences {
     public void saveSteps(int steps) {
         if (!mPrefs.contains(PREF_FIRST)) {
             mPrefs.edit()
-                    .putLong(PREF_FIRST, System.currentTimeMillis())
-                    .putInt(PREF_STEPS, steps)
-                    .apply();
+                .putLong(PREF_FIRST, System.currentTimeMillis())
+                .putInt(PREF_STEPS, steps)
+                .apply();
         } else {
             mPrefs.edit()
-                    .putInt(PREF_STEPS, steps)
-                    .apply();
+                .putInt(PREF_STEPS, steps)
+                .apply();
         }
     }
 
@@ -42,8 +42,8 @@ public class Preferences {
 
     public void saveStepsSensor(int steps) {
         mPrefs.edit()
-                .putInt(PREF_STEPS_SENSOR, steps)
-                .apply();
+            .putInt(PREF_STEPS_SENSOR, steps)
+            .apply();
     }
 
     public int getStepsSensor() {
@@ -53,19 +53,19 @@ public class Preferences {
     public void saveLocation(Location location) {
         if (!mPrefs.contains(PREF_FIRST)) {
             mPrefs.edit()
-                    .putLong(PREF_FIRST, System.currentTimeMillis())
-                    .putFloat(PREF_LATITUDE, (float) location.getLatitude())
-                    .putFloat(PREF_LONGITUDE, (float) location.getLongitude())
-                    .putFloat(PREF_ACCURACY, location.getAccuracy())
-                    .putLong(PREF_TIME, location.getTime())
-                    .apply();
+                .putLong(PREF_FIRST, System.currentTimeMillis())
+                .putFloat(PREF_LATITUDE, (float)location.getLatitude())
+                .putFloat(PREF_LONGITUDE, (float)location.getLongitude())
+                .putFloat(PREF_ACCURACY, location.getAccuracy())
+                .putLong(PREF_TIME, location.getTime())
+                .apply();
         } else {
             mPrefs.edit()
-                    .putFloat(PREF_LATITUDE, (float) location.getLatitude())
-                    .putFloat(PREF_LONGITUDE, (float) location.getLongitude())
-                    .putFloat(PREF_ACCURACY, location.getAccuracy())
-                    .putLong(PREF_TIME, location.getTime())
-                    .apply();
+                .putFloat(PREF_LATITUDE, (float)location.getLatitude())
+                .putFloat(PREF_LONGITUDE, (float)location.getLongitude())
+                .putFloat(PREF_ACCURACY, location.getAccuracy())
+                .putLong(PREF_TIME, location.getTime())
+                .apply();
         }
     }
 
@@ -85,8 +85,8 @@ public class Preferences {
 
     public void saveDistance(float distance) {
         mPrefs.edit()
-                .putFloat(PREF_DISTANCE, distance)
-                .apply();
+            .putFloat(PREF_DISTANCE, distance)
+            .apply();
     }
 
     public float getDistance() {

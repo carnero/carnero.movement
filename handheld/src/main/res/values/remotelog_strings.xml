@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2009-2013, Inmite s.r.o. (www.inmite.eu). All rights reserved.
+  ~
+  ~ This source code can be used only for purposes specified by the given license contract
+  ~ signed by the rightful deputy of Inmite s.r.o. This source code can be used only
+  ~ by the owner of the license.
+  ~
+  ~ Any disputes arising in respect of this agreement (license) shall be brought
+  ~ before the Municipal Court of Prague.
+  -->
+<resources>
+    <string name="remotelog_dialog_title">Ooops!</string>
+	<string name="remotelog_dialog_description">We\'re sorry.\n
+\n
+Our developers made some mistake that led to troubles with this application. But stay calm. Application itself recorded important
+information about how it ran. You can now send this information to developers at Inmite if you wish. Also, if you have anything to say, do it.\n
+\n
+Do you want to send logs and help developers make this application better?</string>
+    <string name="remotelog_dialog_yes">Yes!</string>
+    <string name="remotelog_dialog_no">Not interested</string>
+</resources>
