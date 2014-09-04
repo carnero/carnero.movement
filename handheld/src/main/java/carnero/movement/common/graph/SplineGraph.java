@@ -83,7 +83,7 @@ public class SplineGraph extends View {
 
         synchronized (mPaths) {
             for (SplinePath path : mPaths) {
-                path.alignPoints(getWidth(), getHeight(), mPadding);
+                path.alignToViewPort(getWidth(), getHeight(), mPadding);
             }
         }
     }
@@ -95,7 +95,7 @@ public class SplineGraph extends View {
 
             for (SplinePath path : mPaths) {
                 path.init(getResources());
-                path.alignPoints(getWidth(), getHeight(), mPadding);
+                path.alignToViewPort(getWidth(), getHeight(), mPadding);
             }
         }
 

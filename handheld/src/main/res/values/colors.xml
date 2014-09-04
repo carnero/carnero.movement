@@ -14,13 +14,14 @@
     <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
-    <color name="graph_distance_fill">#33000000</color>
     <color name="graph_distance_point">#ffaaaaaa</color>
     <color name="graph_distance">#220098ff</color>
-    <color name="graph_distance_outline_start">#ff007dcd</color>
-    <color name="graph_distance_outline_end">#ffcc3ecd</color>
+    <color name="graph_distance_fill_start">#44009aff</color>
+    <color name="graph_distance_fill_end">#44fe4bff</color>
+    <color name="graph_distance_outline_start">#ff009aff</color>
+    <color name="graph_distance_outline_end">#fffe4bff</color>
 
-    <color name="graph_steps_outline">#8800e856</color>
+    <color name="graph_steps_outline">#aa00e856</color>
 
     <color name="graph_divider">#22000000</color>
     <color name="graph_actionbar">#33ffffff</color>

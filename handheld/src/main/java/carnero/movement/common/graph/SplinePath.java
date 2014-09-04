@@ -8,6 +8,7 @@ import android.graphics.*;
 import carnero.movement.R;
 import carnero.movement.ui.view.XY;
 
+@SuppressWarnings("unused")
 public abstract class SplinePath {
 
     private final ArrayList<XY> mPoints = new ArrayList<XY>();
@@ -21,19 +22,28 @@ public abstract class SplinePath {
     private Paint mPaintPointBase;
     private Paint mPaintPointStroke;
     //
-    protected boolean mFillPath = true;
-    protected int mFillColor1Res = R.color.graph_distance_fill;
+    private int mFillColor1;
+    private int mFillColor2;
+    private int mStrokeColor1;
+    private int mStrokeColor2;
+    //
+    protected boolean mFillPath = false;
+    protected int mFillColor1Res = R.color.none;
     protected int mFillColor2Res = R.color.none;
-    protected boolean mFillGradient = true;
+    protected int mFillGradient = GRADIENT_NONE;
     protected int mStrokeWidthRes = R.dimen.graph_stroke;
-    protected int mStrokeColor1Res = R.color.graph_distance_outline_start;
-    protected int mStrokeColor2Res = R.color.graph_distance_outline_end;
-    protected boolean mStrokeGradient = true;
+    protected int mStrokeColor1Res = R.color.none;
+    protected int mStrokeColor2Res = R.color.none;
+    protected boolean mStrokeGradient = false;
     protected int mPathWidthRes = R.dimen.graph_path;
-    protected boolean mShowPoints = true;
-    protected int mPointColorRes = R.color.graph_distance_point;
+    protected boolean mShowPoints = false;
+    protected int mPointColorRes = R.color.none;
     protected int mPointSizeRes = R.dimen.graph_point;
     protected int mPointPaddingRes = R.dimen.graph_point_padding;
+    //
+    protected static final int GRADIENT_NONE = 0;
+    protected static final int GRADIENT_HORIZONTAL = 1;
+    protected static final int GRADIENT_VERTICAL = 1;
 
     public SplinePath() {
         // empty
@@ -45,11 +55,12 @@ public abstract class SplinePath {
 
     public void init(Resources resources) {
         // Load resources
-        final int fillColor1 = resources.getColor(mFillColor1Res);
-        final int fillColor2 = resources.getColor(mFillColor2Res);
+        mFillColor1 = resources.getColor(mFillColor1Res);
+        mFillColor2 = resources.getColor(mFillColor2Res);
+        mStrokeColor1 = resources.getColor(mStrokeColor1Res);
+        mStrokeColor2 = resources.getColor(mStrokeColor2Res);
+
         final int pointColor = resources.getColor(mPointColorRes);
-        final int strokeColor1 = resources.getColor(mStrokeColor1Res);
-        final int strokeColor2 = resources.getColor(mStrokeColor2Res);
         final int strokeWidth = resources.getDimensionPixelSize(mStrokeWidthRes);
         final int pathWidth = resources.getDimensionPixelSize(mPathWidthRes);
         final int pointSize;
@@ -67,26 +78,14 @@ public abstract class SplinePath {
 
         // Initialize paints
         mPaintFill = new Paint();
-        mPaintFill.setColor(fillColor1);
+        mPaintFill.setColor(mFillColor1);
         mPaintFill.setStrokeWidth(1);
         mPaintFill.setStyle(Paint.Style.STROKE);
-        if (mFillGradient) {
-            final Shader shader = new LinearGradient(
-                0,
-                0,
-                0,
-                600, // TODO: move to place where we have View height
-                fillColor1,
-                fillColor2,
-                Shader.TileMode.CLAMP
-            );
-
-            mPaintFill.setShader(shader);
-        }
 
         mPaintPathBase = new Paint(); // For the transparent "corridor" for line
         mPaintPathBase.setAntiAlias(true);
         mPaintPathBase.setColor(Color.TRANSPARENT);
+        mPaintPathBase.setMaskFilter(new BlurMaskFilter(2, BlurMaskFilter.Blur.NORMAL));
         mPaintPathBase.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         mPaintPathBase.setStrokeWidth(pathWidth);
         mPaintPathBase.setStyle(Paint.Style.STROKE);
@@ -95,28 +94,16 @@ public abstract class SplinePath {
 
         mPaintPathStroke = new Paint(); // For the line itself
         mPaintPathStroke.setAntiAlias(true);
-        mPaintPathStroke.setColor(strokeColor1);
+        mPaintPathStroke.setColor(mStrokeColor1);
         mPaintPathStroke.setStrokeWidth(strokeWidth);
         mPaintPathStroke.setStyle(Paint.Style.STROKE);
         mPaintPathStroke.setStrokeJoin(Paint.Join.ROUND);
         mPaintPathStroke.setStrokeCap(Paint.Cap.ROUND);
-        if (mStrokeGradient) {
-            final Shader shader = new LinearGradient(
-                0,
-                0,
-                800, // TODO: move to place where we have View width
-                0,
-                strokeColor1,
-                strokeColor2,
-                Shader.TileMode.CLAMP
-            );
-
-            mPaintPathStroke.setShader(shader);
-        }
 
         mPaintPointBase = new Paint();
         mPaintPointBase.setAntiAlias(true);
         mPaintPointBase.setColor(Color.TRANSPARENT);
+        mPaintPointBase.setMaskFilter(new BlurMaskFilter(2, BlurMaskFilter.Blur.NORMAL));
         mPaintPointBase.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         mPaintPointBase.setStrokeWidth(pointSize + pointPadding);
         mPaintPointBase.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -138,7 +125,48 @@ public abstract class SplinePath {
         }
     }
 
-    public void alignPoints(int width, int height, int[] padding) {
+    public void alignToViewPort(int width, int height, int[] padding) {
+        // Set gradients
+        if (mFillGradient == GRADIENT_HORIZONTAL) {
+            final Shader shader = new LinearGradient(
+                padding[3],
+                0,
+                height - padding[1],
+                0,
+                mFillColor1,
+                mFillColor2,
+                Shader.TileMode.CLAMP
+            );
+
+            mPaintFill.setShader(shader);
+        } else if (mFillGradient == GRADIENT_VERTICAL) {
+            final Shader shader = new LinearGradient(
+                0,
+                padding[2],
+                0,
+                height - padding[0],
+                mFillColor1,
+                mFillColor2,
+                Shader.TileMode.CLAMP
+            );
+
+            mPaintFill.setShader(shader);
+        }
+        if (mStrokeGradient) {
+            final Shader shader = new LinearGradient(
+                padding[3],
+                0,
+                width - padding[1],
+                0,
+                mStrokeColor1,
+                mStrokeColor2,
+                Shader.TileMode.CLAMP
+            );
+
+            mPaintPathStroke.setShader(shader);
+        }
+
+        // Recalculate points
         if (mPoints.isEmpty()) {
             return;
         }

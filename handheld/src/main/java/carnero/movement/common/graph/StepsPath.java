@@ -11,7 +11,7 @@ public class StepsPath extends SplinePath {
         mFillPath = false;
         mFillColor1Res = R.color.none;
         mFillColor2Res = R.color.none;
-        mFillGradient = false;
+        mFillGradient = GRADIENT_NONE;
         mStrokeWidthRes = R.dimen.graph_stroke;
         mStrokeColor1Res = R.color.graph_steps_outline;
         mStrokeColor2Res = R.color.none;
