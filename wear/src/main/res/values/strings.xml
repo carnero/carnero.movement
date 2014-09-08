@@ -2,5 +2,7 @@
     <string name="app_name">Movement</string>
 
     <string name="today">Today</string>
-    <string name="stats_steps">%1$d steps</string>
+
+    <string name="stats_total">%1$s\n%2$d steps</string>
+    <string name="stats_change">%1$s <b>%2$s</b>\n%3$d steps <b>%4$s</b></string>
 </resources>

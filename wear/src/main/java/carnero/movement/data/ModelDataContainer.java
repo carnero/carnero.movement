@@ -5,14 +5,15 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class ModelDataContainer implements Parcelable {
 
-    public int steps;
-    public float distance;
+    public int stepsTotal;
+    public float distanceTotal;
     public int stepsToday;
     public float distanceToday;
+    public double stepsChange;
+    public double distanceChange;
     public final ArrayList<Double> stepsList = new ArrayList<Double>();
     public final ArrayList<Double> distanceList = new ArrayList<Double>();
 
@@ -33,10 +34,12 @@ public class ModelDataContainer implements Parcelable {
     private ModelDataContainer(Parcel in) {
         final Bundle bundle = in.readBundle();
 
-        steps = bundle.getInt("steps");
-        distance = bundle.getFloat("distance");
+        stepsTotal = bundle.getInt("stepsTotal");
+        distanceTotal = bundle.getFloat("distanceTotal");
         stepsToday = bundle.getInt("stepsToday");
         distanceToday = bundle.getFloat("distanceToday");
+        stepsChange = bundle.getDouble("stepsChange");
+        distanceChange = bundle.getDouble("distanceChange");
 
         double[] stepsArray = bundle.getDoubleArray("stepsList");
         double[] distanceArray = bundle.getDoubleArray("distanceList");
@@ -64,10 +67,12 @@ public class ModelDataContainer implements Parcelable {
         }
 
         final Bundle bundle = new Bundle();
-        bundle.putInt("steps", steps);
-        bundle.putFloat("distance", distance);
+        bundle.putInt("stepsTotal", stepsTotal);
+        bundle.putFloat("distanceTotal", distanceTotal);
         bundle.putInt("stepsToday", stepsToday);
         bundle.putFloat("distanceToday", distanceToday);
+        bundle.putDouble("stepsChange", stepsChange);
+        bundle.putDouble("distanceChange", distanceChange);
         bundle.putDoubleArray("stepsList", stepsArray);
         bundle.putDoubleArray("distanceList", distanceArray);
 

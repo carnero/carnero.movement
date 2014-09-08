@@ -18,6 +18,6 @@ public class StepsActivity extends AbstractGraphActivity {
     protected void onResume() {
         super.onResume();
 
-        vLabel.setText(getString(R.string.today) + ": " + getString(R.string.stats_steps, mContainer.stepsToday));
+        vLabel.setText(R.string.today);
     }
 }

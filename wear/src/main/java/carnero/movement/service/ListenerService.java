@@ -22,16 +22,9 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
-import carnero.movement.App;
 import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
@@ -114,10 +107,12 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
 
         long motion = dataMap.getLong("motion"); // debug
 
-        container.steps = dataMap.getInt("steps");
-        container.distance = dataMap.getFloat("distance");
+        container.stepsTotal = dataMap.getInt("steps_total");
+        container.distanceTotal = dataMap.getFloat("distance_total");
         container.stepsToday = dataMap.getInt("steps_today");
         container.distanceToday = dataMap.getFloat("distance_today");
+        container.stepsChange = dataMap.getDouble("steps_change");
+        container.distanceChange = dataMap.getDouble("distance_change");
 
         // Data
         if (data.containsKey("steps")) {
@@ -180,9 +175,35 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         // Base notification
         final Bitmap graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
 
+        double stepsPercent;
+        double distancePercent;
+        String stepsChange;
+        String distanceChange;
+
+        if (container.stepsChange >= 1.0) {
+            stepsPercent = (container.stepsChange - 1.0) * 100f;
+            stepsChange = "↗";
+        } else {
+            stepsPercent = (1.0 - container.stepsChange) * 100f;
+            stepsChange = "↘";
+        }
+        if (container.distanceChange >= 1.0) {
+            distancePercent = (container.distanceChange - 1.0) * 100f;
+            distanceChange = "↗";
+        } else {
+            distancePercent = (1.0 - container.distanceChange) * 100f;
+            distanceChange = "↘";
+        }
+
         final Notification.BigTextStyle style = new Notification.BigTextStyle();
         style.bigText(
-                Utils.formatDistance(container.distance) + "\n" + Integer.toString(container.steps) + " steps"
+            getString(
+                R.string.stats_change,
+                Utils.formatDistance(container.distanceToday),
+                distanceChange + (int) distancePercent + "%",
+                container.stepsToday,
+                stepsChange + (int) stepsPercent + "%"
+            )
         );
 
         int priority = Notification.PRIORITY_LOW;

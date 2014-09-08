@@ -19,6 +19,6 @@ public class DistanceActivity extends AbstractGraphActivity {
     protected void onResume() {
         super.onResume();
 
-        vLabel.setText(getString(R.string.today) + ": " + Utils.formatDistance(mContainer.distanceToday));
+        vLabel.setText(R.string.today);
     }
 }

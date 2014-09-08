@@ -7,6 +7,7 @@
     <dimen name="graph_stroke">2dp</dimen>
     <dimen name="graph_outline">1dp</dimen>
     <dimen name="graph_point">3dp</dimen>
+    <dimen name="graph_point_small">1dp</dimen>
     <dimen name="graph_point_padding">2dp</dimen>
     <dimen name="graph_padding_top">10dp</dimen>
 </resources>

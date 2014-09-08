@@ -479,17 +479,29 @@ public class LocationService
             return;
         }
 
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        long yesterdayEnd = calendar.getTimeInMillis();
+
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        long yesterdayStart = calendar.getTimeInMillis();
+
+        final ModelData today = mHelper.getSummaryForDay(0);
+        final ModelData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
+
         // Summary
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
-        DataMap statusMap = new DataMap();
-        statusMap.putInt("steps", mSteps);
-        statusMap.putFloat("distance", mDistance);
-        statusMap.putLong("motion", mLastMotion);
-
-        ModelData today = mHelper.getSummaryForDay(0);
+        final DataMap statusMap = new DataMap();
+        statusMap.putInt("steps_total", mSteps);
+        statusMap.putFloat("distance_total", mDistance);
         statusMap.putInt("steps_today", today.steps);
         statusMap.putFloat("distance_today", today.distance);
+        statusMap.putDouble("steps_change", (double) today.steps / (double) yesterday.steps);
+        statusMap.putDouble("distance_change", (double) today.distance / (double) yesterday.distance);
+        statusMap.putLong("motion", mLastMotion);
 
         statusList.add(statusMap);
 

@@ -131,7 +131,7 @@ public abstract class SplinePath {
             final Shader shader = new LinearGradient(
                 padding[3],
                 0,
-                height - padding[1],
+                width - padding[1],
                 0,
                 mFillColor1,
                 mFillColor2,
