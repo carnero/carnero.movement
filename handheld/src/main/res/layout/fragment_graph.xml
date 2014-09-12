@@ -19,7 +19,7 @@
 
         <TextView
             style="@style/Text"
-            android:id="@+id/stats_steps"
+            android:id="@+id/stats_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -27,11 +27,11 @@
             android:ellipsize="end" />
         <TextView
             style="@style/Text"
-            android:id="@+id/stats_distance"
+            android:id="@+id/stats_steps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_below="@id/stats_steps"
+            android:layout_below="@id/stats_distance"
             android:singleLine="true"
             android:ellipsize="end" />
     </RelativeLayout>

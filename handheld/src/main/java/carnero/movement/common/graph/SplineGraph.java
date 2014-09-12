@@ -39,6 +39,14 @@ public class SplineGraph extends View {
         init();
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        mCacheBitmap.recycle();
+        mCacheBitmap = null;
+    }
+
     /**
      * Initialize graph (paint, paths...)
      */
@@ -56,7 +64,7 @@ public class SplineGraph extends View {
     @Override
     public void onDraw(Canvas canvas) {
         // Create canvas if necessary
-        if (mCacheBitmap == null) {
+        if (mCacheBitmap == null || mCacheBitmap.isRecycled()) {
             mCacheBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
             mCacheCanvas = new Canvas(mCacheBitmap);
         }

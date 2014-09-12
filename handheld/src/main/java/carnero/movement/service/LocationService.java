@@ -1,6 +1,5 @@
 package carnero.movement.service;
 
-import java.text.DateFormat;
 import java.util.*;
 
 import android.app.AlarmManager;
@@ -27,6 +26,7 @@ import carnero.movement.common.Utils;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.comparator.LocationComparator;
 import carnero.movement.db.Helper;
+import carnero.movement.db.ModelChange;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
 import carnero.movement.receiver.WakeupReceiver;
@@ -474,11 +474,7 @@ public class LocationService
         }
     }
 
-    private void sendDataToWear() {
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) { // Once in 1 min
-            return;
-        }
-
+    private ModelChange getToday() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_MONTH, -1);
         long yesterdayEnd = calendar.getTimeInMillis();
@@ -491,7 +487,20 @@ public class LocationService
         final ModelData today = mHelper.getSummaryForDay(0);
         final ModelData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
 
+        return new ModelChange(
+            today.steps,
+            today.distance,
+            (double)today.steps / (double)yesterday.steps,
+            (double)today.distance / (double)yesterday.distance
+        );
+    }
+
+    private void sendDataToWear() {
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) { // Once in 1 min
+            return;
+        }
         // Summary
+        final ModelChange today = getToday();
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
         final DataMap statusMap = new DataMap();
@@ -499,8 +508,8 @@ public class LocationService
         statusMap.putFloat("distance_total", mDistance);
         statusMap.putInt("steps_today", today.steps);
         statusMap.putFloat("distance_today", today.distance);
-        statusMap.putDouble("steps_change", (double) today.steps / (double) yesterday.steps);
-        statusMap.putDouble("distance_change", (double) today.distance / (double) yesterday.distance);
+        statusMap.putDouble("steps_change", today.stepsChange);
+        statusMap.putDouble("distance_change", today.distanceChange);
         statusMap.putLong("motion", mLastMotion);
 
         statusList.add(statusMap);
@@ -598,11 +607,51 @@ public class LocationService
     }
 
     private void notifyHandheld() {
-        String text = Utils.formatDistance(mDistance) + " | " + getString(R.string.stats_steps, mSteps);
-        text += "\n"
-            + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date(mLastMotion))
-            + " // "
-            + mLocationHistory.size();
+        final ModelChange today = getToday();
+
+        double stepsPercent;
+        double distancePercent;
+        String stepsChange;
+        String distanceChange;
+
+        if (today.stepsChange >= 1.0) {
+            stepsPercent = (today.stepsChange - 1.0) * 100f;
+            stepsChange = "↗";
+        } else {
+            stepsPercent = (1.0 - today.stepsChange) * 100f;
+            stepsChange = "↘";
+        }
+        if (today.distanceChange >= 1.0) {
+            distancePercent = (today.distanceChange - 1.0) * 100f;
+            distanceChange = "↗";
+        } else {
+            distancePercent = (1.0 - today.distanceChange) * 100f;
+            distanceChange = "↘";
+        }
+
+        String stepsString;
+        String distanceString;
+
+        if (stepsPercent < 700) {
+            stepsString = String.valueOf((int)stepsPercent) + "%";
+        } else {
+            stepsString = getString(R.string.stats_lot);
+        }
+        if (distancePercent < 700) {
+            distanceString = String.valueOf((int)distancePercent) + "%";
+        } else {
+            distanceString = getString(R.string.stats_lot);
+        }
+
+        final String text = getString(
+            R.string.notification_distance,
+            distanceChange + " " + distanceString,
+            Utils.formatDistance(today.distance)
+        ) + "\n" + getString(
+            R.string.notification_steps,
+            stepsChange + " " + stepsString,
+            today.steps
+        );
 
         final Notification.Builder builder = new Notification.Builder(this)
             .setPriority(Notification.PRIORITY_MIN)

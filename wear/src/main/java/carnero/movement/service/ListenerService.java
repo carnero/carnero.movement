@@ -195,14 +195,28 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             distanceChange = "↘";
         }
 
+        String stepsString;
+        String distanceString;
+
+        if (stepsPercent < 700) {
+            stepsString = String.valueOf((int) stepsPercent) + "%";
+        } else {
+            stepsString = getString(R.string.stats_lot);
+        }
+        if (distancePercent < 700) {
+            distanceString = String.valueOf((int) distancePercent) + "%";
+        } else {
+            distanceString = getString(R.string.stats_lot);
+        }
+
         final Notification.BigTextStyle style = new Notification.BigTextStyle();
         style.bigText(
             getString(
                 R.string.stats_change,
                 Utils.formatDistance(container.distanceToday),
-                distanceChange + (int) distancePercent + "%",
+                distanceChange + distanceString,
                 container.stepsToday,
-                stepsChange + (int) stepsPercent + "%"
+                stepsChange + stepsString
             )
         );
 
