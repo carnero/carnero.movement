@@ -645,12 +645,12 @@ public class LocationService
 
         final String text = getString(
             R.string.notification_distance,
-            distanceChange + " " + distanceString,
-            Utils.formatDistance(today.distance)
+            Utils.formatDistance(today.distance),
+            distanceChange + " " + distanceString
         ) + "\n" + getString(
             R.string.notification_steps,
-            stepsChange + " " + stepsString,
-            today.steps
+            today.steps,
+            stepsChange + " " + stepsString
         );
 
         final Notification.Builder builder = new Notification.Builder(this)

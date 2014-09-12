@@ -7,8 +7,9 @@
 
     <com.echo.holographlibrary.SmoothLineGraph
         android:id="@+id/action_graph"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
@@ -16,4 +17,26 @@
         app:lineBackground="@color/none"
         app:lineAxisColor="@color/none"
         app:lineUsePadding="false" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingLeft="4dp"
+        android:paddingRight="16dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/Text.ActionBar"
+            android:id="@+id/total_distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end" />
+        <TextView
+            style="@style/Text.ActionBar"
+            android:id="@+id/total_steps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end" />
+    </LinearLayout>
 </LinearLayout>

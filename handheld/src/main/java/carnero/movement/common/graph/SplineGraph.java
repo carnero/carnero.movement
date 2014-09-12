@@ -43,8 +43,10 @@ public class SplineGraph extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
-        mCacheBitmap.recycle();
-        mCacheBitmap = null;
+        if (mCacheBitmap != null) {
+            mCacheBitmap.recycle();
+            mCacheBitmap = null;
+        }
     }
 
     /**

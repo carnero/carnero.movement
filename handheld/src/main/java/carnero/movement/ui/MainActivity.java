@@ -9,11 +9,14 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
@@ -25,6 +28,7 @@ import com.readystatesoftware.systembartint.SystemBarTintManager;
 public class MainActivity extends AbstractBaseActivity {
 
     private PagerAdapter mPagerAdapter;
+    private Preferences mPreferences;
     private Helper mHelper;
     private Line mLineDistance;
     //
@@ -34,12 +38,15 @@ public class MainActivity extends AbstractBaseActivity {
     @InjectView(R.id.pager)
     ViewPager vPager;
     SmoothLineGraph vGraph;
+    TextView vTotalDistance;
+    TextView vTotalSteps;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
 
         // Init
+        mPreferences = new Preferences(this);
         mHelper = new Helper(this);
 
         // Start service
@@ -53,6 +60,8 @@ public class MainActivity extends AbstractBaseActivity {
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
         vGraph = (SmoothLineGraph)customView.findViewById(R.id.action_graph);
+        vTotalDistance = (TextView)customView.findViewById(R.id.total_distance);
+        vTotalSteps = (TextView)customView.findViewById(R.id.total_steps);
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -70,9 +79,14 @@ public class MainActivity extends AbstractBaseActivity {
 
         // Set ViewPager
         mPagerAdapter = new PagesAdapter();
+        vPager.setOffscreenPageLimit(3);
         vPager.setAdapter(mPagerAdapter);
         vPager.setOnPageChangeListener(new PageChangeListener());
         vPager.setCurrentItem(mPagerAdapter.getCount() - 1);
+
+        // Set statistics
+        vTotalDistance.setText(Utils.formatDistance(mPreferences.getDistance()));
+        vTotalSteps.setText(getString(R.string.stats_steps, mPreferences.getSteps()));
     }
 
     @Override

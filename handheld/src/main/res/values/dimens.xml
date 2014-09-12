@@ -9,5 +9,5 @@
     <dimen name="graph_point">3dp</dimen>
     <dimen name="graph_point_small">1dp</dimen>
     <dimen name="graph_point_padding">2dp</dimen>
-    <dimen name="graph_padding_top">10dp</dimen>
+    <dimen name="graph_padding_top">16dp</dimen>
 </resources>
