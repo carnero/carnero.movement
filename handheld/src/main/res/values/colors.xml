@@ -24,8 +24,10 @@
 
     <color name="graph_steps_outline">#aa00e856</color>
 
+    <color name="graph_actionbar_outline_start">#33ffffff</color>
+    <color name="graph_actionbar_outline_end">#ffffffff</color>
+
     <color name="graph_divider">#22000000</color>
-    <color name="graph_actionbar">#33ffffff</color>
     <color name="map_history">#880098ff</color>
 
     <!-- Other -->

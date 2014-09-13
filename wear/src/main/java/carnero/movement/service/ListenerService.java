@@ -1,5 +1,8 @@
 package carnero.movement.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -11,20 +14,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.data.FreezableUtils;
-import com.google.android.gms.wearable.DataEvent;
-import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.MessageEvent;
-import com.mariux.teleport.lib.TeleportClient;
-import com.mariux.teleport.lib.TeleportService;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
@@ -32,6 +21,12 @@ import carnero.movement.data.ModelDataContainer;
 import carnero.movement.data.Size;
 import carnero.movement.ui.DistanceActivity;
 import carnero.movement.ui.StepsActivity;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.data.FreezableUtils;
+import com.google.android.gms.wearable.*;
+import com.mariux.teleport.lib.TeleportClient;
+import com.mariux.teleport.lib.TeleportService;
 
 public class ListenerService extends TeleportService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -136,41 +131,41 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         final Intent distanceIntent = new Intent(this, DistanceActivity.class);
         distanceIntent.putExtras(extras);
         final PendingIntent distancePendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                distanceIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+            this,
+            0,
+            distanceIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
 
         final Notification.Builder distanceBuilder = new Notification.Builder(ListenerService.this)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(false)
-                .setWhen(System.currentTimeMillis())
-                .setContentTitle(getString(R.string.app_name));
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOngoing(false)
+            .setWhen(System.currentTimeMillis())
+            .setContentTitle(getString(R.string.app_name));
 
         new Notification.WearableExtender()
-                .setDisplayIntent(distancePendingIntent)
-                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
-                .extend(distanceBuilder);
+            .setDisplayIntent(distancePendingIntent)
+            .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
+            .extend(distanceBuilder);
 
         // Steps notification
         final Intent stepsIntent = new Intent(this, StepsActivity.class);
         stepsIntent.putExtras(extras);
         final PendingIntent stepsPendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                stepsIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+            this,
+            0,
+            stepsIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT);
 
         final Notification.Builder stepsBuilder = new Notification.Builder(ListenerService.this)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(false)
-                .setWhen(System.currentTimeMillis())
-                .setContentTitle(getString(R.string.app_name));
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOngoing(false)
+            .setWhen(System.currentTimeMillis())
+            .setContentTitle(getString(R.string.app_name));
 
         new Notification.WearableExtender()
-                .setDisplayIntent(stepsPendingIntent)
-                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
-                .extend(stepsBuilder);
+            .setDisplayIntent(stepsPendingIntent)
+            .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE)
+            .extend(stepsBuilder);
 
         // Base notification
         final Bitmap graphBmp = BitmapFactory.decodeResource(getResources(), R.drawable.background);
@@ -199,12 +194,12 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         String distanceString;
 
         if (stepsPercent < 700) {
-            stepsString = String.valueOf((int) stepsPercent) + "%";
+            stepsString = String.valueOf((int)stepsPercent) + "%";
         } else {
             stepsString = getString(R.string.stats_lot);
         }
         if (distancePercent < 700) {
-            distanceString = String.valueOf((int) distancePercent) + "%";
+            distanceString = String.valueOf((int)distancePercent) + "%";
         } else {
             distanceString = getString(R.string.stats_lot);
         }
@@ -226,21 +221,21 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         }
 
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
-                .setPriority(priority)
-                .setOngoing(false)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_notification)
-                .setLargeIcon(graphBmp)
-                .setContentTitle(getString(R.string.app_name))
-                .setStyle(style);
+            .setPriority(priority)
+            .setOngoing(false)
+            .setWhen(System.currentTimeMillis())
+            .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(graphBmp)
+                // .setContentTitle(getString(R.string.app_name))
+            .setStyle(style);
 
         final ArrayList<Notification> pages = new ArrayList<Notification>();
         pages.add(distanceBuilder.build());
         pages.add(stepsBuilder.build());
 
         new Notification.WearableExtender()
-                .addPages(pages)
-                .extend(builder);
+            .addPages(pages)
+            .extend(builder);
 
         final Notification notification = builder.build();
         NotificationManagerCompat.from(this).notify(1001, notification);

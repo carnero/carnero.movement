@@ -1,5 +1,7 @@
 package carnero.movement.ui;
 
+import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,12 +19,13 @@ import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.common.graph.OverviewPath;
+import carnero.movement.common.graph.SplineGraph;
+import carnero.movement.common.graph.SplinePath;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
-import com.echo.holographlibrary.Line;
-import com.echo.holographlibrary.LinePoint;
-import com.echo.holographlibrary.SmoothLineGraph;
+import carnero.movement.ui.view.XY;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
@@ -30,14 +33,16 @@ public class MainActivity extends AbstractBaseActivity {
     private PagerAdapter mPagerAdapter;
     private Preferences mPreferences;
     private Helper mHelper;
-    private Line mLineDistance;
+    private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
+    private final ArrayList<XY> mOverviewPoints = new ArrayList<XY>();
+    private final SplinePath mOverviewPath = new OverviewPath();
     //
-    private static final int HISTORY_PAGES = 31;
+    private static final int HISTORY_PAGES = 21;
     private static final int GRAPH_DAYS = 21;
     //
     @InjectView(R.id.pager)
     ViewPager vPager;
-    SmoothLineGraph vGraph;
+    SplineGraph vGraph;
     TextView vTotalDistance;
     TextView vTotalSteps;
 
@@ -59,7 +64,7 @@ public class MainActivity extends AbstractBaseActivity {
 
         // ActionBar
         final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
-        vGraph = (SmoothLineGraph)customView.findViewById(R.id.action_graph);
+        vGraph = (SplineGraph)customView.findViewById(R.id.action_graph);
         vTotalDistance = (TextView)customView.findViewById(R.id.total_distance);
         vTotalSteps = (TextView)customView.findViewById(R.id.total_steps);
 
@@ -75,7 +80,10 @@ public class MainActivity extends AbstractBaseActivity {
             SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
             vPager.setPadding(0, config.getPixelInsetTop(true), 0, 0);
         }
-        initGraph();
+
+        // Graph
+        mPaths.clear();
+        mPaths.add(mOverviewPath);
 
         // Set ViewPager
         mPagerAdapter = new PagesAdapter();
@@ -94,14 +102,6 @@ public class MainActivity extends AbstractBaseActivity {
         super.onResume();
 
         new GraphDataTask().start();
-    }
-
-    private void initGraph() {
-        mLineDistance = new Line();
-        mLineDistance.setFill(true);
-        mLineDistance.setShowingPoints(true);
-        mLineDistance.setColor(getResources().getColor(R.color.graph_actionbar));
-        vGraph.addLine(mLineDistance);
     }
 
     // Classes
@@ -128,7 +128,7 @@ public class MainActivity extends AbstractBaseActivity {
         @Override
         public void onPageSelected(int i) {
             if (vGraph != null) {
-                vGraph.setHighlightSegment(GRAPH_DAYS - (HISTORY_PAGES - i - 1));
+                // TODO: highlight one sector
             }
         }
 
@@ -150,35 +150,36 @@ public class MainActivity extends AbstractBaseActivity {
 
         @Override
         public void inBackground() {
-            mLineDistance.getPoints().clear();
+            mOverviewPoints.clear();
 
             for (int i = -GRAPH_DAYS; i <= 0; i++) {
                 ModelData summary = mHelper.getSummaryForDay(i);
-                LinePoint pointDistance = new LinePoint();
+                XY point = new XY();
 
                 if (summary == null) {
-                    pointDistance.setX(GRAPH_DAYS + i);
-                    pointDistance.setY(0);
+                    point.x = GRAPH_DAYS + i;
+                    point.y = 0;
 
                     mMinDst = Math.min(mMinDst, 0f);
                     mMaxDst = Math.max(mMaxDst, 0f);
                 } else {
-                    pointDistance.setX(GRAPH_DAYS + i);
-                    pointDistance.setY(summary.distance);
+                    point.x = GRAPH_DAYS + i;
+                    point.y = summary.distance;
 
                     mMinDst = Math.min(mMinDst, summary.distance);
                     mMaxDst = Math.max(mMaxDst, summary.distance);
                 }
-                mLineDistance.addPoint(pointDistance);
+
+                mOverviewPoints.add(point);
             }
+
+            mOverviewPath.setData(mOverviewPoints);
         }
 
         @Override
         public void postExecute() {
-            vGraph.setRangeY(
-                0,
-                mMaxDst
-            );
+            // Graph
+            vGraph.setData(mPaths);
             vGraph.invalidate();
         }
     }
