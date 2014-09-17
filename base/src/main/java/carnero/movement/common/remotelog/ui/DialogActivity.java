@@ -25,7 +25,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 
-import carnero.movement.common.App;
+import carnero.movement.common.Application;
 import carnero.movement.common.R;
 import carnero.movement.common.remotelog.Prefs;
 import carnero.movement.common.remotelog.RemoteLog;
@@ -40,7 +40,7 @@ public class DialogActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         final File file = new File(Environment.getExternalStorageDirectory(), RemoteLog.LOG_FILE);
-        if (!App.isDebug() || !file.exists() || file.length() == 0) {
+        if (!Application.isDebug() || !file.exists() || file.length() == 0) {
             finish();
             return;
         }

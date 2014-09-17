@@ -2,22 +2,32 @@ package carnero.movement.ui;
 
 import java.util.ArrayList;
 
+import android.os.Bundle;
+
 import carnero.movement.R;
+import carnero.movement.graph.DistancePath;
+import carnero.movement.graph.StepsPath;
 
 public class StepsActivity extends AbstractGraphActivity {
 
-    protected int getLineColor() {
-        return getResources().getColor(R.color.graph_steps);
-    }
+    @Override
+    public void onCreate(Bundle state) {
+        super.onCreate(state);
 
-    protected ArrayList<Double> getValues() {
-        return mContainer.stepsList;
+        mTodayPath = new StepsPath();
+
+        initGraph();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        vLabel.setText(R.string.today);
+        vLabel.setText(R.string.title_steps);
+
+        mTodayPath.setData(getValues(mContainer.stepsList));
+
+        vGraph.setData(mPaths);
+        vGraph.invalidate();
     }
 }

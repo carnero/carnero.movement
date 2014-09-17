@@ -12,6 +12,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.location.Location;
 import android.text.format.DateUtils;
 
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
 import carnero.movement.common.remotelog.RemoteLog;
 
 public class Helper extends SQLiteOpenHelper {

@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import carnero.movement.common.graph.SplineGraph;
+import carnero.movement.common.graph.SplinePath;
+import carnero.movement.common.model.XY;
 import com.echo.holographlibrary.Line;
 import com.echo.holographlibrary.LinePoint;
 import com.echo.holographlibrary.SmoothLineGraph;
@@ -21,17 +24,14 @@ import carnero.movement.data.ModelDataContainer;
 public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
     protected ModelDataContainer mContainer;
-    protected Line mLine;
+    protected SplinePath mTodayPath;
+    protected final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     //
     @InjectView(R.id.label)
     TextView vLabel;
     @InjectView(R.id.graph)
-    SmoothLineGraph vGraph;
+    SplineGraph vGraph;
     
-    protected abstract int getLineColor();
-
-    protected abstract ArrayList<Double> getValues();
-
     public void onCreate(Bundle state) {
         super.onCreate(state);
 
@@ -42,40 +42,6 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
         setContentView(R.layout.notification_activity);
         ButterKnife.inject(this);
-
-        mLine = new Line();
-        mLine.setFill(true);
-        mLine.setShowingPoints(false);
-        mLine.setColor(getLineColor());
-
-        vGraph.addLine(mLine);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Graph
-        double max = Double.MIN_VALUE;
-        double min = Double.MAX_VALUE;
-
-        mLine.getPoints().clear();
-
-        ArrayList<Double> values = getValues();
-        for (int i = 0; i < values.size(); i ++) {
-            Double value = values.get(i);
-
-            LinePoint point = new LinePoint();
-            point.setX(i);
-            point.setY(value);
-            mLine.addPoint(point);
-
-            min = Math.min(min, value);
-            max = Math.max(max, value);
-        }
-
-        vGraph.setRangeY((float) min, (float) max);
-        vGraph.invalidate();
     }
 
     @Override
@@ -85,5 +51,25 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
         if (intent != null) {
             mContainer = intent.getParcelableExtra("data");
         }
+    }
+
+    protected void initGraph() {
+        mPaths.clear();
+        mPaths.add(mTodayPath);
+    }
+
+    protected ArrayList<XY> getValues(ArrayList<Double> values) {
+        final ArrayList<XY> xys = new ArrayList<XY>();
+        for (int i = 0; i < values.size(); i ++) {
+            Double value = values.get(i);
+
+            XY point = new XY(
+                i,
+                value.floatValue()
+            );
+            xys.add(point);
+        }
+
+        return xys;
     }
 }

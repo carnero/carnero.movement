@@ -1,12 +1,10 @@
 package carnero.movement.common;
 
-import android.app.Application;
-
 import carnero.movement.common.remotelog.RemoteLog;
 
-public class App extends Application {
+public class Application extends android.app.Application {
 
-    private static App sInstance;
+    private static Application sInstance;
     private static final boolean sRemoteDebug = true;
 
     @Override
@@ -18,7 +16,7 @@ public class App extends Application {
         RemoteLog.init();
     }
 
-    public static App get() {
+    public static Application get() {
         return sInstance;
     }
 

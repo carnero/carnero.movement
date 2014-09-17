@@ -1,7 +1,6 @@
 package carnero.movement.common;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -12,20 +11,23 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.BatteryManager;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.view.Display;
 import android.view.WindowManager;
 
 import carnero.movement.common.model.Size;
+import carnero.movement.common.remotelog.RemoteLog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.Wearable;
 
+@SuppressWarnings("unused")
 public class Utils {
 
     public static float getBatteryLevel() {
-        final Intent batteryIntent = App.get().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        final Intent batteryIntent = Application.get().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (batteryIntent == null) {
             return -1f;
         }
@@ -60,7 +62,7 @@ public class Utils {
     }
 
     public static Size getScreenDimensions() {
-        Display display = ((WindowManager) App.get().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        Display display = ((WindowManager) Application.get().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
 
@@ -88,5 +90,51 @@ public class Utils {
 
         // Decode the stream into a bitmap
         return BitmapFactory.decodeStream(assetInputStream);
+    }
+
+    public static boolean backupDatabase(String dbName) {
+        final File src = new File("/data/data/" + Application.get().getPackageName() + "/databases/" + dbName);
+        final File dst = new File(Environment.getExternalStorageDirectory() + "/Movement.backup.db");
+
+        return copyFile(src, dst);
+    }
+
+    public static boolean restoreDatabase(String dbName) {
+        final File src = new File(Environment.getExternalStorageDirectory() + "/Movement.db");
+        final File dst = new File("/data/data/" + Application.get().getPackageName() + "/databases/" + dbName);
+
+        boolean status = copyFile(src, dst);
+        if (status) {
+            src.delete();
+        }
+
+        return status;
+    }
+
+    public static boolean copyFile(File src, File dst) {
+        try {
+            if (src == null || !src.exists() || dst == null) {
+                RemoteLog.w("Missing some file");
+                return false;
+            }
+
+            FileInputStream inputStream = new FileInputStream(src);
+            OutputStream outputStream = new FileOutputStream(dst);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+
+            outputStream.flush();
+            outputStream.close();
+            inputStream.close();
+        } catch (IOException ioe) {
+            RemoteLog.e("Failed to copy file");
+            return false;
+        }
+
+        return true;
     }
 }

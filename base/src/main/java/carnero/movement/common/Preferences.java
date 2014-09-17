@@ -18,6 +18,7 @@ public class Preferences {
     private static final String PREF_ACCURACY = "loc_accuracy";
     private static final String PREF_TIME = "loc_time";
     private static final String PREF_GRAPH_ABS = "graph_type";
+    private static final String PREF_BACKUP = "db_backup";
 
     public Preferences(Context context) {
         mPrefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
@@ -101,5 +102,15 @@ public class Preferences {
 
     public boolean getGraphType() {
         return mPrefs.getBoolean(PREF_GRAPH_ABS, false);
+    }
+
+    public void saveLastBackup(long time) {
+        mPrefs.edit()
+            .putLong(PREF_BACKUP, time)
+            .apply();
+    }
+
+    public long getLastBackup() {
+        return mPrefs.getLong(PREF_BACKUP, 0l);
     }
 }

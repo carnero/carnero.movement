@@ -2,7 +2,7 @@
     package="carnero.movement">
 
     <application
-        android:name="carnero.movement.common.App"
+        android:name=".common.Application"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true">

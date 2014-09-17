@@ -2,23 +2,32 @@ package carnero.movement.ui;
 
 import java.util.ArrayList;
 
+import android.os.Bundle;
+
 import carnero.movement.R;
 import carnero.movement.common.Utils;
+import carnero.movement.graph.DistancePath;
 
 public class DistanceActivity extends AbstractGraphActivity {
 
-    protected int getLineColor() {
-        return getResources().getColor(R.color.graph_distance);
-    }
+    @Override
+    public void onCreate(Bundle state) {
+        super.onCreate(state);
 
-    protected ArrayList<Double> getValues() {
-        return mContainer.distanceList;
+        mTodayPath = new DistancePath();
+
+        initGraph();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        vLabel.setText(R.string.today);
+        vLabel.setText(R.string.title_distance);
+
+        mTodayPath.setData(getValues(mContainer.distanceList));
+
+        vGraph.setData(mPaths);
+        vGraph.invalidate();
     }
 }

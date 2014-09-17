@@ -10,7 +10,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 
-import carnero.movement.common.App;
+import carnero.movement.common.Application;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Constants;
 import carnero.movement.common.remotelog.model.LogEntry;
@@ -32,11 +32,11 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
     public static final String LOG_FILE = "remote.log.gzip";
 
     static {
-        sHelper = new LogHelper(App.get());
+        sHelper = new LogHelper(Application.get());
     }
 
     private static void storeIssue(FailureLevel level, String tag, String message) {
-        if (App.get() == null || !App.isDebug() || !sEnabled) {
+        if (Application.get() == null || !Application.isDebug() || !sEnabled) {
             return;
         }
 
@@ -90,8 +90,8 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
             }
 
             File file = new File(Environment.getExternalStorageDirectory(), LOG_FILE);
-            if (App.isDebug() && mStatus && file.exists()) {
-                Intent intent = new Intent(App.get(), DialogActivity.class);
+            if (Application.isDebug() && mStatus && file.exists()) {
+                Intent intent = new Intent(Application.get(), DialogActivity.class);
                 if (Build.VERSION.SDK_INT > 10) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -100,7 +100,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 }
 
-                App.get().startActivity(intent);
+                Application.get().startActivity(intent);
             }
         }
     }
@@ -139,7 +139,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
      * @return debug mode
      */
     private static boolean isRemoteLoggingEnabled() {
-        return App.isDebug();
+        return Application.isDebug();
     }
 
     // verbose
