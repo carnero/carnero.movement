@@ -9,8 +9,8 @@ public class StepsPath extends SplinePath {
 
     @Override
     public void init(Resources resources) {
-        mFillPath = false;
-        mFillColor1Res = R.color.none;
+        mFillPath = true;
+        mFillColor1Res = R.color.graph_steps_fill;
         mFillColor2Res = R.color.none;
         mFillGradient = GRADIENT_NONE;
         mStrokeWidthRes = R.dimen.graph_stroke;
@@ -19,8 +19,8 @@ public class StepsPath extends SplinePath {
         mStrokeGradient = false;
         mPathWidthRes = R.dimen.graph_path;
         mShowPoints = false;
-        mPointColorRes = R.color.graph_steps_outline;
-        mPointSizeRes = R.dimen.graph_point_small;
+        mPointColorRes = R.color.none;
+        mPointSizeRes = R.dimen.graph_point;
         mPointPaddingRes = R.dimen.graph_point_padding;
 
         super.init(resources);

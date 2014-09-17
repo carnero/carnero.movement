@@ -7,6 +7,7 @@ import android.graphics.*;
 
 import carnero.movement.common.R;
 import carnero.movement.common.model.XY;
+import carnero.movement.common.remotelog.RemoteLog;
 
 @SuppressWarnings("unused")
 public abstract class SplinePath {
@@ -126,6 +127,10 @@ public abstract class SplinePath {
     }
 
     public void alignToViewPort(int width, int height, int[] padding) {
+        if (width == 0 || height == 0) {
+            return;
+        }
+
         // Set gradients
         if (mFillGradient == GRADIENT_HORIZONTAL) {
             final Shader shader = new LinearGradient(

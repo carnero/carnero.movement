@@ -19,7 +19,7 @@ public class DistancePath extends SplinePath {
         mStrokeGradient = true;
         mPathWidthRes = R.dimen.graph_path;
         mShowPoints = false;
-        mPointColorRes = R.color.graph_distance_point;
+        mPointColorRes = R.color.none;
         mPointSizeRes = R.dimen.graph_point;
         mPointPaddingRes = R.dimen.graph_point_padding;
 

@@ -18,6 +18,8 @@ package carnero.movement.common.graph;
 
 import android.util.FloatMath;
 
+import carnero.movement.common.remotelog.RemoteLog;
+
 /**
  * Performs spline interpolation given a set of control points.
  *

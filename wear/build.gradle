@@ -22,5 +22,6 @@ android {
 dependencies {
     compile project(':base')
     compile project(':HoloGraphLibrary')
+    compile 'com.android.support:support-v4:20.+'
     compile 'com.google.android.support:wearable:+'
 }

@@ -11,10 +11,9 @@
     <string name="notification_ticker">Watching you moving...</string>
     <string name="notification_title">Movement</string>
     <string name="notification_text">Watching you...</string>
-    <string name="notification_distance">Distance: %1$s %2$s</string>
-    <string name="notification_steps">Steps: %1$d steps %2$s</string>
+    <string name="notification_distance">Distance: %1$s</string>
+    <string name="notification_steps">Steps: %1$s</string>
 
-    <string name="stats_summary">%1$s | %2$s</string>
     <string name="stats_total">%1$s\n%2$d steps</string>
     <string name="stats_change">%1$s <b>%2$s</b>\n%3$d steps <b>%4$s</b></string>
     <string name="stats_steps">%1$d steps</string>

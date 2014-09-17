@@ -645,11 +645,9 @@ public class LocationService
 
         final String text = getString(
             R.string.notification_distance,
-            Utils.formatDistance(today.distance),
             distanceChange + " " + distanceString
-        ) + "\n" + getString(
+        ) + " | " + getString(
             R.string.notification_steps,
-            today.steps,
             stepsChange + " " + stepsString
         );
 
