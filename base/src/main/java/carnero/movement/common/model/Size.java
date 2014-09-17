@@ -1,4 +1,4 @@
-package carnero.movement.data;
+package carnero.movement.common.model;
 
 public class Size {
 

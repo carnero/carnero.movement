@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.graphics.*;
 
 import carnero.movement.common.R;
+import carnero.movement.common.model.XY;
 
 @SuppressWarnings("unused")
 public abstract class SplinePath {

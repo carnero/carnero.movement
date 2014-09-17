@@ -24,7 +24,7 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.remotelog.RemoteLog;
-import carnero.movement.comparator.LocationComparator;
+import carnero.movement.common.location.LocationComparator;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelChange;
 import carnero.movement.db.ModelData;

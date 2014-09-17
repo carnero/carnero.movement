@@ -1,4 +1,4 @@
-package carnero.movement.common.graph;
+package carnero.movement.common.model;
 
 public class XY {
 

@@ -1,4 +1,4 @@
-package carnero.movement.comparator;
+package carnero.movement.common.location;
 
 import java.util.Comparator;
 

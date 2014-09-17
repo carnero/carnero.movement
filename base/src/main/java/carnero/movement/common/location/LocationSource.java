@@ -1,4 +1,4 @@
-package carnero.movement.common;
+package carnero.movement.common.location;
 
 import java.util.List;
 

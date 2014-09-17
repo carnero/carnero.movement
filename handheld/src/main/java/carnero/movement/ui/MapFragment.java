@@ -7,7 +7,7 @@ import android.os.Bundle;
 
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.LocationSource;
+import carnero.movement.common.location.LocationSource;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelLocation;
 import com.google.android.gms.maps.CameraUpdateFactory;

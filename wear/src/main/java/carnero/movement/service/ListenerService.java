@@ -18,7 +18,7 @@ import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
 import carnero.movement.data.ModelDataContainer;
-import carnero.movement.data.Size;
+import carnero.movement.common.model.Size;
 import carnero.movement.ui.DistanceActivity;
 import carnero.movement.ui.StepsActivity;
 import com.google.android.gms.common.ConnectionResult;

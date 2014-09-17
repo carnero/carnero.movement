@@ -26,7 +26,7 @@ import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.db.ModelDataContainer;
 import carnero.movement.db.ModelLocation;
-import carnero.movement.common.graph.XY;
+import carnero.movement.common.model.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
