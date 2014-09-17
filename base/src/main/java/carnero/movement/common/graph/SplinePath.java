@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import android.content.res.Resources;
 import android.graphics.*;
 
-import carnero.movement.R;
-import carnero.movement.ui.view.XY;
+import carnero.movement.common.R;
 
 @SuppressWarnings("unused")
 public abstract class SplinePath {

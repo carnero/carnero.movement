@@ -1,8 +1,9 @@
-package carnero.movement.common.graph;
+package carnero.movement.graph;
 
 import android.content.res.Resources;
 
-import carnero.movement.R;
+import carnero.movement.common.R;
+import carnero.movement.common.graph.SplinePath;
 
 public class DistancePath extends SplinePath {
 

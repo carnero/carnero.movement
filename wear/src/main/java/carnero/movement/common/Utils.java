@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import carnero.movement.App;
 import carnero.movement.data.Size;
 
 public class Utils {

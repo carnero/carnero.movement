@@ -1,4 +1,4 @@
-package carnero.movement;
+package carnero.movement.common;
 
 import android.app.Application;
 

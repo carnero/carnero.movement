@@ -25,8 +25,8 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 
-import carnero.movement.App;
-import carnero.movement.R;
+import carnero.movement.common.App;
+import carnero.movement.common.R;
 import carnero.movement.common.remotelog.Prefs;
 import carnero.movement.common.remotelog.RemoteLog;
 

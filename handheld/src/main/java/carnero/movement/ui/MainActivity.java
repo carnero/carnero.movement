@@ -25,7 +25,7 @@ import carnero.movement.common.graph.SplinePath;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
-import carnero.movement.ui.view.XY;
+import carnero.movement.common.graph.XY;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {

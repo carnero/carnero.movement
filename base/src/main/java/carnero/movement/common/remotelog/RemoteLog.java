@@ -10,7 +10,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Log;
 
-import carnero.movement.App;
+import carnero.movement.common.App;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Constants;
 import carnero.movement.common.remotelog.model.LogEntry;

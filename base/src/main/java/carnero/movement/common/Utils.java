@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.os.BatteryManager;
 import android.text.TextUtils;
 
-import carnero.movement.App;
 import com.google.android.gms.wearable.Asset;
 
 public class Utils {

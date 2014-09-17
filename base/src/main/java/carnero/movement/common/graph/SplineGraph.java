@@ -10,7 +10,7 @@ import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.view.View;
 
-import carnero.movement.R;
+import carnero.movement.common.R;
 
 public class SplineGraph extends View {
 

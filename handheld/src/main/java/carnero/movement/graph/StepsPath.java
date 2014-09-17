@@ -1,10 +1,11 @@
-package carnero.movement.common.graph;
+package carnero.movement.graph;
 
 import android.content.res.Resources;
 
-import carnero.movement.R;
+import carnero.movement.common.R;
+import carnero.movement.common.graph.SplinePath;
 
-public class OverviewPath extends SplinePath {
+public class StepsPath extends SplinePath {
 
     @Override
     public void init(Resources resources) {
@@ -13,13 +14,13 @@ public class OverviewPath extends SplinePath {
         mFillColor2Res = R.color.none;
         mFillGradient = GRADIENT_NONE;
         mStrokeWidthRes = R.dimen.graph_stroke;
-        mStrokeColor1Res = R.color.graph_actionbar_outline_start;
-        mStrokeColor2Res = R.color.graph_actionbar_outline_end;
-        mStrokeGradient = true;
+        mStrokeColor1Res = R.color.graph_steps_outline;
+        mStrokeColor2Res = R.color.none;
+        mStrokeGradient = false;
         mPathWidthRes = R.dimen.graph_path;
         mShowPoints = false;
-        mPointColorRes = R.color.none;
-        mPointSizeRes = R.dimen.graph_point;
+        mPointColorRes = R.color.graph_steps_outline;
+        mPointSizeRes = R.dimen.graph_point_small;
         mPointPaddingRes = R.dimen.graph_point_padding;
 
         super.init(resources);

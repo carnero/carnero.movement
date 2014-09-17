@@ -3,7 +3,7 @@ package carnero.movement.common.remotelog;
 import android.app.Activity;
 import android.content.SharedPreferences;
 
-import carnero.movement.App;
+import carnero.movement.common.App;
 
 /**
  * @author carnero

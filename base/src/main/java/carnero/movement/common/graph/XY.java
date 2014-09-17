@@ -1,4 +1,4 @@
-package carnero.movement.ui.view;
+package carnero.movement.common.graph;
 
 public class XY {
 
