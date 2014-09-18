@@ -23,7 +23,10 @@
     <color name="graph_distance_fill_end">#88fe4bff</color>
 
     <color name="graph_steps_outline">#aa00e856</color>
-    <color name="graph_steps_fill">#8800e856</color>
+    <color name="graph_steps_fill">#3300e856</color>
+
+    <color name="graph_history_outline">#ffdddddd</color>
+    <color name="graph_history_fill">#ffeeeeee</color>
 
     <color name="graph_actionbar_outline_start">#33ffffff</color>
     <color name="graph_actionbar_outline_end">#ffffffff</color>

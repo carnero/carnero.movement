@@ -168,6 +168,10 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public ModelDataContainer getDataForDay(int day) {
+        return getDataForDay(day, -1);
+    }
+
+    public ModelDataContainer getDataForDay(int day, int intervals) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -179,24 +183,34 @@ public class Helper extends SQLiteOpenHelper {
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long millisEnd = calendar.getTimeInMillis();
 
-        return getData(millisStart, millisEnd);
+        return getData(millisStart, millisEnd, intervals);
     }
 
     public ModelDataContainer getData(long start, long end) {
+        return getData(start, end, -1);
+    }
+
+    public ModelDataContainer getData(long start, long end, int intervals) {
         long millisInterval;
 
-        int days = (int)((end - start) / DateUtils.DAY_IN_MILLIS);
-        if (days <= 1) {
-            millisInterval = DateUtils.HOUR_IN_MILLIS;
-        } else if (days <= 3) {
-            millisInterval = DateUtils.HOUR_IN_MILLIS * 2;
-        } else if (days <= 7) {
-            millisInterval = DateUtils.HOUR_IN_MILLIS * 4;
+        if (intervals < 0) {
+            int days = (int)((end - start) / DateUtils.DAY_IN_MILLIS);
+
+            if (days <= 1) {
+                millisInterval = DateUtils.HOUR_IN_MILLIS;
+            } else if (days <= 3) {
+                millisInterval = DateUtils.HOUR_IN_MILLIS * 2;
+            } else if (days <= 7) {
+                millisInterval = DateUtils.HOUR_IN_MILLIS * 4;
+            } else {
+                millisInterval = DateUtils.HOUR_IN_MILLIS * 8;
+            }
+
+            intervals = (int)Math.ceil((end - start) / millisInterval);
         } else {
-            millisInterval = DateUtils.HOUR_IN_MILLIS * 8;
+            millisInterval = (end - start) / intervals;
         }
 
-        int intervals = (int)Math.ceil((end - start) / millisInterval);
         long oldest = Long.MAX_VALUE;
 
         final ModelDataContainer container = new ModelDataContainer();

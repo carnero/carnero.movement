@@ -1,6 +1,7 @@
 package carnero.movement.common.graph;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.res.Resources;
 import android.graphics.*;
@@ -119,10 +120,12 @@ public abstract class SplinePath {
         mPath = new Path();
     }
 
-    public void setData(ArrayList<XY> XYs) {
+    public void setData(List<XY> XYs) {
         synchronized (mPoints) {
             mPoints.clear();
-            mPoints.addAll(XYs);
+            if (XYs != null) {
+                mPoints.addAll(XYs);
+            }
         }
     }
 

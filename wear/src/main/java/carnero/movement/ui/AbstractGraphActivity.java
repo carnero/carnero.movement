@@ -24,6 +24,7 @@ import carnero.movement.data.ModelDataContainer;
 public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
     protected ModelDataContainer mContainer;
+    protected SplinePath mYestedayPath;
     protected SplinePath mTodayPath;
     protected final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     //
@@ -55,6 +56,7 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
     protected void initGraph() {
         mPaths.clear();
+        mPaths.add(mYestedayPath);
         mPaths.add(mTodayPath);
     }
 

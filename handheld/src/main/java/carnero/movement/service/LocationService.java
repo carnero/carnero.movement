@@ -522,33 +522,36 @@ public class LocationService
         double stepsPrev = -1d;
         double distancePrev = -1d;
 
-        final ModelDataContainer container = mHelper.getDataForDay(0);
+        final ModelDataContainer yesterdayContainer = mHelper.getDataForDay(-1, 12);
+        final ModelDataContainer todayContainer = mHelper.getDataForDay(0, 12);
         final ArrayList<Double> distanceArray = new ArrayList<Double>();
         final ArrayList<Double> stepsArray = new ArrayList<Double>();
 
-        if (container.previousEntry != null) {
-            stepsPrev = container.previousEntry.steps;
-            distancePrev = container.previousEntry.distance;
+        final ArrayList<ModelData> movements = new ArrayList<ModelData>();
+        Collections.addAll(movements, yesterdayContainer.movements);
+        Collections.addAll(movements, todayContainer.movements);
+
+        if (yesterdayContainer.previousEntry != null) {
+            stepsPrev = yesterdayContainer.previousEntry.steps;
+            distancePrev = yesterdayContainer.previousEntry.distance;
         }
 
-        for (int i = 0; i < container.movements.length; i++) {
-            ModelData model = container.movements[i];
-
+        for (ModelData movement : movements) {
             double steps;
             double distance;
-            if (model == null) {
+            if (movement == null) {
                 steps = 0;
                 distance = 0;
             } else if (stepsPrev == -1f || distancePrev == -1f) {
-                stepsPrev = model.steps;
-                distancePrev = model.distance;
+                stepsPrev = movement.steps;
+                distancePrev = movement.distance;
 
                 continue;
             } else {
-                steps = model.steps - stepsPrev;
-                distance = model.distance - distancePrev;
-                stepsPrev = model.steps;
-                distancePrev = model.distance;
+                steps = movement.steps - stepsPrev;
+                distance = movement.distance - distancePrev;
+                stepsPrev = movement.steps;
+                distancePrev = movement.distance;
             }
 
             distanceArray.add(distance);
