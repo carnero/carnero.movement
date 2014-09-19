@@ -258,12 +258,14 @@ public class Helper extends SQLiteOpenHelper {
                     }
 
                     // Locations
-                    ModelLocation location = new ModelLocation();
-                    location.latitude = cursor.getDouble(idxLatitude);
-                    location.longitude = cursor.getDouble(idxLongitude);
-                    location.accuracy = cursor.getDouble(idxAccuracy);
+                    if (!cursor.isNull(idxLatitude) && !cursor.isNull(idxLongitude)) {
+                        ModelLocation location = new ModelLocation();
+                        location.latitude = cursor.getDouble(idxLatitude);
+                        location.longitude = cursor.getDouble(idxLongitude);
+                        location.accuracy = cursor.getDouble(idxAccuracy);
 
-                    container.locations.add(location);
+                        container.locations.add(location);
+                    }
                 } while (cursor.moveToNext());
             }
         } finally {

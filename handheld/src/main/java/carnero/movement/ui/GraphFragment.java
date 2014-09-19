@@ -274,8 +274,8 @@ public class GraphFragment extends Fragment {
 
             // No data
             if (mContainer == null || mContainer.locations == null || mContainer.locations.size() < 2) {
-                vStatsSteps.setText(getString(R.string.stats_steps, 0));
-                vStatsDistance.setText(Utils.formatDistance(0));
+                vStatsSteps.setVisibility(View.GONE);
+                vStatsDistance.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
                 vVisualHelper.setVisibility(View.GONE);
                 vSeparator.setVisibility(View.GONE);

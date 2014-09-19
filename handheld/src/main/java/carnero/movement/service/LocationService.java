@@ -51,7 +51,7 @@ public class LocationService
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
     private Sensor mMotionSensor;
-    private MotionListener mMotionListener;
+    private MotionListener mMotionListener = new MotionListener();
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
@@ -188,9 +188,6 @@ public class LocationService
 
                 final Timer timer = new Timer(true);
                 timer.schedule(task, 60 * 1000); // 1 mins
-
-                // Request significant motion to be sure
-                requestMotionSensor();
             }
         }
 
@@ -215,9 +212,7 @@ public class LocationService
     @Override
     public void onDestroy() {
         mSensorManager.unregisterListener(this);
-        if (mMotionListener != null && mMotionSensor != null) {
-            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
-        }
+        mSensorManager.cancelTriggerSensor(mMotionListener, null);
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
@@ -229,6 +224,11 @@ public class LocationService
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+            // Register motion
+            mLastMotion = event.timestamp;
+            checkLocation();
+
+            // Count steps
             final int steps = (int)event.values[0];
 
             if (mStepsSensor > steps) { // Device was probably rebooted
@@ -317,8 +317,7 @@ public class LocationService
             boolean batchMode = mSensorManager.registerListener(
                 this,
                 stepCounter,
-                SensorManager.SENSOR_DELAY_NORMAL,
-                20000000 // 20 seconds
+                SensorManager.SENSOR_DELAY_NORMAL
             );
 
             RemoteLog.i("Step counter registered (batch:" + batchMode + ")");
@@ -450,16 +449,7 @@ public class LocationService
     }
 
     private void requestMotionSensor() {
-        if (mMotionListener != null && mMotionSensor != null) {
-            mSensorManager.cancelTriggerSensor(mMotionListener, mMotionSensor);
-        }
-
-        if (mMotionSensor != null) {
-            mMotionListener = new MotionListener();
-            mSensorManager.requestTriggerSensor(mMotionListener, mMotionSensor);
-        } else {
-            mMotionListener = null;
-        }
+        mSensorManager.requestTriggerSensor(mMotionListener, mMotionSensor);
     }
 
     private void handleData() {
