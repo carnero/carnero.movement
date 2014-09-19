@@ -50,8 +50,6 @@ public class LocationService
     private LocationManager mLocationManager;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
-    private Sensor mMotionSensor;
-    private MotionListener mMotionListener = new MotionListener();
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
@@ -88,7 +86,6 @@ public class LocationService
         mAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager)getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        mMotionSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION);
         mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
@@ -212,7 +209,6 @@ public class LocationService
     @Override
     public void onDestroy() {
         mSensorManager.unregisterListener(this);
-        mSensorManager.cancelTriggerSensor(mMotionListener, null);
         mLocationManager.removeUpdates(this);
         mTeleport.disconnect();
 
@@ -324,9 +320,6 @@ public class LocationService
         } else {
             RemoteLog.i("Step counter is not present on this device");
         }
-
-        // Significant motion sensor
-        requestMotionSensor();
 
         // Set listeners for criteria-based provider, and for passive provider
         final Criteria criteria = new Criteria();
@@ -446,10 +439,6 @@ public class LocationService
 
             RemoteLog.i("Wake lock released (obtained)");
         }
-    }
-
-    private void requestMotionSensor() {
-        mSensorManager.requestTriggerSensor(mMotionListener, mMotionSensor);
     }
 
     private void handleData() {
@@ -620,52 +609,54 @@ public class LocationService
     }
 
     private void notifyHandheld() {
+        final String text;
         final ModelChange today = getToday();
+
         if (today == null) {
-            return;
-        }
-
-        double stepsPercent;
-        double distancePercent;
-        String stepsChange;
-        String distanceChange;
-
-        if (today.stepsChange >= 1.0) {
-            stepsPercent = (today.stepsChange - 1.0) * 100f;
-            stepsChange = "↗";
+            text = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";
         } else {
-            stepsPercent = (1.0 - today.stepsChange) * 100f;
-            stepsChange = "↘";
-        }
-        if (today.distanceChange >= 1.0) {
-            distancePercent = (today.distanceChange - 1.0) * 100f;
-            distanceChange = "↗";
-        } else {
-            distancePercent = (1.0 - today.distanceChange) * 100f;
-            distanceChange = "↘";
-        }
+            double stepsPercent;
+            double distancePercent;
+            String stepsChange;
+            String distanceChange;
 
-        String stepsString;
-        String distanceString;
+            if (today.stepsChange >= 1.0) {
+                stepsPercent = (today.stepsChange - 1.0) * 100f;
+                stepsChange = "↗";
+            } else {
+                stepsPercent = (1.0 - today.stepsChange) * 100f;
+                stepsChange = "↘";
+            }
+            if (today.distanceChange >= 1.0) {
+                distancePercent = (today.distanceChange - 1.0) * 100f;
+                distanceChange = "↗";
+            } else {
+                distancePercent = (1.0 - today.distanceChange) * 100f;
+                distanceChange = "↘";
+            }
 
-        if (stepsPercent < 700) {
-            stepsString = String.valueOf((int)stepsPercent) + "%";
-        } else {
-            stepsString = getString(R.string.stats_lot);
-        }
-        if (distancePercent < 700) {
-            distanceString = String.valueOf((int)distancePercent) + "%";
-        } else {
-            distanceString = getString(R.string.stats_lot);
-        }
+            String stepsString;
+            String distanceString;
 
-        final String text = getString(
-            R.string.notification_distance,
-            distanceChange + " " + distanceString
-        ) + " | " + getString(
-            R.string.notification_steps,
-            stepsChange + " " + stepsString
-        );
+            if (stepsPercent < 700) {
+                stepsString = String.valueOf((int)stepsPercent) + "%";
+            } else {
+                stepsString = getString(R.string.stats_lot);
+            }
+            if (distancePercent < 700) {
+                distanceString = String.valueOf((int)distancePercent) + "%";
+            } else {
+                distanceString = getString(R.string.stats_lot);
+            }
+
+            text = getString(
+                R.string.notification_distance,
+                distanceChange + " " + distanceString
+            ) + " | " + getString(
+                R.string.notification_steps,
+                stepsChange + " " + stepsString
+            );
+        }
 
         final Notification.Builder builder = new Notification.Builder(this)
             .setPriority(Notification.PRIORITY_MIN)
@@ -683,18 +674,5 @@ public class LocationService
             ));
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
-    }
-
-    // Classes
-
-    private class MotionListener extends TriggerEventListener {
-
-        @Override
-        public void onTrigger(TriggerEvent event) {
-            mLastMotion = event.timestamp / 1000000; // ns
-            requestMotionSensor();
-
-            checkLocation();
-        }
     }
 }

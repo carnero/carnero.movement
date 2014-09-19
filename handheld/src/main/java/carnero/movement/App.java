@@ -12,13 +12,13 @@ public class App extends Application {
         super.onCreate();
 
         Preferences preferences = new Preferences(this);
-        // if (preferences.getLastBackup() < (System.currentTimeMillis() - (24 * 60 * 60 * 1000))) { // 24 hrs
+        if (preferences.getLastBackup() < (System.currentTimeMillis() - (12 * 60 * 60 * 1000))) { // 24 hrs
             boolean status = Utils.backupDatabase(Structure.name);
 
             if (status) {
                 preferences.saveLastBackup(System.currentTimeMillis());
             }
-        // }
+        }
 
         Utils.restoreDatabase(Structure.name);
     }

@@ -101,8 +101,8 @@ public class Helper extends SQLiteOpenHelper {
 
     public ModelData getSummary(long start, long end) {
         Cursor cursor;
-        int stepsStart = -1;
-        float distanceStart = -1;
+        int stepsStart = 0;
+        float distanceStart = 0;
         int stepsEnd = -1;
         float distanceEnd = -1;
 
@@ -156,7 +156,7 @@ public class Helper extends SQLiteOpenHelper {
             }
         }
 
-        if (stepsStart == -1 || stepsEnd == -1 || distanceStart == -1 || distanceEnd == -1) {
+        if (stepsEnd == -1 || distanceEnd == -1) {
             return null;
         }
 
@@ -299,6 +299,12 @@ public class Helper extends SQLiteOpenHelper {
             if (cursor != null) {
                 cursor.close();
             }
+        }
+
+        if (container.previousEntry == null) {
+            container.previousEntry = new ModelData();
+            container.previousEntry.steps = 0;
+            container.previousEntry.distance = 0;
         }
 
         return container;

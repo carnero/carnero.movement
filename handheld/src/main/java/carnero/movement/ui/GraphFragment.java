@@ -180,8 +180,8 @@ public class GraphFragment extends Fragment {
             mPointsDistance.clear();
             mPointsSteps.clear();
 
-            float distancePrev = -1f;
-            float stepsPrev = -1f;
+            float distancePrev = 0f;
+            float stepsPrev = 0f;
 
             if (mContainer.previousEntry != null) {
                 stepsPrev = mContainer.previousEntry.steps;
