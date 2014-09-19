@@ -37,8 +37,8 @@ public class MainActivity extends AbstractBaseActivity {
     private final ArrayList<XY> mOverviewPoints = new ArrayList<XY>();
     private final SplinePath mOverviewPath = new OverviewPath();
     //
-    private static final int HISTORY_PAGES = 21;
-    private static final int GRAPH_DAYS = 21;
+    private static final int HISTORY_PAGES = 7;
+    private static final int GRAPH_DAYS = 14;
     //
     @InjectView(R.id.pager)
     ViewPager vPager;

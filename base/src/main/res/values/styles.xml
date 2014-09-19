@@ -27,7 +27,7 @@
     </style>
 
     <style name="Text.Label">
-        <item name="android:textSize">42sp</item>
+        <item name="android:textSize">36sp</item>
     </style>
 
     <style name="Text.NoData">

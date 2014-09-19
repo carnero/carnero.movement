@@ -273,8 +273,13 @@ public class LocationService
             return;
         }
 
-        boolean distanceThrShort = (mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold;
-        boolean distanceThrLong = (mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong;
+
+        boolean distanceThrShort = true;
+        boolean distanceThrLong = true;
+        if (mLocation != null) {
+            distanceThrShort = (mLocation.getTime() + sLocationTimeThreshold) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThreshold;
+            distanceThrLong = (mLocation.getTime() + sLocationTimeThresholdLong) < location.getTime() && mLocation.distanceTo(location) > sLocationDistanceThresholdLong;
+        }
 
         if (distanceThrShort || distanceThrLong) {
             synchronized (mLocationHistory) {
@@ -402,7 +407,7 @@ public class LocationService
             // Clean history
             final ArrayList<Location> drop = new ArrayList<Location>();
             for (Location location : mLocationHistory) {
-                if (location.getTime() <= mLocation.getTime()) {
+                if (mLocation != null && location.getTime() <= mLocation.getTime()) {
                     drop.add(location);
                 } else {
                     break; // It's sorted by time
@@ -487,12 +492,23 @@ public class LocationService
         final ModelData today = mHelper.getSummaryForDay(0);
         final ModelData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
 
-        return new ModelChange(
-            today.steps,
-            today.distance,
-            (double)today.steps / (double)yesterday.steps,
-            (double)today.distance / (double)yesterday.distance
-        );
+        if (today == null) {
+            return null;
+        } else if (yesterday == null) {
+            return new ModelChange(
+                today.steps,
+                today.distance,
+                0.0,
+                0.0
+            );
+        } else {
+            return new ModelChange(
+                today.steps,
+                today.distance,
+                (double)today.steps / (double)yesterday.steps,
+                (double)today.distance / (double)yesterday.distance
+            );
+        }
     }
 
     private void sendDataToWear() {
@@ -502,6 +518,10 @@ public class LocationService
         // Summary
         final ModelChange today = getToday();
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
+
+        if (today == null) {
+            return; // No data
+        }
 
         final DataMap statusMap = new DataMap();
         statusMap.putInt("steps_total", mSteps);
@@ -611,6 +631,9 @@ public class LocationService
 
     private void notifyHandheld() {
         final ModelChange today = getToday();
+        if (today == null) {
+            return;
+        }
 
         double stepsPercent;
         double distancePercent;
@@ -657,7 +680,7 @@ public class LocationService
         final Notification.Builder builder = new Notification.Builder(this)
             .setPriority(Notification.PRIORITY_MIN)
             .setOngoing(true)
-            .setWhen(mLocation.getTime())
+            .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)
             .setTicker(getString(R.string.notification_ticker))
             .setContentTitle(getString(R.string.notification_title))

@@ -96,7 +96,12 @@ public class Utils {
         final File src = new File("/data/data/" + Application.get().getPackageName() + "/databases/" + dbName);
         final File dst = new File(Environment.getExternalStorageDirectory() + "/Movement.backup.db");
 
-        return copyFile(src, dst);
+        boolean status = copyFile(src, dst);
+        if (status) {
+            RemoteLog.i("Database '" + dbName + "' is backed up");
+        }
+
+        return status;
     }
 
     public static boolean restoreDatabase(String dbName) {
@@ -106,6 +111,8 @@ public class Utils {
         boolean status = copyFile(src, dst);
         if (status) {
             src.delete();
+
+            RemoteLog.i("Database '" + dbName + "' is restored");
         }
 
         return status;
