@@ -221,7 +221,8 @@ public class LocationService
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             // Register motion
-            mLastMotion = event.timestamp;
+            mLastMotion = event.timestamp / 1000000; // ns
+
             checkLocation();
 
             // Count steps
@@ -477,8 +478,8 @@ public class LocationService
             return new ModelChange(
                 today.steps,
                 today.distance,
-                0.0,
-                0.0
+                1.0,
+                1.0
             );
         } else {
             return new ModelChange(
@@ -541,7 +542,7 @@ public class LocationService
             if (movement == null) {
                 steps = 0;
                 distance = 0;
-            } else if (stepsPrev == -1f || distancePrev == -1f) {
+            } else if (stepsPrev <= 0f || distancePrev <= 0f) {
                 stepsPrev = movement.steps;
                 distancePrev = movement.distance;
 
@@ -553,6 +554,14 @@ public class LocationService
                 distancePrev = movement.distance;
             }
 
+            // Avoiding accidental resets/wrong values
+            if (steps < 0) {
+                steps = 0;
+            }
+            if (distance < 0) {
+                distance = 0;
+            }
+
             distanceArray.add(distance);
             stepsArray.add(steps);
 
@@ -562,26 +571,11 @@ public class LocationService
             maxStp = Math.max(maxStp, steps);
         }
 
-        // Normalize data
-        double ratio = 1.0f;
-        int ratioLine = -1; // steps:0, distance:1
-        if (maxStp > maxDst && maxDst > 100) {
-            ratio = maxStp / maxDst;
-            ratioLine = 0;
-        } else if (maxStp < maxDst && maxStp > 100) {
-            ratio = maxDst / maxStp;
-            ratioLine = 1;
-        }
-
         // Create DataMaps
         final ArrayList<DataMap> stepsList = new ArrayList<DataMap>();
         for (int i = 0; i < stepsArray.size(); i++) {
             DataMap map = new DataMap();
-            if (ratioLine == 0) {
-                map.putDouble("value", stepsArray.get(i) / ratio);
-            } else {
-                map.putDouble("value", stepsArray.get(i));
-            }
+            map.putDouble("value", stepsArray.get(i));
 
             stepsList.add(map);
         }
@@ -589,11 +583,7 @@ public class LocationService
         final ArrayList<DataMap> distanceList = new ArrayList<DataMap>();
         for (int i = 0; i < distanceArray.size(); i++) {
             DataMap map = new DataMap();
-            if (ratioLine == 1) {
-                map.putDouble("value", distanceArray.get(i) / ratio);
-            } else {
-                map.putDouble("value", distanceArray.get(i));
-            }
+            map.putDouble("value", distanceArray.get(i));
 
             distanceList.add(map);
         }
@@ -620,19 +610,25 @@ public class LocationService
             String stepsChange;
             String distanceChange;
 
-            if (today.stepsChange >= 1.0) {
+            if (today.stepsChange > 1.0) {
                 stepsPercent = (today.stepsChange - 1.0) * 100f;
                 stepsChange = "↗";
-            } else {
+            } else if (today.stepsChange < 1.0) {
                 stepsPercent = (1.0 - today.stepsChange) * 100f;
                 stepsChange = "↘";
+            } else {
+                stepsPercent = 0;
+                stepsChange = "→";
             }
-            if (today.distanceChange >= 1.0) {
+            if (today.distanceChange > 1.0) {
                 distancePercent = (today.distanceChange - 1.0) * 100f;
                 distanceChange = "↗";
-            } else {
+            } else if (today.distanceChange < 1.0) {
                 distancePercent = (1.0 - today.distanceChange) * 100f;
                 distanceChange = "↘";
+            } else {
+                distancePercent = 0;
+                distanceChange = "→";
             }
 
             String stepsString;

@@ -175,19 +175,25 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         String stepsChange;
         String distanceChange;
 
-        if (container.stepsChange >= 1.0) {
+        if (container.stepsChange > 1.0) {
             stepsPercent = (container.stepsChange - 1.0) * 100f;
             stepsChange = "↗";
-        } else {
+        } else if (container.stepsChange < 1.0) {
             stepsPercent = (1.0 - container.stepsChange) * 100f;
             stepsChange = "↘";
+        } else {
+            stepsPercent = 0;
+            stepsChange = "→";
         }
-        if (container.distanceChange >= 1.0) {
+        if (container.distanceChange > 1.0) {
             distancePercent = (container.distanceChange - 1.0) * 100f;
             distanceChange = "↗";
-        } else {
+        } else if (container.distanceChange < 1.0) {
             distancePercent = (1.0 - container.distanceChange) * 100f;
             distanceChange = "↘";
+        } else {
+            distancePercent = 0;
+            distanceChange = "→";
         }
 
         String stepsString;
