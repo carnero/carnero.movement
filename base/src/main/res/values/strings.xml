@@ -20,4 +20,6 @@
     <string name="stats_lot">a lot</string>
 
     <string name="no_data">no data for this day</string>
+
+    <string name="menu_foursquare">Connect Foursquare</string>
 </resources>

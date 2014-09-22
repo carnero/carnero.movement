@@ -36,8 +36,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
 
+        <activity
+            android:name="com.foursquare.android.nativeoauth.TokenExchangeActivity"
+            android:theme="@android:style/Theme.Dialog" />
+
+        <activity
             android:name="carnero.movement.common.remotelog.ui.DialogActivity"
             android:theme="@style/MovementTheme.Dialog"
             android:launchMode="singleTop" />

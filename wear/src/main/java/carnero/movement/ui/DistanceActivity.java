@@ -38,8 +38,6 @@ public class DistanceActivity extends AbstractGraphActivity {
         mYesterdayPath.setMaximumY(yMax);
         mTodayPath.setMaximumY(yMax);
 
-        RemoteLog.i("Distance values: " + values.size());
-
         // Set data
         if (values.size() > 12) { // We have two days
             mYesterdayPath.setData(values.subList(0, 12));

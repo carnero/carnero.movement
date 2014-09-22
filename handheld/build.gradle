@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
-    compile project(':base')
     wearApp project(':wear')
+    compile project(':base')
+    compile project(':foursquare-oauth-library')
 }

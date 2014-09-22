@@ -9,23 +9,29 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.text.TextUtils;
+import android.view.*;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import carnero.movement.App;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
+import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.graph.OverviewPath;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.db.ModelData;
 import carnero.movement.service.LocationService;
 import carnero.movement.common.model.XY;
+import com.foursquare.android.nativeoauth.FoursquareOAuth;
+import com.foursquare.android.nativeoauth.model.AccessTokenResponse;
+import com.foursquare.android.nativeoauth.model.AuthCodeResponse;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
@@ -39,6 +45,8 @@ public class MainActivity extends AbstractBaseActivity {
     //
     private static final int HISTORY_PAGES = 7;
     private static final int GRAPH_DAYS = 14;
+    private static final int REQUEST_FSQ_CONNECT = 1001;
+    private static final int REQUEST_FSQ_EXCHANGE = 1002;
     //
     @InjectView(R.id.pager)
     ViewPager vPager;
@@ -102,6 +110,80 @@ public class MainActivity extends AbstractBaseActivity {
         super.onResume();
 
         new GraphDataTask().start();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        final MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_main, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.menu_foursquare).setVisible(!mPreferences.hasFoursquareToken());
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_foursquare:
+                startFsqConnection();
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_FSQ_CONNECT:
+                final AuthCodeResponse responseConnect = FoursquareOAuth.getAuthCodeFromResult(resultCode, data);
+                final String code = responseConnect.getCode();
+
+                if (!TextUtils.isEmpty(code)) {
+                    startFsqExchange(code);
+                } else {
+                    RemoteLog.e("Failed to connect to Foursquare: " + responseConnect.getException().getMessage());
+                }
+
+                break;
+            case REQUEST_FSQ_EXCHANGE:
+                final AccessTokenResponse responseExchange = FoursquareOAuth.getTokenFromResult(resultCode, data);
+                final String token = responseExchange.getAccessToken();
+
+                if (!TextUtils.isEmpty(token)) {
+                    mPreferences.saveFoursquareToken(token);
+                    invalidateOptionsMenu();
+                } else {
+                    RemoteLog.e("Failed to get Foursquare token: " + responseExchange.getException().getMessage());
+                }
+
+                break;
+        }
+    }
+
+    private void startFsqConnection() {
+        final Intent intent = FoursquareOAuth.getConnectIntent(
+            App.get(),
+            Constants.FSQ_CLIENT_ID
+        );
+        startActivityForResult(intent, REQUEST_FSQ_CONNECT);
+    }
+
+    private void startFsqExchange(String code) {
+        final Intent intent = FoursquareOAuth.getTokenExchangeIntent(
+            App.get(),
+            Constants.FSQ_CLIENT_ID,
+            Constants.FSQ_CLIENT_SECRET,
+            code
+        );
+        startActivityForResult(intent, REQUEST_FSQ_EXCHANGE);
     }
 
     // Classes

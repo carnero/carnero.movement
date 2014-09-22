@@ -19,10 +19,13 @@ public class Preferences {
     private static final String PREF_TIME = "loc_time";
     private static final String PREF_GRAPH_ABS = "graph_type";
     private static final String PREF_BACKUP = "db_backup";
+    private static final String PREF_FOURSQUARE_TOKEN = "fsq_token";
 
     public Preferences(Context context) {
         mPrefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
+
+    /* Total steps */
 
     public void saveSteps(int steps) {
         if (!mPrefs.contains(PREF_FIRST)) {
@@ -41,6 +44,8 @@ public class Preferences {
         return mPrefs.getInt(PREF_STEPS, 0);
     }
 
+    /* Last output of step counter */
+
     public void saveStepsSensor(int steps) {
         mPrefs.edit()
             .putInt(PREF_STEPS_SENSOR, steps)
@@ -50,6 +55,8 @@ public class Preferences {
     public int getStepsSensor() {
         return mPrefs.getInt(PREF_STEPS_SENSOR, 0);
     }
+
+    /* Last known location */
 
     public void saveLocation(Location location) {
         if (!mPrefs.contains(PREF_FIRST)) {
@@ -84,6 +91,8 @@ public class Preferences {
         return location;
     }
 
+    /* Total distance */
+
     public void saveDistance(float distance) {
         mPrefs.edit()
             .putFloat(PREF_DISTANCE, distance)
@@ -93,6 +102,8 @@ public class Preferences {
     public float getDistance() {
         return mPrefs.getFloat(PREF_DISTANCE, 0f);
     }
+
+    /* Type of graph (incremental, differential) */
 
     public void setGraphType(boolean absolute) {
         mPrefs.edit()
@@ -104,6 +115,8 @@ public class Preferences {
         return mPrefs.getBoolean(PREF_GRAPH_ABS, false);
     }
 
+    /* Last DB backup */
+
     public void saveLastBackup(long time) {
         mPrefs.edit()
             .putLong(PREF_BACKUP, time)
@@ -112,5 +125,21 @@ public class Preferences {
 
     public long getLastBackup() {
         return mPrefs.getLong(PREF_BACKUP, 0l);
+    }
+
+    /* Foursquare token */
+
+    public boolean hasFoursquareToken() {
+        return mPrefs.contains(PREF_FOURSQUARE_TOKEN);
+    }
+
+    public void saveFoursquareToken(String token) {
+        mPrefs.edit()
+            .putString(PREF_FOURSQUARE_TOKEN, token)
+            .apply();
+    }
+
+    public String getFoursquareToken() {
+        return mPrefs.getString(PREF_FOURSQUARE_TOKEN, null);
     }
 }
