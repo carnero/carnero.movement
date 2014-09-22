@@ -5,8 +5,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,7 @@ import carnero.movement.common.model.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 public class GraphFragment extends Fragment {
@@ -160,6 +163,9 @@ public class GraphFragment extends Fragment {
         private float mLabelDistanceMax = Float.MIN_VALUE;
         private int mLabelStepsMin = Integer.MAX_VALUE;
         private int mLabelStepsMax = Integer.MIN_VALUE;
+        //
+        final private ArrayList<PolylineOptions> mPolylines = new ArrayList<PolylineOptions>();
+        private LatLngBounds mBounds;
 
         @Override
         protected void onPreExecute() {
@@ -249,6 +255,68 @@ public class GraphFragment extends Fragment {
 
             mPathDistance.setData(mPointsDistance);
             mPathSteps.setData(mPointsSteps);
+
+            // Pre-generate map polylines
+            if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
+                final Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.DAY_OF_MONTH, getDay());
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+
+                final long midnight = calendar.getTimeInMillis();
+
+                final float stroke = getResources().getDimension(R.dimen.map_line_stroke);
+                final int colorStart = getResources().getColor(R.color.map_history_start);
+                final int colorEnd = getResources().getColor(R.color.map_history_end);
+
+                final int colorStartR = Color.red(colorStart);
+                final int colorStartG = Color.green(colorStart);
+                final int colorStartB = Color.blue(colorStart);
+
+                final double colorRStep = (Color.red(colorEnd) - colorStartR) / (double)DateUtils.DAY_IN_MILLIS;
+                final double colorGStep = (Color.green(colorEnd) - colorStartG) / (double)DateUtils.DAY_IN_MILLIS;
+                final double colorBStep = (Color.blue(colorEnd) - colorStartB) / (double)DateUtils.DAY_IN_MILLIS;
+
+                double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+                double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+
+                LatLng latLngPrev = null;
+                for (ModelLocation model : mContainer.locations) {
+                    latBounds[0] = Math.min(latBounds[0], model.latitude);
+                    latBounds[1] = Math.max(latBounds[1], model.latitude);
+                    lonBounds[0] = Math.min(lonBounds[0], model.longitude);
+                    lonBounds[1] = Math.max(lonBounds[1], model.longitude);
+
+                    LatLng latLng = new LatLng(model.latitude, model.longitude);
+
+                    if (latLngPrev != null) {
+                        int color = Color.argb(
+                            255,
+                            (int)(colorStartB + (colorRStep * (model.time - midnight))),
+                            (int)(colorStartG + (colorGStep * (model.time - midnight))),
+                            (int)(colorStartB + (colorBStep * (model.time - midnight)))
+                        );
+
+                        final PolylineOptions polylineOpts = new PolylineOptions();
+                        polylineOpts.zIndex(1010);
+                        polylineOpts.width(stroke);
+                        polylineOpts.color(color);
+                        polylineOpts.geodesic(true);
+
+                        polylineOpts.add(latLngPrev);
+                        polylineOpts.add(latLng);
+
+                        mPolylines.add(polylineOpts);
+                    }
+
+                    latLngPrev = latLng;
+                }
+
+                LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
+                LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
+                mBounds = new LatLngBounds(ne, sw);
+            }
         }
 
         @Override
@@ -305,35 +373,14 @@ public class GraphFragment extends Fragment {
             final GoogleMap map = vMap.getMap();
             map.clear();
 
-            if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
-                final int color = getResources().getColor(R.color.map_history);
-                final PolylineOptions polylineOpts = new PolylineOptions();
-                polylineOpts.zIndex(1010);
-                polylineOpts.width(getResources().getDimension(R.dimen.map_line_stroke));
-                polylineOpts.color(color);
-
-                double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-                double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-
-                for (ModelLocation model : mContainer.locations) {
-                    latBounds[0] = Math.min(latBounds[0], model.latitude);
-                    latBounds[1] = Math.max(latBounds[1], model.latitude);
-                    lonBounds[0] = Math.min(lonBounds[0], model.longitude);
-                    lonBounds[1] = Math.max(lonBounds[1], model.longitude);
-
-                    LatLng latLng = new LatLng(model.latitude, model.longitude);
-                    polylineOpts.add(latLng);
-
-                    map.addPolyline(polylineOpts);
+            if (!mPolylines.isEmpty() && mBounds != null) {
+                for (PolylineOptions polylineOptions : mPolylines) {
+                    map.addPolyline(polylineOptions);
                 }
-
-                LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
-                LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
-                LatLngBounds bounds = new LatLngBounds(ne, sw);
 
                 map.moveCamera(
                     CameraUpdateFactory.newLatLngBounds(
-                        bounds,
+                        mBounds,
                         getResources().getDimensionPixelSize(R.dimen.margin_map)
                     )
                 );

@@ -32,7 +32,8 @@
     <color name="graph_actionbar_outline_end">#ffffffff</color>
 
     <color name="graph_divider">#22000000</color>
-    <color name="map_history">#880098ff</color>
+    <color name="map_history_start">@color/graph_distance_outline_start</color>
+    <color name="map_history_end">@color/graph_distance_outline_end</color>
 
     <!-- Other -->
     <color name="separator">#ff666666</color>

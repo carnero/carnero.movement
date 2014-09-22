@@ -261,6 +261,7 @@ public class Helper extends SQLiteOpenHelper {
                     // Locations
                     if (!cursor.isNull(idxLatitude) && !cursor.isNull(idxLongitude)) {
                         ModelLocation location = new ModelLocation();
+                        location.time = time;
                         location.latitude = cursor.getDouble(idxLatitude);
                         location.longitude = cursor.getDouble(idxLongitude);
                         location.accuracy = cursor.getDouble(idxAccuracy);
