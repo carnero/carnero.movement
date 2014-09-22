@@ -214,7 +214,7 @@ public class Helper extends SQLiteOpenHelper {
         long oldest = Long.MAX_VALUE;
 
         final ModelDataContainer container = new ModelDataContainer();
-        container.movements = new ModelData[intervals + 1];
+        container.movements = new ModelData[intervals];
         container.locations = new ArrayList<ModelLocation>();
 
         // Get entries for given interval
@@ -243,7 +243,8 @@ public class Helper extends SQLiteOpenHelper {
                         oldest = time;
                     }
 
-                    int interval = intervals - ((int)((end - time) / millisInterval)); // Oldest is the first interval
+                    // Oldest is the first interval
+                    int interval = intervals - ((int)((end - time) / millisInterval)) - 1;
 
                     ModelData movement = container.movements[interval];
                     if (movement == null) {

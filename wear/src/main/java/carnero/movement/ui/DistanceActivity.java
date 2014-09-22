@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import android.os.Bundle;
 
 import carnero.movement.R;
-import carnero.movement.common.Utils;
 import carnero.movement.common.model.XY;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.HistoryPath;
 
@@ -16,7 +16,7 @@ public class DistanceActivity extends AbstractGraphActivity {
     public void onCreate(Bundle state) {
         super.onCreate(state);
 
-        mYestedayPath = new HistoryPath();
+        mYesterdayPath = new HistoryPath();
         mTodayPath = new DistancePath();
 
         initGraph();
@@ -29,11 +29,23 @@ public class DistanceActivity extends AbstractGraphActivity {
         vLabel.setText(R.string.title_distance);
 
         ArrayList<XY> values = getValues(mContainer.distanceList);
+
+        // Set common maximum
+        float yMax = Float.MIN_VALUE;
+        for (XY xy : values) {
+            yMax = Math.max(yMax, xy.y);
+        }
+        mYesterdayPath.setMaximumY(yMax);
+        mTodayPath.setMaximumY(yMax);
+
+        RemoteLog.i("Distance values: " + values.size());
+
+        // Set data
         if (values.size() > 12) { // We have two days
-            mYestedayPath.setData(values.subList(0, 11));
-            mTodayPath.setData(values.subList(12, values.size() - 1));
+            mYesterdayPath.setData(values.subList(0, 12));
+            mTodayPath.setData(values.subList(12, values.size()));
         } else {
-            mYestedayPath.setData(null);
+            mYesterdayPath.setData(null);
             mTodayPath.setData(values);
         }
 

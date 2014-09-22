@@ -2,29 +2,23 @@ package carnero.movement.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.model.XY;
-import com.echo.holographlibrary.Line;
-import com.echo.holographlibrary.LinePoint;
-import com.echo.holographlibrary.SmoothLineGraph;
 
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.R;
-import carnero.movement.common.Constants;
-import carnero.movement.common.Utils;
 import carnero.movement.data.ModelDataContainer;
 
 public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
     protected ModelDataContainer mContainer;
-    protected SplinePath mYestedayPath;
+    protected SplinePath mYesterdayPath;
     protected SplinePath mTodayPath;
     protected final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     //
@@ -56,7 +50,7 @@ public abstract class AbstractGraphActivity extends AbstractBaseActivity {
 
     protected void initGraph() {
         mPaths.clear();
-        mPaths.add(mYestedayPath);
+        mPaths.add(mYesterdayPath);
         mPaths.add(mTodayPath);
     }
 

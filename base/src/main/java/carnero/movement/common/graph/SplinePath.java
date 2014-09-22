@@ -16,6 +16,7 @@ public abstract class SplinePath {
     private final ArrayList<XY> mPoints = new ArrayList<XY>();
     private final ArrayList<DeltaPoint> mPointsAligned = new ArrayList<DeltaPoint>();
     private final ArrayList<DeltaPoint> mPixels = new ArrayList<DeltaPoint>();
+    private Float mMaxY = null;
     private Spline mSpline;
     private Path mPath;
     private Paint mPaintFill;
@@ -129,6 +130,10 @@ public abstract class SplinePath {
         }
     }
 
+    public void setMaximumY(float max) {
+        mMaxY = max;
+    }
+
     public void alignToViewPort(int width, int height, int[] padding) {
         if (width == 0 || height == 0) {
             return;
@@ -195,7 +200,13 @@ public abstract class SplinePath {
                 xMin = Math.min(xMin, point.x);
                 xMax = Math.max(xMax, point.x);
                 yMin = Math.min(yMin, point.y);
-                yMax = Math.max(yMax, point.y);
+                if (mMaxY == null) {
+                    yMax = Math.max(yMax, point.y);
+                }
+            }
+
+            if (mMaxY != null) {
+                yMax = mMaxY;
             }
 
             for (XY point : mPoints) { // Align pixels to available viewport
