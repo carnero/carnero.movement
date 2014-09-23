@@ -26,9 +26,9 @@ import carnero.movement.common.Utils;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.common.location.LocationComparator;
 import carnero.movement.db.Helper;
-import carnero.movement.db.ModelChange;
-import carnero.movement.db.ModelData;
-import carnero.movement.db.ModelDataContainer;
+import carnero.movement.model.MovementChange;
+import carnero.movement.model.MovementContainer;
+import carnero.movement.model.MovementData;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 import com.google.android.gms.wearable.DataMap;
@@ -81,8 +81,8 @@ public class LocationService
     public void onCreate() {
         super.onCreate();
 
-        mPreferences = new Preferences(this);
-        mHelper = new Helper(this);
+        mPreferences = new Preferences();
+        mHelper = Helper.getInstance();
         mAlarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager)getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -459,7 +459,7 @@ public class LocationService
         }
     }
 
-    private ModelChange getToday() {
+    private MovementChange getToday() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_MONTH, -1);
         long yesterdayEnd = calendar.getTimeInMillis();
@@ -469,20 +469,20 @@ public class LocationService
         calendar.set(Calendar.SECOND, 0);
         long yesterdayStart = calendar.getTimeInMillis();
 
-        final ModelData today = mHelper.getSummaryForDay(0);
-        final ModelData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
+        final MovementData today = mHelper.getSummaryForDay(0);
+        final MovementData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
 
         if (today == null) {
             return null;
         } else if (yesterday == null) {
-            return new ModelChange(
+            return new MovementChange(
                 today.steps,
                 today.distance,
                 1.0,
                 1.0
             );
         } else {
-            return new ModelChange(
+            return new MovementChange(
                 today.steps,
                 today.distance,
                 (double)today.steps / (double)yesterday.steps,
@@ -496,7 +496,7 @@ public class LocationService
             return;
         }
         // Summary
-        final ModelChange today = getToday();
+        final MovementChange today = getToday();
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
         if (today == null) {
@@ -522,12 +522,12 @@ public class LocationService
         double stepsPrev = -1d;
         double distancePrev = -1d;
 
-        final ModelDataContainer yesterdayContainer = mHelper.getDataForDay(-1, 12);
-        final ModelDataContainer todayContainer = mHelper.getDataForDay(0, 12);
+        final MovementContainer yesterdayContainer = mHelper.getDataForDay(-1, 12);
+        final MovementContainer todayContainer = mHelper.getDataForDay(0, 12);
         final ArrayList<Double> distanceArray = new ArrayList<Double>();
         final ArrayList<Double> stepsArray = new ArrayList<Double>();
 
-        final ArrayList<ModelData> movements = new ArrayList<ModelData>();
+        final ArrayList<MovementData> movements = new ArrayList<MovementData>();
         Collections.addAll(movements, yesterdayContainer.movements);
         Collections.addAll(movements, todayContainer.movements);
 
@@ -536,7 +536,7 @@ public class LocationService
             distancePrev = yesterdayContainer.previousEntry.distance;
         }
 
-        for (ModelData movement : movements) {
+        for (MovementData movement : movements) {
             double steps;
             double distance;
             if (movement == null) {
@@ -600,7 +600,7 @@ public class LocationService
 
     private void notifyHandheld() {
         final String text;
-        final ModelChange today = getToday();
+        final MovementChange today = getToday();
 
         if (today == null) {
             text = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";

@@ -47,6 +47,7 @@
             android:launchMode="singleTop" />
 
         <service android:name="carnero.movement.service.LocationService" />
+        <service android:name="carnero.movement.service.FoursquareService" />
 
         <receiver android:name="carnero.movement.receiver.WakeupReceiver" />
         <receiver android:name="carnero.movement.receiver.BootReceiver">

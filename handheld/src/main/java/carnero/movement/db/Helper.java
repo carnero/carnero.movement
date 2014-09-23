@@ -9,19 +9,29 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.location.Location;
 import android.text.format.DateUtils;
 
-import carnero.movement.common.Preferences;
-import carnero.movement.common.Utils;
+import carnero.movement.App;
 import carnero.movement.common.remotelog.RemoteLog;
+import carnero.movement.model.Checkin;
+import carnero.movement.model.Location;
+import carnero.movement.model.MovementContainer;
+import carnero.movement.model.MovementData;
 
 public class Helper extends SQLiteOpenHelper {
 
-    private static SQLiteDatabase sDatabaseRO;
-    private static SQLiteDatabase sDatabaseRW;
+    private static SQLiteDatabase sDatabase;
+    private static Helper sInstance;
 
-    public Helper(Context context) {
+    public static Helper getInstance() {
+        if (sInstance == null) {
+            sInstance = new Helper(App.get());
+        }
+
+        return sInstance;
+    }
+
+    private Helper(Context context) {
         super(context, Structure.name, null, Structure.version);
     }
 
@@ -32,6 +42,11 @@ public class Helper extends SQLiteOpenHelper {
             for (String index : Structure.getStructureIndexes()) {
                 db.execSQL(index);
             }
+
+            db.execSQL(Structure.getCheckinsStructure());
+            for (String index : Structure.getCheckinsIndexes()) {
+                db.execSQL(index);
+            }
         } catch (SQLException e) {
             RemoteLog.e("Failed to create database");
         }
@@ -39,31 +54,37 @@ public class Helper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("drop table " + Structure.Table.History.name);
-
-        onCreate(db);
-    }
-
-    private synchronized SQLiteDatabase getDatabaseRO() {
-        if (sDatabaseRO == null) {
-            sDatabaseRO = getReadableDatabase();
-        }
-
-        return sDatabaseRO;
-    }
-
-    private synchronized SQLiteDatabase getDatabaseRW() {
-        if (sDatabaseRW == null) {
-            sDatabaseRW = getWritableDatabase();
-            if (sDatabaseRW.inTransaction()) {
-                sDatabaseRW.endTransaction();
+        if (oldVersion < 2) {
+            db.execSQL(Structure.getCheckinsStructure());
+            for (String index : Structure.getCheckinsIndexes()) {
+                db.execSQL(index);
             }
         }
 
-        return sDatabaseRW;
+        if (oldVersion < 3) {
+            db.execSQL("drop table " + Structure.Table.Checkins.name);
+
+            db.execSQL(Structure.getCheckinsStructure());
+            for (String index : Structure.getCheckinsIndexes()) {
+                db.execSQL(index);
+            }
+        }
     }
 
-    public boolean saveData(float steps, float distance, Location location) {
+    private synchronized SQLiteDatabase getDatabase() {
+        if (sDatabase == null) {
+            sDatabase = getWritableDatabase();
+            if (sDatabase.inTransaction()) {
+                sDatabase.endTransaction();
+            }
+        }
+
+        return sDatabase;
+    }
+
+    // Movement
+
+    public boolean saveData(float steps, float distance, android.location.Location location) {
         boolean status = false;
 
         ContentValues values = new ContentValues();
@@ -76,7 +97,7 @@ public class Helper extends SQLiteOpenHelper {
             values.put(Structure.Table.History.ACCURACY, location.getAccuracy());
         }
 
-        long id = getDatabaseRW().insert(Structure.Table.History.name, null, values);
+        long id = getDatabase().insert(Structure.Table.History.name, null, values);
         if (id >= 0) {
             status = true;
         }
@@ -84,7 +105,7 @@ public class Helper extends SQLiteOpenHelper {
         return status;
     }
 
-    public ModelData getSummaryForDay(int day) {
+    public MovementData getSummaryForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -99,7 +120,7 @@ public class Helper extends SQLiteOpenHelper {
         return getSummary(millisStart, millisEnd);
     }
 
-    public ModelData getSummary(long start, long end) {
+    public MovementData getSummary(long start, long end) {
         Cursor cursor;
         int stepsStart = 0;
         float distanceStart = 0;
@@ -109,7 +130,7 @@ public class Helper extends SQLiteOpenHelper {
         // Get last entry from previous day
         cursor = null;
         try {
-            cursor = getDatabaseRO().query(
+            cursor = getDatabase().query(
                 Structure.Table.History.name,
                 Structure.Table.History.projectionData,
                 Structure.Table.History.TIME + " < " + start,
@@ -134,7 +155,7 @@ public class Helper extends SQLiteOpenHelper {
         // Get last entry from previous day
         cursor = null;
         try {
-            cursor = getDatabaseRO().query(
+            cursor = getDatabase().query(
                 Structure.Table.History.name,
                 Structure.Table.History.projectionData,
                 Structure.Table.History.TIME + " <= " + end,
@@ -160,18 +181,18 @@ public class Helper extends SQLiteOpenHelper {
             return null;
         }
 
-        final ModelData summary = new ModelData();
+        final MovementData summary = new MovementData();
         summary.steps = stepsEnd - stepsStart;
         summary.distance = distanceEnd - distanceStart;
 
         return summary;
     }
 
-    public ModelDataContainer getDataForDay(int day) {
+    public MovementContainer getDataForDay(int day) {
         return getDataForDay(day, -1);
     }
 
-    public ModelDataContainer getDataForDay(int day, int intervals) {
+    public MovementContainer getDataForDay(int day, int intervals) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -186,11 +207,11 @@ public class Helper extends SQLiteOpenHelper {
         return getData(millisStart, millisEnd, intervals);
     }
 
-    public ModelDataContainer getData(long start, long end) {
+    public MovementContainer getData(long start, long end) {
         return getData(start, end, -1);
     }
 
-    public ModelDataContainer getData(long start, long end, int intervals) {
+    public MovementContainer getData(long start, long end, int intervals) {
         long millisInterval;
 
         if (intervals < 0) {
@@ -213,14 +234,14 @@ public class Helper extends SQLiteOpenHelper {
 
         long oldest = Long.MAX_VALUE;
 
-        final ModelDataContainer container = new ModelDataContainer();
-        container.movements = new ModelData[intervals];
-        container.locations = new ArrayList<ModelLocation>();
+        final MovementContainer container = new MovementContainer();
+        container.movements = new MovementData[intervals];
+        container.locations = new ArrayList<Location>();
 
         // Get entries for given interval
         Cursor cursor = null;
         try {
-            cursor = getDatabaseRO().query(
+            cursor = getDatabase().query(
                 Structure.Table.History.name,
                 Structure.Table.History.projectionFull,
                 Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
@@ -246,9 +267,9 @@ public class Helper extends SQLiteOpenHelper {
                     // Oldest is the first interval
                     int interval = intervals - ((int)((end - time) / millisInterval)) - 1;
 
-                    ModelData movement = container.movements[interval];
+                    MovementData movement = container.movements[interval];
                     if (movement == null) {
-                        movement = new ModelData();
+                        movement = new MovementData();
                         movement.steps = cursor.getInt(idxSteps);
                         movement.distance = cursor.getFloat(idxDistance);
 
@@ -260,7 +281,7 @@ public class Helper extends SQLiteOpenHelper {
 
                     // Locations
                     if (!cursor.isNull(idxLatitude) && !cursor.isNull(idxLongitude)) {
-                        ModelLocation location = new ModelLocation();
+                        Location location = new Location();
                         location.time = time;
                         location.latitude = cursor.getDouble(idxLatitude);
                         location.longitude = cursor.getDouble(idxLongitude);
@@ -278,7 +299,7 @@ public class Helper extends SQLiteOpenHelper {
 
         // Get oldest entry before given interval
         try {
-            cursor = getDatabaseRO().query(
+            cursor = getDatabase().query(
                 Structure.Table.History.name,
                 Structure.Table.History.projectionData,
                 Structure.Table.History.TIME + " < " + oldest,
@@ -291,7 +312,7 @@ public class Helper extends SQLiteOpenHelper {
                 int idxSteps = cursor.getColumnIndex(Structure.Table.History.STEPS);
                 int idxDistance = cursor.getColumnIndex(Structure.Table.History.DISTANCE);
 
-                ModelData model = new ModelData();
+                MovementData model = new MovementData();
                 model.steps = cursor.getInt(idxSteps);
                 model.distance = cursor.getFloat(idxDistance);
 
@@ -304,7 +325,7 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         if (container.previousEntry == null) {
-            container.previousEntry = new ModelData();
+            container.previousEntry = new MovementData();
             container.previousEntry.steps = 0;
             container.previousEntry.distance = 0;
         }
@@ -312,7 +333,7 @@ public class Helper extends SQLiteOpenHelper {
         return container;
     }
 
-    public ArrayList<ModelLocation> getLocationsForDay(int day) {
+    public ArrayList<Location> getLocationsForDay(int day) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -327,12 +348,12 @@ public class Helper extends SQLiteOpenHelper {
         return getLocations(millisStart, millisEnd);
     }
 
-    public ArrayList<ModelLocation> getLocations(long start, long end) {
-        final ArrayList<ModelLocation> data = new ArrayList<ModelLocation>();
+    public ArrayList<Location> getLocations(long start, long end) {
+        final ArrayList<Location> data = new ArrayList<Location>();
 
         Cursor cursor = null;
         try {
-            cursor = getDatabaseRO().query(
+            cursor = getDatabase().query(
                 Structure.Table.History.name,
                 Structure.Table.History.projectionLocation,
                 Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
@@ -347,7 +368,7 @@ public class Helper extends SQLiteOpenHelper {
                 int idxAccuracy = cursor.getColumnIndex(Structure.Table.History.ACCURACY);
 
                 do {
-                    ModelLocation model = new ModelLocation();
+                    Location model = new Location();
                     model.time = cursor.getLong(idxTime);
                     model.latitude = cursor.getDouble(idxLatitude);
                     model.longitude = cursor.getDouble(idxLongitude);
@@ -363,5 +384,60 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         return data;
+    }
+
+    // Foursquare
+
+    public long getLatestCheckinTime() {
+        long time = 0;
+
+        Cursor cursor = null;
+        try {
+            cursor = getDatabase().query(
+                Structure.Table.Checkins.name,
+                new String[] {Structure.Table.Checkins.CREATED},
+                null, null, null, null,
+                Structure.Table.Checkins.CREATED + " desc",
+                "1"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxTime = cursor.getColumnIndex(Structure.Table.Checkins.CREATED);
+                time = cursor.getLong(idxTime);
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return time;
+    }
+
+    public boolean saveCheckin(Checkin checkin) {
+        boolean status = false;
+
+        ContentValues values = new ContentValues();
+        values.put(Structure.Table.Checkins.CHECKIN_ID, checkin.checkinId);
+        values.put(Structure.Table.Checkins.CREATED, checkin.createdAt);
+        values.put(Structure.Table.Checkins.LATITUDE, checkin.latitude);
+        values.put(Structure.Table.Checkins.LONGITUDE, checkin.longitude);
+        values.put(Structure.Table.Checkins.NAME, checkin.name);
+        values.put(Structure.Table.Checkins.SHOUT, checkin.shout);
+        values.put(Structure.Table.Checkins.ICON_PREFIX, checkin.iconPrefix);
+        values.put(Structure.Table.Checkins.ICON_SUFFIX, checkin.iconSuffix);
+
+        long id = getDatabase().insertWithOnConflict(
+            Structure.Table.Checkins.name,
+            null,
+            values,
+            SQLiteDatabase.CONFLICT_REPLACE
+        );
+
+        if (id >= 0) {
+            status = true;
+        }
+
+        return status;
     }
 }

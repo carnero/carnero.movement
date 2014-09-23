@@ -3,7 +3,7 @@ package carnero.movement.db;
 public class Structure {
 
     public static final String name = "cc.movement";
-    public static final int version = 1;
+    public static final int version = 3;
 
     public static class Table {
 
@@ -27,6 +27,26 @@ public class Structure {
             };
             public static final String[] projectionFull = new String[]{
                 ID, TIME, STEPS, DISTANCE, LATITUDE, LONGITUDE, ACCURACY
+            };
+        }
+
+        public static class Checkins {
+
+            public static final String name = "checkins";
+
+            public static final String ID = "_id"; // integer
+            public static final String CHECKIN_ID = "checkin_id"; // string
+            public static final String CREATED = "created"; // integer
+            public static final String LATITUDE = "latitude"; // real
+            public static final String LONGITUDE = "longitude"; // real
+            public static final String NAME = "name"; // text
+            public static final String SHOUT = "shout"; // text
+            public static final String ICON_PREFIX = "icon_prefix"; // text
+            public static final String ICON_SUFFIX = "icon_suffix"; // text
+
+            public static final String[] projectionFull = new String[]{
+                ID, CREATED, LATITUDE, LONGITUDE,
+                NAME, SHOUT, ICON_PREFIX, ICON_SUFFIX
             };
         }
     }
@@ -58,6 +78,40 @@ public class Structure {
     public static String[] getStructureIndexes() {
         return new String[]{
             "create index if not exists idx_time on " + Table.History.name + " (" + Table.History.TIME + ")"
+        };
+    }
+
+    public static String getCheckinsStructure() {
+        StringBuilder sql = new StringBuilder();
+        sql.append("create table ");
+        sql.append(Table.Checkins.name);
+        sql.append(" (");
+        sql.append(Table.Checkins.ID);
+        sql.append(" integer primary key autoincrement,");
+        sql.append(Table.Checkins.CHECKIN_ID);
+        sql.append(" text unique not null,");
+        sql.append(Table.Checkins.CREATED);
+        sql.append(" integer not null,");
+        sql.append(Table.Checkins.LATITUDE);
+        sql.append(" real not null,");
+        sql.append(Table.Checkins.LONGITUDE);
+        sql.append(" real not null,");
+        sql.append(Table.Checkins.NAME);
+        sql.append(" text, ");
+        sql.append(Table.Checkins.SHOUT);
+        sql.append(" text, ");
+        sql.append(Table.Checkins.ICON_PREFIX);
+        sql.append(" text, ");
+        sql.append(Table.Checkins.ICON_SUFFIX);
+        sql.append(" text");
+        sql.append(")");
+
+        return sql.toString();
+    }
+
+    public static String[] getCheckinsIndexes() {
+        return new String[]{
+            "create index if not exists idx_created on " + Table.Checkins.name + " (" + Table.Checkins.CREATED + ")"
         };
     }
 }

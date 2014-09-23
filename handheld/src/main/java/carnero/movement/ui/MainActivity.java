@@ -3,8 +3,12 @@ package carnero.movement.ui;
 import java.util.ArrayList;
 
 import android.app.ActionBar;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -26,7 +30,8 @@ import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
-import carnero.movement.db.ModelData;
+import carnero.movement.model.MovementData;
+import carnero.movement.service.FoursquareService;
 import carnero.movement.service.LocationService;
 import carnero.movement.common.model.XY;
 import com.foursquare.android.nativeoauth.FoursquareOAuth;
@@ -59,8 +64,8 @@ public class MainActivity extends AbstractBaseActivity {
         super.onCreate(state);
 
         // Init
-        mPreferences = new Preferences(this);
-        mHelper = new Helper(this);
+        mPreferences = new Preferences();
+        mHelper = Helper.getInstance();
 
         // Start service
         final Intent serviceIntent = new Intent(this, LocationService.class);
@@ -164,6 +169,8 @@ public class MainActivity extends AbstractBaseActivity {
                     RemoteLog.e("Failed to get Foursquare token: " + responseExchange.getException().getMessage());
                 }
 
+                FoursquareService.setAlarm(true);
+
                 break;
         }
     }
@@ -235,7 +242,7 @@ public class MainActivity extends AbstractBaseActivity {
             mOverviewPoints.clear();
 
             for (int i = -GRAPH_DAYS; i <= 0; i++) {
-                ModelData summary = mHelper.getSummaryForDay(i);
+                MovementData summary = mHelper.getSummaryForDay(i);
                 XY point = new XY();
 
                 if (summary == null) {

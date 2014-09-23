@@ -25,9 +25,9 @@ import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
 import carnero.movement.graph.StepsPath;
 import carnero.movement.db.Helper;
-import carnero.movement.db.ModelData;
-import carnero.movement.db.ModelDataContainer;
-import carnero.movement.db.ModelLocation;
+import carnero.movement.model.Location;
+import carnero.movement.model.MovementContainer;
+import carnero.movement.model.MovementData;
 import carnero.movement.common.model.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
@@ -81,8 +81,8 @@ public class GraphFragment extends Fragment {
     public void onActivityCreated(Bundle state) {
         super.onActivityCreated(state);
 
-        mHelper = new Helper(getActivity());
-        mPreferences = new Preferences(getActivity());
+        mHelper = Helper.getInstance();
+        mPreferences = new Preferences();
 
         mAbsolute = mPreferences.getGraphType();
     }
@@ -154,7 +154,7 @@ public class GraphFragment extends Fragment {
 
     private class GraphDataTask extends BaseAsyncTask {
 
-        private ModelDataContainer mContainer;
+        private MovementContainer mContainer;
         //
         private double mMinDst = Double.MAX_VALUE;
         private double mMaxDst = Double.MIN_VALUE;
@@ -203,7 +203,7 @@ public class GraphFragment extends Fragment {
             }
 
             for (int i = 0; i < mContainer.movements.length; i++) {
-                ModelData model = mContainer.movements[i];
+                MovementData model = mContainer.movements[i];
 
                 // Values for labels
                 if (model != null) {
@@ -284,7 +284,7 @@ public class GraphFragment extends Fragment {
                 double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 
                 LatLng latLngPrev = null;
-                for (ModelLocation model : mContainer.locations) {
+                for (Location model : mContainer.locations) {
                     latBounds[0] = Math.min(latBounds[0], model.latitude);
                     latBounds[1] = Math.max(latBounds[1], model.latitude);
                     lonBounds[0] = Math.min(lonBounds[0], model.longitude);

@@ -21,8 +21,8 @@ public class Preferences {
     private static final String PREF_BACKUP = "db_backup";
     private static final String PREF_FOURSQUARE_TOKEN = "fsq_token";
 
-    public Preferences(Context context) {
-        mPrefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+    public Preferences() {
+        mPrefs = Application.get().getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
     /* Total steps */

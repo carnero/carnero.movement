@@ -1,6 +1,6 @@
-package carnero.movement.db;
+package carnero.movement.model;
 
-public class ModelLocation {
+public class Location {
 
     public long time;
     public double latitude;
