@@ -23,4 +23,5 @@ dependencies {
     wearApp project(':wear')
     compile project(':base')
     compile project(':foursquare-oauth-library')
+    compile 'com.github.castorflex.smoothprogressbar:library:1.0.0'
 }

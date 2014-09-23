@@ -32,8 +32,8 @@ import carnero.movement.common.model.XY;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 public class GraphFragment extends Fragment {
 
@@ -64,6 +64,8 @@ public class GraphFragment extends Fragment {
     View vVisualHelper;
     @InjectView(R.id.no_data)
     View vNoData;
+    @InjectView(R.id.progressbar)
+    SmoothProgressBar vProgressBar;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -172,7 +174,7 @@ public class GraphFragment extends Fragment {
             super.onPreExecute();
 
             if (isAdded()) {
-                // TODO: show progress bar
+                vProgressBar.setVisibility(View.VISIBLE);
             }
         }
 
@@ -352,7 +354,7 @@ public class GraphFragment extends Fragment {
                 vNoData.setVisibility(View.VISIBLE);
 
                 if (isAdded()) {
-                    getActivity().setProgressBarIndeterminateVisibility(false);
+                    vProgressBar.setVisibility(View.GONE);
                 }
                 return;
             }
@@ -397,7 +399,7 @@ public class GraphFragment extends Fragment {
 
             // Progress bar
             if (isAdded()) {
-                // TODO: hide progressbar
+                vProgressBar.setVisibility(View.GONE);
             }
         }
     }
