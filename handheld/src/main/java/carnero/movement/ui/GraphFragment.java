@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -333,9 +334,16 @@ public class GraphFragment extends Fragment {
             final BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.drawable.ic_checkin);
 
             for (Checkin checkin : mCheckins) {
+                String title;
+                if (TextUtils.isEmpty(checkin.shout)) {
+                    title = checkin.name;
+                } else {
+                    title = "\"" + checkin.shout + "\" @ " + checkin.name;
+                }
+
                 final MarkerOptions markerOpts = new MarkerOptions();
                 markerOpts.position(new LatLng(checkin.latitude, checkin.longitude));
-                markerOpts.title(checkin.name);
+                markerOpts.title(title);
                 markerOpts.icon(pin);
                 markerOpts.anchor(0.5f, 0.5f);
 
