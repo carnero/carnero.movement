@@ -3,6 +3,7 @@ package carnero.movement;
 import carnero.movement.common.Application;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.db.Helper;
 import carnero.movement.db.Structure;
 import carnero.movement.service.FoursquareService;
 

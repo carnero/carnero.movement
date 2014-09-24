@@ -2,6 +2,7 @@ package carnero.movement.db;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -439,5 +440,64 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         return status;
+    }
+
+    public ArrayList<Checkin> getCheckinsForDay(int day) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        long millisStart = calendar.getTimeInMillis();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
+
+        return getCheckins(millisStart, millisEnd);
+    }
+
+    public ArrayList<Checkin> getCheckins(long start, long end) {
+        final ArrayList<Checkin> data = new ArrayList<Checkin>();
+
+        Cursor cursor = null;
+        try {
+            cursor = getDatabase().query(
+                Structure.Table.Checkins.name,
+                Structure.Table.Checkins.projectionFull,
+                Structure.Table.Checkins.CREATED + " >= " + start + " and " + Structure.Table.Checkins.CREATED + " <= " + end,
+                null, null, null,
+                Structure.Table.Checkins.CREATED + " asc"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxCreated = cursor.getColumnIndex(Structure.Table.Checkins.CREATED);
+                int idxLatitude = cursor.getColumnIndex(Structure.Table.Checkins.LATITUDE);
+                int idxLongitude = cursor.getColumnIndex(Structure.Table.Checkins.LONGITUDE);
+                int idxName = cursor.getColumnIndex(Structure.Table.Checkins.NAME);
+                int idxShout = cursor.getColumnIndex(Structure.Table.Checkins.SHOUT);
+                int idxPrefix = cursor.getColumnIndex(Structure.Table.Checkins.ICON_PREFIX);
+                int idxSuffix = cursor.getColumnIndex(Structure.Table.Checkins.ICON_SUFFIX);
+
+                do {
+                    Checkin checkin = new Checkin();
+                    checkin.createdAt = cursor.getLong(idxCreated);
+                    checkin.latitude = cursor.getDouble(idxLatitude);
+                    checkin.longitude = cursor.getDouble(idxLongitude);
+                    checkin.name = cursor.getString(idxName);
+                    checkin.shout = cursor.getString(idxShout);
+                    checkin.iconPrefix = cursor.getString(idxPrefix);
+                    checkin.iconSuffix = cursor.getString(idxSuffix);
+
+                    data.add(checkin);
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return data;
     }
 }

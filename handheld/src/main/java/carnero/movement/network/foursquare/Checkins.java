@@ -39,7 +39,7 @@ public interface Checkins {
             final Checkin checkin = new Checkin();
 
             checkin.checkinId = item.id;
-            checkin.createdAt = item.createdAt;
+            checkin.createdAt = item.createdAt * 1000; // to millis
             checkin.shout = item.shout;
             checkin.name = item.venue.name;
             checkin.latitude = item.venue.location.lat;

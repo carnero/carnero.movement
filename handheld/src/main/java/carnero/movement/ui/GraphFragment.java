@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -25,14 +26,13 @@ import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
 import carnero.movement.graph.StepsPath;
 import carnero.movement.db.Helper;
+import carnero.movement.model.Checkin;
 import carnero.movement.model.Location;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
 import carnero.movement.common.model.XY;
 import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.*;
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 public class GraphFragment extends Fragment {
@@ -45,6 +45,7 @@ public class GraphFragment extends Fragment {
     private final SplinePath mPathDistance = new DistancePath();
     private final SplinePath mPathSteps = new StepsPath();
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
+    private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
     //
     private static final String ARGS_DAY = "day";
     //
@@ -106,7 +107,7 @@ public class GraphFragment extends Fragment {
         super.onResume();
         vMap.onResume();
 
-        new GraphDataTask().start();
+        new DataTask().start();
     }
 
     @Override
@@ -126,7 +127,7 @@ public class GraphFragment extends Fragment {
 
         mPreferences.setGraphType(mAbsolute);
 
-        new GraphDataTask().start();
+        new DataTask().start();
     }
 
     private void initMap() {
@@ -152,7 +153,7 @@ public class GraphFragment extends Fragment {
 
     // Classes
 
-    private class GraphDataTask extends BaseAsyncTask {
+    private class DataTask extends BaseAsyncTask {
 
         private MovementContainer mContainer;
         //
@@ -167,6 +168,7 @@ public class GraphFragment extends Fragment {
         private int mLabelStepsMax = Integer.MIN_VALUE;
         //
         final private ArrayList<PolylineOptions> mPolylines = new ArrayList<PolylineOptions>();
+        final private ArrayList<MarkerOptions> mMarkers = new ArrayList<MarkerOptions>();
         private LatLngBounds mBounds;
 
         @Override
@@ -319,6 +321,26 @@ public class GraphFragment extends Fragment {
                 LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
                 mBounds = new LatLngBounds(ne, sw);
             }
+
+            // Checkins
+            ArrayList<Checkin> checkins = mHelper.getCheckinsForDay(getDay());
+            if (checkins != null) {
+                mCheckins.clear();
+                mCheckins.addAll(checkins);
+            }
+
+            // Checkin markers
+            final BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.drawable.ic_checkin);
+
+            for (Checkin checkin : mCheckins) {
+                final MarkerOptions markerOpts = new MarkerOptions();
+                markerOpts.position(new LatLng(checkin.latitude, checkin.longitude));
+                markerOpts.title(checkin.name);
+                markerOpts.icon(pin);
+                markerOpts.anchor(0.5f, 0.5f);
+
+                mMarkers.add(markerOpts);
+            }
         }
 
         @Override
@@ -386,8 +408,9 @@ public class GraphFragment extends Fragment {
                         getResources().getDimensionPixelSize(R.dimen.margin_map)
                     )
                 );
+
                 if (map.getCameraPosition().zoom > 14) {
-                    map.animateCamera(CameraUpdateFactory.zoomTo(14));
+                    map.moveCamera(CameraUpdateFactory.zoomTo(14));
                 }
 
                 vSeparator.setVisibility(View.VISIBLE);
@@ -395,6 +418,13 @@ public class GraphFragment extends Fragment {
             } else {
                 vSeparator.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
+            }
+
+            // Checkins
+            if (!mMarkers.isEmpty()) {
+                for (MarkerOptions markerOptions : mMarkers) {
+                    map.addMarker(markerOptions);
+                }
             }
 
             // Progress bar
