@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -48,6 +47,10 @@ public class GraphFragment extends Fragment {
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
     //
+    private float mMapStrokeWidth;
+    private int mMapColorStart;
+    private int mMapColorEnd;
+    //
     private static final String ARGS_DAY = "day";
     //
     @InjectView(R.id.label)
@@ -87,6 +90,10 @@ public class GraphFragment extends Fragment {
         mPreferences = new Preferences();
 
         mAbsolute = mPreferences.getGraphType();
+
+        mMapStrokeWidth = getResources().getDimension(R.dimen.map_line_stroke);
+        mMapColorStart = getResources().getColor(R.color.map_history_start);
+        mMapColorEnd = getResources().getColor(R.color.map_history_end);
     }
 
     @Override
@@ -271,17 +278,13 @@ public class GraphFragment extends Fragment {
 
                 final long midnight = calendar.getTimeInMillis();
 
-                final float stroke = getResources().getDimension(R.dimen.map_line_stroke);
-                final int colorStart = getResources().getColor(R.color.map_history_start);
-                final int colorEnd = getResources().getColor(R.color.map_history_end);
+                final int colorStartR = Color.red(mMapColorStart);
+                final int colorStartG = Color.green(mMapColorStart);
+                final int colorStartB = Color.blue(mMapColorStart);
 
-                final int colorStartR = Color.red(colorStart);
-                final int colorStartG = Color.green(colorStart);
-                final int colorStartB = Color.blue(colorStart);
-
-                final double colorRStep = (Color.red(colorEnd) - colorStartR) / (double)DateUtils.DAY_IN_MILLIS;
-                final double colorGStep = (Color.green(colorEnd) - colorStartG) / (double)DateUtils.DAY_IN_MILLIS;
-                final double colorBStep = (Color.blue(colorEnd) - colorStartB) / (double)DateUtils.DAY_IN_MILLIS;
+                final double colorRStep = (Color.red(mMapColorEnd) - colorStartR) / (double)DateUtils.DAY_IN_MILLIS;
+                final double colorGStep = (Color.green(mMapColorEnd) - colorStartG) / (double)DateUtils.DAY_IN_MILLIS;
+                final double colorBStep = (Color.blue(mMapColorEnd) - colorStartB) / (double)DateUtils.DAY_IN_MILLIS;
 
                 double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
                 double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -305,7 +308,7 @@ public class GraphFragment extends Fragment {
 
                         final PolylineOptions polylineOpts = new PolylineOptions();
                         polylineOpts.zIndex(1010);
-                        polylineOpts.width(stroke);
+                        polylineOpts.width(mMapStrokeWidth);
                         polylineOpts.color(color);
                         polylineOpts.geodesic(true);
 

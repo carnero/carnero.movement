@@ -1,5 +1,6 @@
 <resources>
     <dimen name="margin_activity">16dp</dimen>
+    <dimen name="margin_page">8dp</dimen>
     <dimen name="margin_map">32dp</dimen>
 
     <dimen name="map_line_stroke">3dp</dimen>

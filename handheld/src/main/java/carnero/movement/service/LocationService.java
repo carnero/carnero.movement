@@ -7,7 +7,10 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.*;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,8 +26,8 @@ import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
-import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.common.location.LocationComparator;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.model.MovementChange;
 import carnero.movement.model.MovementContainer;
@@ -54,6 +57,7 @@ public class LocationService
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
+    private long mLastStepNanos;
     private long mLastMotion;
     private long mLastSaveToDB = 0;
     private long mLastSentToWear = 0;
@@ -62,6 +66,7 @@ public class LocationService
     private int mStepsSensor;
     private int mSteps;
     private float mDistance;
+    private int mCadence;
     private Location mLocation;
     //
     private static final int sLocationTimeThreshold = 5 * 60 * 1000; // 5min
@@ -221,12 +226,13 @@ public class LocationService
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             // Register motion
-            mLastMotion = event.timestamp / 1000000; // ns
+            mLastMotion = event.timestamp / 1000000; // ns → ms
 
             checkLocation();
 
-            // Count steps
+            // Latest steps count
             final int steps = (int)event.values[0];
+            final int stepsPrev = mSteps;
 
             if (mStepsSensor > steps) { // Device was probably rebooted
                 mStepsSensor = 0;
@@ -237,6 +243,41 @@ public class LocationService
 
             mPreferences.saveSteps(mSteps);
             mPreferences.saveStepsSensor(steps);
+
+            // Approximate speed
+            if (mLastStepNanos > 0) {
+                // Cadence
+                int delta = mSteps - stepsPrev; // steps
+                double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
+                double cadence = (delta / time) * 60.0; // steps per minute
+
+                // Calculate approximate step length and speed
+                double cadenceRun = Math.min(
+                    Constants.CADENCE_RUN_MAX,
+                    Math.max(Constants.CADENCE_RUN_MIN, cadence)
+                ) - Constants.CADENCE_RUN_MIN;
+                if (cadenceRun < 0) {
+                    cadenceRun = 0.0;
+                } else if (cadenceRun > (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN)) {
+                    cadenceRun = Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN;
+                }
+                double over = cadenceRun / (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN);
+
+                double length = Constants.STEP_LENGTH_WALK
+                    + (over * (Constants.STEP_LENGTH_RUN - Constants.STEP_LENGTH_WALK));
+                double distance = delta * length; // steps → metres
+                double speedKPH = (distance / time) * 3.6; // km per hour
+
+                mCadence = (int)cadence; // for notification
+                RemoteLog.d("Speed: "
+                        + String.format("%.3f", length) + " m | "
+                        + (int)cadence + " spm | "
+                        + String.format("%.1f", speedKPH) + " kph"
+                );
+
+                // TODO: handle speed (average, change, walk, run)
+            }
+            mLastStepNanos = event.timestamp;
 
             // Save & send data
             handleData();
@@ -645,13 +686,10 @@ public class LocationService
                 distanceString = getString(R.string.stats_lot);
             }
 
-            text = getString(
-                R.string.notification_distance,
-                distanceChange + " " + distanceString
-            ) + " | " + getString(
-                R.string.notification_steps,
-                stepsChange + " " + stepsString
-            );
+            text = "" + mCadence + " spm | "
+                + getString(R.string.notification_distance, distanceChange + " " + distanceString)
+                + " | "
+                + getString(R.string.notification_steps, stepsChange + " " + stepsString);
         }
 
         final Notification.Builder builder = new Notification.Builder(this)

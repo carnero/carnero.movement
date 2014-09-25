@@ -15,7 +15,7 @@ public interface Checkins {
 
     @GET("/users/self/checkins")
     public void checkins(
-        @Query("afterTimestamp") long afterTimestamp,
+        @Query("afterTimestamp") long afterTimestampSeconds,
         @Query("sort") String sort,
         @Query("limit") int limit,
         Callback<CheckinsResponse> callback

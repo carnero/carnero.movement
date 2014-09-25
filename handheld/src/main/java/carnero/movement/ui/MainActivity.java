@@ -102,6 +102,7 @@ public class MainActivity extends AbstractBaseActivity {
         mPagerAdapter = new PagesAdapter();
         vPager.setOffscreenPageLimit(3);
         vPager.setAdapter(mPagerAdapter);
+        vPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.margin_page));
         vPager.setOnPageChangeListener(new PageChangeListener());
         vPager.setCurrentItem(mPagerAdapter.getCount() - 1);
 

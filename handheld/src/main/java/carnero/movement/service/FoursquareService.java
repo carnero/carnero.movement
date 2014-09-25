@@ -78,7 +78,7 @@ public class FoursquareService extends Service {
     }
 
     private void downloadCheckins() {
-        final long lastCheckinTime = mHelper.getLatestCheckinTime() + 1;
+        final long lastCheckinTime = (mHelper.getLatestCheckinTime() / 1000); // seconds
 
         Api.get()
             .create(Checkins.class)

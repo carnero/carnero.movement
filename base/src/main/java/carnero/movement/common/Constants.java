@@ -11,4 +11,10 @@ public class Constants {
     // Foursquare
     public static final String FSQ_CLIENT_ID = "YZSFMTADI4H1JTHAGCMPQX3PUJ4SYAWKRL2K5SCTN5NRD432";
     public static final String FSQ_CLIENT_SECRET = "E01G3OH44K3NIUVBZG3Z0ABPS3AL3XJMBWECL1LAGW1OPO0I";
+
+    // Metrics
+    public static final float STEP_LENGTH_WALK = 0.6f; // metres
+    public static final float STEP_LENGTH_RUN = 1.3f;
+    public static final int CADENCE_RUN_MIN = 150; // steps per minute
+    public static final int CADENCE_RUN_MAX = 190;
 }
