@@ -27,11 +27,13 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.location.LocationComparator;
+import carnero.movement.common.model.MovementActivity;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.model.MovementChange;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
+import carnero.movement.model.OnFootMetrics;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
 import com.google.android.gms.wearable.DataMap;
@@ -54,6 +56,7 @@ public class LocationService
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
+    private final ArrayList<OnFootMetrics> mOnFootHistory = new ArrayList<OnFootMetrics>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
@@ -66,7 +69,7 @@ public class LocationService
     private int mStepsSensor;
     private int mSteps;
     private float mDistance;
-    private int mCadence;
+    private MovementActivity mMovement = MovementActivity.UNKNOWN;
     private Location mLocation;
     //
     private static final int sLocationTimeThreshold = 5 * 60 * 1000; // 5min
@@ -244,40 +247,8 @@ public class LocationService
             mPreferences.saveSteps(mSteps);
             mPreferences.saveStepsSensor(steps);
 
-            // Approximate speed
-            if (mLastStepNanos > 0) {
-                // Cadence
-                int delta = mSteps - stepsPrev; // steps
-                double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
-                double cadence = (delta / time) * 60.0; // steps per minute
-
-                // Calculate approximate step length and speed
-                double cadenceRun = Math.min(
-                    Constants.CADENCE_RUN_MAX,
-                    Math.max(Constants.CADENCE_RUN_MIN, cadence)
-                ) - Constants.CADENCE_RUN_MIN;
-                if (cadenceRun < 0) {
-                    cadenceRun = 0.0;
-                } else if (cadenceRun > (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN)) {
-                    cadenceRun = Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN;
-                }
-                double over = cadenceRun / (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN);
-
-                double length = Constants.STEP_LENGTH_WALK
-                    + (over * (Constants.STEP_LENGTH_RUN - Constants.STEP_LENGTH_WALK));
-                double distance = delta * length; // steps → metres
-                double speedKPH = (distance / time) * 3.6; // km per hour
-
-                mCadence = (int)cadence; // for notification
-                RemoteLog.d("Speed: "
-                        + String.format("%.3f", length) + " m | "
-                        + (int)cadence + " spm | "
-                        + String.format("%.1f", speedKPH) + " kph"
-                );
-
-                // TODO: handle speed (average, change, walk, run)
-            }
-            mLastStepNanos = event.timestamp;
+            // Approximate movement
+            approximateMovement(stepsPrev, mSteps, event);
 
             // Save & send data
             handleData();
@@ -483,6 +454,109 @@ public class LocationService
         }
     }
 
+    private void approximateMovement(int stepsPrev, int steps, SensorEvent event) {
+        if (mLastStepNanos > 0) {
+            // Cadence
+            int delta = steps - stepsPrev; // steps
+            double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
+            double cadence = (delta / time) * 60.0; // steps per minute
+
+            // Calculate approximate step length and speed
+            double cadenceRun = Math.min(
+                Constants.CADENCE_RUN_MAX,
+                Math.max(Constants.CADENCE_RUN_MIN, cadence)
+            ) - Constants.CADENCE_RUN_MIN;
+            if (cadenceRun < 0) {
+                cadenceRun = 0.0;
+            } else if (cadenceRun > (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN)) {
+                cadenceRun = Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN;
+            }
+            double over = cadenceRun / (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN);
+
+            double length = Constants.STEP_LENGTH_WALK
+                + (over * (Constants.STEP_LENGTH_RUN - Constants.STEP_LENGTH_WALK));
+            double distance = delta * length; // steps → metres
+            double speedKPH = (distance / time) * 3.6; // km per hour
+
+            // Save history
+            OnFootMetrics metrics = new OnFootMetrics();
+            metrics.timestamp = event.timestamp;
+            metrics.steps = steps;
+            metrics.cadence = cadence;
+            metrics.length = length;
+            metrics.speed = speedKPH;
+
+            mOnFootHistory.add(metrics);
+            Collections.sort(mOnFootHistory);
+
+            // Get activity type within time frame
+            ArrayList<OnFootMetrics> toDelete = new ArrayList<OnFootMetrics>();
+            long timeFrame = (long)(30 * 1e9); // 30 seconds (in ns)
+            long still = 0;
+            long walk = 0;
+            long run = 0;
+
+            boolean first = true;
+            long prevTimestamp = event.timestamp - timeFrame; // Start of our time frame
+            for (OnFootMetrics entry : mOnFootHistory) {
+                if (entry.timestamp < (event.timestamp - timeFrame)) { // Too old entry
+                    toDelete.add(entry);
+                    continue;
+                }
+
+                if (first) { // Consider pause between start of time frame and first entry as STILL
+                    still += (entry.timestamp - prevTimestamp);
+                    first = false;
+
+                    prevTimestamp = entry.timestamp;
+                    continue;
+                }
+
+                if (entry.cadence < Constants.CADENCE_WALK_MIN) {
+                    still += (entry.timestamp - prevTimestamp);
+                } else if (entry.cadence < Constants.CADENCE_RUN_MIN) {
+                    walk += (entry.timestamp - prevTimestamp);
+                } else {
+                    run += (entry.timestamp - prevTimestamp);
+                }
+
+                prevTimestamp = entry.timestamp;
+            }
+
+            // Delete old values
+            for (OnFootMetrics del : toDelete) {
+                mOnFootHistory.remove(del);
+            }
+
+            // Get movement activity type
+            double coefRun = run / (double) timeFrame;
+            double coefWalk = walk / (double) timeFrame;
+            double coefStill = still / (double) timeFrame;
+
+            MovementActivity lastMinuteActivity = MovementActivity.UNKNOWN;
+            if (coefStill > coefWalk && coefStill > coefRun) {
+                lastMinuteActivity = MovementActivity.STILL;
+            } else if (coefWalk > coefStill && coefWalk > coefRun) {
+                lastMinuteActivity = MovementActivity.WALK;
+            } else if (coefRun > coefStill && coefRun > coefWalk) {
+                lastMinuteActivity = MovementActivity.RUN;
+            }
+
+            // debug...
+            RemoteLog.d("Movement: "
+                    + (int)cadence + " spm | "
+                    + String.format("%.1f", speedKPH) + " kph | "
+                    + lastMinuteActivity + " .. "
+                    + "S:" + coefStill + ", W:" + coefWalk + ", R:" + coefRun
+            );
+
+            mMovement = lastMinuteActivity;
+            // ...debug
+        }
+
+        mLastStepNanos = event.timestamp;
+    }
+
     private void handleData() {
         saveToDB();
         sendDataToWear();
@@ -686,7 +760,27 @@ public class LocationService
                 distanceString = getString(R.string.stats_lot);
             }
 
-            text = "" + mCadence + " spm | "
+            // debug...
+            String activity;
+            switch (mMovement) {
+                case STILL:
+                    activity = "still";
+                    break;
+                case WALK:
+                    activity = "walk";
+                    break;
+                case RUN:
+                    activity = "run";
+                    break;
+                case RIDE:
+                    activity = "ride";
+                    break;
+                default:
+                    activity = "???";
+            }
+            // ...debug
+
+            text = activity + " | "
                 + getString(R.string.notification_distance, distanceChange + " " + distanceString)
                 + " | "
                 + getString(R.string.notification_steps, stepsChange + " " + stepsString);
