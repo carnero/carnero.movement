@@ -96,10 +96,17 @@
             android:text="@string/no_data" />
     </RelativeLayout>
 
+    <carnero.movement.common.graph.ActivitiesGraph
+        android:id="@+id/activities"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_alignParentBottom="true" />
+
     <carnero.movement.common.graph.SplineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/activities"
         android:layout_below="@id/stats_container"
         android:layout_toLeftOf="@id/separator"
         android:layout_marginTop="16dp" />

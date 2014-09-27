@@ -35,6 +35,12 @@
     <color name="map_history_start">@color/graph_distance_outline_start</color>
     <color name="map_history_end">@color/graph_distance_outline_end</color>
 
+    <!-- Movements -->
+    <color name="movement_still">#ffeeeeee</color>
+    <color name="movement_walk">#ffa07400</color>
+    <color name="movement_run">#ff05a000</color>
+    <color name="movement_ride">#ffa01a00</color>
+
     <!-- Other -->
     <color name="separator">#ff666666</color>
 </resources>

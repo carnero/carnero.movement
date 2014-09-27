@@ -242,6 +242,7 @@ public class LocationService
                 mStepsSensor = 0;
             }
 
+            RemoteLog.d("Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
             mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
@@ -765,18 +766,7 @@ public class LocationService
                 distanceString = getString(R.string.stats_lot);
             }
 
-            // debug...
-            String movement;
-            if (mMovement == null) {
-                movement = "???";
-            } else {
-                movement = mMovement.type
-                    + ":" + (int) ((mMovement.end - mMovement.start) / 1e9) + "s";
-            }
-            // ...debug
-
-            text = movement + " | "
-                + getString(R.string.notification_distance, distanceChange + " " + distanceString)
+            text = getString(R.string.notification_distance, distanceChange + " " + distanceString)
                 + " | "
                 + getString(R.string.notification_steps, stepsChange + " " + stepsString);
         }

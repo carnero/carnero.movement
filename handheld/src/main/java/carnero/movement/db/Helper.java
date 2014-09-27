@@ -13,6 +13,7 @@ import android.text.format.DateUtils;
 
 import carnero.movement.App;
 import carnero.movement.common.model.Movement;
+import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.model.Checkin;
 import carnero.movement.model.Location;
@@ -416,6 +417,61 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         return status;
+    }
+
+    public ArrayList<Movement> getMovementsForDay(int day) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        long millisStart = calendar.getTimeInMillis();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
+
+        return getMovements(millisStart, millisEnd);
+    }
+
+    public ArrayList<Movement> getMovements(long start, long end) {
+        start = start * 1000000; // ms → ns
+        end = end * 1000000; // ms → ns
+
+        final ArrayList<Movement> data = new ArrayList<Movement>();
+
+        Cursor cursor = null;
+        try {
+            cursor = getDatabase().query(
+                Structure.Table.Activities.name,
+                Structure.Table.Activities.projectionFull,
+                Structure.Table.Activities.START + " >= " + start
+                    + " and " + Structure.Table.Activities.START + " <= " + end,
+                null, null, null,
+                Structure.Table.Activities.START + " desc"
+            );
+
+            if (cursor.moveToFirst()) {
+                int idxType = cursor.getColumnIndex(Structure.Table.Activities.TYPE);
+                int idxStart = cursor.getColumnIndex(Structure.Table.Activities.START);
+                int idxEnd = cursor.getColumnIndex(Structure.Table.Activities.END);
+
+                do {
+                    Movement model = new Movement();
+                    model.type = MovementEnum.values()[cursor.getInt(idxType)];
+                    model.start = cursor.getLong(idxStart);
+                    model.end = cursor.getLong(idxEnd);
+
+                    data.add(model);
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return data;
     }
 
     // Foursquare

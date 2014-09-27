@@ -6,8 +6,8 @@ public class Movement {
     public long start; // ns
     public long end; // ns
 
-    public Movement(MovementEnum type) {
-        this.type = type;
+    public Movement() {
+        // empty
     }
 
     public Movement(MovementEnum type, long start) {

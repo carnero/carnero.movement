@@ -21,6 +21,9 @@ import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.common.graph.ActivitiesGraph;
+import carnero.movement.common.model.Movement;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
@@ -46,6 +49,7 @@ public class GraphFragment extends Fragment {
     private final SplinePath mPathSteps = new StepsPath();
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
+    private final ArrayList<Movement> mMovements = new ArrayList<Movement>();
     //
     private float mMapStrokeWidth;
     private int mMapColorStart;
@@ -61,6 +65,8 @@ public class GraphFragment extends Fragment {
     TextView vStatsDistance;
     @InjectView(R.id.graph)
     SplineGraph vGraph;
+    @InjectView(R.id.activities)
+    ActivitiesGraph vActivities;
     @InjectView(R.id.separator)
     View vSeparator;
     @InjectView(R.id.map)
@@ -268,6 +274,15 @@ public class GraphFragment extends Fragment {
             mPathDistance.setData(mPointsDistance);
             mPathSteps.setData(mPointsSteps);
 
+            // Movements
+            ArrayList<Movement> movements = mHelper.getMovementsForDay(getDay());
+            if (movements != null) {
+                synchronized (mMovements) {
+                    mMovements.clear();
+                    mMovements.addAll(movements);
+                }
+            }
+
             // Pre-generate map polylines
             if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
                 final Calendar calendar = Calendar.getInstance();
@@ -329,8 +344,10 @@ public class GraphFragment extends Fragment {
             // Checkins
             ArrayList<Checkin> checkins = mHelper.getCheckinsForDay(getDay());
             if (checkins != null) {
-                mCheckins.clear();
-                mCheckins.addAll(checkins);
+                synchronized (mCheckins) {
+                    mCheckins.clear();
+                    mCheckins.addAll(checkins);
+                }
             }
 
             // Checkin markers
@@ -402,7 +419,9 @@ public class GraphFragment extends Fragment {
 
             // Graph
             vGraph.setData(mPaths);
-            vGraph.invalidate();
+
+            // Movements
+            vActivities.setData(getDay(), mMovements);
 
             // Locations
             final GoogleMap map = vMap.getMap();
