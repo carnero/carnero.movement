@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -54,6 +55,7 @@ public class LocationService
     private PowerManager mPowerManager;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
+    private Vibrator mVibrator;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
@@ -96,6 +98,7 @@ public class LocationService
         mPowerManager = (PowerManager)getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        mVibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
         // Load saved values
@@ -548,15 +551,23 @@ public class LocationService
                     + String.format("%.1f", speedKPH) + " kph"
             );
 
-            if (mOnFootHistory.size() <= 1 || mMovement == null || mMovement.type != currentMovement) {
+            boolean noData = (mMovement == null);
+            boolean hysteresis = (mMovement != null
+                && (currentMovement.ordinal() > mMovement.type.ordinal()
+                || event.timestamp > (mMovement.start + 15*1e9))
+            ); // "Higher" type of activity or 15 secs after last activity change
+
+            if (noData || hysteresis) {
                 if (mMovement != null) {
                     mHelper.saveMovement(mMovement);
 
                     RemoteLog.d("Changing movement " + mMovement.type + " → " + currentMovement);
+                    mVibrator.vibrate(250); // Debug
                 }
 
                 mMovement = new Movement(currentMovement, event.timestamp);
             }
+
             mMovement.end = event.timestamp;
         }
 

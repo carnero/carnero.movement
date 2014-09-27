@@ -448,7 +448,7 @@ public class Helper extends SQLiteOpenHelper {
                 Structure.Table.Activities.START + " >= " + start
                     + " and " + Structure.Table.Activities.START + " <= " + end,
                 null, null, null,
-                Structure.Table.Activities.START + " desc"
+                Structure.Table.Activities.START + " asc"
             );
 
             if (cursor.moveToFirst()) {

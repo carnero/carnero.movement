@@ -17,7 +17,8 @@ public class ActivitiesGraph extends View {
 
     private long mDayStart; // ms
     private long mDayEnd; // ms
-    private ArrayList<Movement> mActivities = new ArrayList<Movement>();
+    private final ArrayList<Movement> mActivities = new ArrayList<Movement>();
+    private MovementEnum[] mPixels;
     private Bitmap mCacheBitmap;
     private Canvas mCacheCanvas;
     private Paint mPaint;
@@ -62,8 +63,8 @@ public class ActivitiesGraph extends View {
         mColors[MovementEnum.UNKNOWN.ordinal()] = getResources().getColor(R.color.none);
 
         mPaint = new Paint();
-        mPaint.setAntiAlias(true);
-        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setAntiAlias(false);
+        mPaint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
     @Override
@@ -78,21 +79,21 @@ public class ActivitiesGraph extends View {
         mCacheCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         // Draw blocks
-        double milliWidth = getWidth() / (double) (mDayEnd - mDayStart);
-        float pxStart;
-        float pxEnd;
+        if (mPixels == null) {
+            return;
+        }
 
-        for (Movement activity : mActivities) {
-            pxStart = (float) (((activity.start / 1e6) - mDayStart) * milliWidth);
-            pxEnd = (float) (((activity.end / 1e6) - mDayStart) * milliWidth);
+        for (int i = 0; i < mPixels.length; i ++) {
+            MovementEnum pixel = mPixels[i];
+            if (pixel == null) {
+                continue;
+            }
 
-            RemoteLog.d("Activity " + activity.type + ": " + pxStart + " .. " + pxEnd + " (from " + getWidth() + ")");
-
-            mPaint.setColor(mColors[activity.type.ordinal()]);
+            mPaint.setColor(mColors[pixel.ordinal()]);
             mCacheCanvas.drawRect(
-                pxStart,
+                i,
                 0,
-                pxEnd,
+                i + 1,
                 getHeight(),
                 mPaint
             );
@@ -102,6 +103,13 @@ public class ActivitiesGraph extends View {
         canvas.save();
         canvas.drawBitmap(mCacheBitmap, 0, 0, null);
         canvas.restore();
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int wOld, int hOld) {
+        super.onSizeChanged(w, h, wOld, hOld);
+
+        alignToPixels();
     }
 
     public void setData(int day, ArrayList<Movement> movements) {
@@ -121,6 +129,46 @@ public class ActivitiesGraph extends View {
             mActivities.addAll(movements);
         }
 
+        alignToPixels();
+
         invalidate();
+    }
+
+    private void alignToPixels() {
+        final int width = getWidth();
+        if (width == 0) {
+            return;
+        }
+
+        final MovementEnum[] pixels = new MovementEnum[getWidth()];
+
+        synchronized (mActivities) {
+            double milliWidth = width / (double) (mDayEnd - mDayStart);
+            int pxStart;
+            int pxEnd;
+
+            for (Movement activity : mActivities) {
+                pxStart = (int) Math.floor(((activity.start / 1e6) - mDayStart) * milliWidth);
+                pxEnd = (int) Math.ceil(((activity.end / 1e6) - mDayStart) * milliWidth);
+
+                if (pxStart < 0) {
+                    pxStart = 0;
+                }
+                if (pxEnd >= width) {
+                    pxEnd = width - 1;
+                }
+                if (pxEnd < pxStart) {
+                    pxEnd = pxStart;
+                }
+
+                for (int i = pxStart; i < pxEnd; i ++) {
+                    if (pixels[i] == null || activity.type.ordinal() > pixels[i].ordinal()) {
+                        pixels[i] = activity.type;
+                    }
+                }
+            }
+        }
+
+        mPixels = pixels;
     }
 }
