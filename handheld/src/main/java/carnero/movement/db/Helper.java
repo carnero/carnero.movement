@@ -2,7 +2,6 @@ package carnero.movement.db;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,6 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.format.DateUtils;
 
 import carnero.movement.App;
+import carnero.movement.common.model.Movement;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.model.Checkin;
 import carnero.movement.model.Location;
@@ -40,12 +40,17 @@ public class Helper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         try {
             db.execSQL(Structure.getHistoryStructure());
-            for (String index : Structure.getStructureIndexes()) {
+            for (String index : Structure.getHistoryIndexes()) {
                 db.execSQL(index);
             }
 
             db.execSQL(Structure.getCheckinsStructure());
             for (String index : Structure.getCheckinsIndexes()) {
+                db.execSQL(index);
+            }
+
+            db.execSQL(Structure.getActivitiesStructure());
+            for (String index : Structure.getActivitiesIndexes()) {
                 db.execSQL(index);
             }
         } catch (SQLException e) {
@@ -67,6 +72,13 @@ public class Helper extends SQLiteOpenHelper {
 
             db.execSQL(Structure.getCheckinsStructure());
             for (String index : Structure.getCheckinsIndexes()) {
+                db.execSQL(index);
+            }
+        }
+
+        if (oldVersion < 4) {
+            db.execSQL(Structure.getActivitiesStructure());
+            for (String index : Structure.getActivitiesIndexes()) {
                 db.execSQL(index);
             }
         }
@@ -206,10 +218,6 @@ public class Helper extends SQLiteOpenHelper {
         long millisEnd = calendar.getTimeInMillis();
 
         return getData(millisStart, millisEnd, intervals);
-    }
-
-    public MovementContainer getData(long start, long end) {
-        return getData(start, end, -1);
     }
 
     public MovementContainer getData(long start, long end, int intervals) {
@@ -385,6 +393,29 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         return data;
+    }
+
+    // Activities
+
+    public boolean saveMovement(Movement movement) {
+        boolean status = false;
+
+        ContentValues values = new ContentValues();
+        values.put(Structure.Table.Activities.TYPE, movement.type.ordinal());
+        values.put(Structure.Table.Activities.START, movement.start);
+        values.put(Structure.Table.Activities.END, movement.end);
+
+        long id = getDatabase().insert(
+            Structure.Table.Activities.name,
+            null,
+            values
+        );
+
+        if (id >= 0) {
+            status = true;
+        }
+
+        return status;
     }
 
     // Foursquare

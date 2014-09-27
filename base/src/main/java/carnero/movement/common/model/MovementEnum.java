@@ -1,6 +1,6 @@
 package carnero.movement.common.model;
 
-public enum MovementActivity {
+public enum MovementEnum {
 
     UNKNOWN,
     STILL,

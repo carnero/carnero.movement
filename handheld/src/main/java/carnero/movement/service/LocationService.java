@@ -27,7 +27,8 @@ import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.location.LocationComparator;
-import carnero.movement.common.model.MovementActivity;
+import carnero.movement.common.model.Movement;
+import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.model.MovementChange;
@@ -69,7 +70,7 @@ public class LocationService
     private int mStepsSensor;
     private int mSteps;
     private float mDistance;
-    private MovementActivity mMovement = MovementActivity.UNKNOWN;
+    private Movement mMovement;
     private Location mLocation;
     //
     private static final int sLocationTimeThreshold = 5 * 60 * 1000; // 5min
@@ -241,7 +242,6 @@ public class LocationService
                 mStepsSensor = 0;
             }
 
-            RemoteLog.d("Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
             mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
@@ -533,25 +533,30 @@ public class LocationService
             double coefWalk = walk / (double) timeFrame;
             double coefStill = still / (double) timeFrame;
 
-            MovementActivity lastMinuteActivity = MovementActivity.UNKNOWN;
+            MovementEnum currentMovement = MovementEnum.UNKNOWN;
             if (coefStill > coefWalk && coefStill > coefRun) {
-                lastMinuteActivity = MovementActivity.STILL;
+                currentMovement = MovementEnum.STILL;
             } else if (coefWalk > coefStill && coefWalk > coefRun) {
-                lastMinuteActivity = MovementActivity.WALK;
+                currentMovement = MovementEnum.WALK;
             } else if (coefRun > coefStill && coefRun > coefWalk) {
-                lastMinuteActivity = MovementActivity.RUN;
+                currentMovement = MovementEnum.RUN;
             }
 
-            // debug...
             RemoteLog.d("Movement: "
                     + (int)cadence + " spm | "
-                    + String.format("%.1f", speedKPH) + " kph | "
-                    + lastMinuteActivity + " .. "
-                    + "S:" + coefStill + ", W:" + coefWalk + ", R:" + coefRun
+                    + String.format("%.1f", speedKPH) + " kph"
             );
 
-            mMovement = lastMinuteActivity;
-            // ...debug
+            if (mOnFootHistory.size() <= 1 || mMovement == null || mMovement.type != currentMovement) {
+                if (mMovement != null) {
+                    mHelper.saveMovement(mMovement);
+
+                    RemoteLog.d("Changing movement " + mMovement.type + " → " + currentMovement);
+                }
+
+                mMovement = new Movement(currentMovement, event.timestamp);
+            }
+            mMovement.end = event.timestamp;
         }
 
         mLastStepNanos = event.timestamp;
@@ -761,26 +766,16 @@ public class LocationService
             }
 
             // debug...
-            String activity;
-            switch (mMovement) {
-                case STILL:
-                    activity = "still";
-                    break;
-                case WALK:
-                    activity = "walk";
-                    break;
-                case RUN:
-                    activity = "run";
-                    break;
-                case RIDE:
-                    activity = "ride";
-                    break;
-                default:
-                    activity = "???";
+            String movement;
+            if (mMovement == null) {
+                movement = "???";
+            } else {
+                movement = mMovement.type
+                    + ":" + (int) ((mMovement.end - mMovement.start) / 1e9) + "s";
             }
             // ...debug
 
-            text = activity + " | "
+            text = movement + " | "
                 + getString(R.string.notification_distance, distanceChange + " " + distanceString)
                 + " | "
                 + getString(R.string.notification_steps, stepsChange + " " + stepsString);
