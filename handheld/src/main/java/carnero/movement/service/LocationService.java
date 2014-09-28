@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -458,119 +459,123 @@ public class LocationService
         }
     }
 
-    private void approximateMovement(int stepsPrev, int steps, SensorEvent event) {
-        if (mLastStepNanos > 0) {
-            // Cadence
-            int delta = steps - stepsPrev; // steps
-            double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
-            double cadence = (delta / time) * 60.0; // steps per minute
-
-            // Calculate approximate step length and speed
-            double cadenceRun = Math.min(
-                Constants.CADENCE_RUN_MAX,
-                Math.max(Constants.CADENCE_RUN_MIN, cadence)
-            ) - Constants.CADENCE_RUN_MIN;
-            if (cadenceRun < 0) {
-                cadenceRun = 0.0;
-            } else if (cadenceRun > (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN)) {
-                cadenceRun = Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN;
-            }
-            double over = cadenceRun / (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN);
-
-            double length = Constants.STEP_LENGTH_WALK
-                + (over * (Constants.STEP_LENGTH_RUN - Constants.STEP_LENGTH_WALK));
-            double distance = delta * length; // steps → metres
-            double speedKPH = (distance / time) * 3.6; // km per hour
-
-            // Save history
-            OnFootMetrics metrics = new OnFootMetrics();
-            metrics.timestamp = event.timestamp;
-            metrics.steps = steps;
-            metrics.cadence = cadence;
-            metrics.length = length;
-            metrics.speed = speedKPH;
-
-            mOnFootHistory.add(metrics);
-            Collections.sort(mOnFootHistory);
-
-            // Get activity type within time frame
-            ArrayList<OnFootMetrics> toDelete = new ArrayList<OnFootMetrics>();
-            long timeFrame = (long)(30 * 1e9); // 30 seconds (in ns)
-            long still = 0;
-            long walk = 0;
-            long run = 0;
-
-            boolean first = true;
-            long prevTimestamp = event.timestamp - timeFrame; // Start of our time frame
-            for (OnFootMetrics entry : mOnFootHistory) {
-                if (entry.timestamp < (event.timestamp - timeFrame)) { // Too old entry
-                    toDelete.add(entry);
-                    continue;
-                }
-
-                if (first) { // Consider pause between start of time frame and first entry as STILL
-                    still += (entry.timestamp - prevTimestamp);
-                    first = false;
-
-                    prevTimestamp = entry.timestamp;
-                    continue;
-                }
-
-                if (entry.cadence < Constants.CADENCE_WALK_MIN) {
-                    still += (entry.timestamp - prevTimestamp);
-                } else if (entry.cadence < Constants.CADENCE_RUN_MIN) {
-                    walk += (entry.timestamp - prevTimestamp);
-                } else {
-                    run += (entry.timestamp - prevTimestamp);
-                }
-
-                prevTimestamp = entry.timestamp;
-            }
-
-            // Delete old values
-            for (OnFootMetrics del : toDelete) {
-                mOnFootHistory.remove(del);
-            }
-
-            // Get movement activity type
-            double coefRun = run / (double) timeFrame;
-            double coefWalk = walk / (double) timeFrame;
-            double coefStill = still / (double) timeFrame;
-
-            MovementEnum current = MovementEnum.UNKNOWN;
-            if (coefStill > coefWalk && coefStill > coefRun) {
-                current = MovementEnum.STILL;
-            } else if (coefWalk > coefStill && coefWalk > coefRun) {
-                current = MovementEnum.WALK;
-            } else if (coefRun > coefStill && coefRun > coefWalk) {
-                current = MovementEnum.RUN;
-            }
-
-            RemoteLog.d("Movement: "
-                    + (int)cadence + " spm | "
-                    + String.format("%.1f", speedKPH) + " kph"
-            );
-
-            boolean noData = (mMovement == null);
-            boolean change = (mMovement != null
-                && mMovement.type != current
-                && (current.ordinal() > mMovement.type.ordinal() || event.timestamp > (mMovement.start + 15*1e9))
-            ); // "Higher" type of activity or 15 secs after last activity change
-
-            if (noData || change) {
-                if (mMovement != null) {
-                    mHelper.saveMovement(mMovement);
-
-                    RemoteLog.d("Changing movement " + mMovement.type + " → " + current);
-                    mVibrator.vibrate(250); // Debug
-                }
-
-                mMovement = new Movement(current, event.timestamp);
-            }
-
-            mMovement.end = event.timestamp;
+    private void approximateMovement(int stepsPrev, int steps, @NonNull SensorEvent event) {
+        if (mLastStepNanos <= 0) {
+            mLastStepNanos = event.timestamp;
+            return;
         }
 
+        // Cadence
+        int delta = steps - stepsPrev; // steps
+        double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
+        double cadence = (delta / time) * 60.0; // steps per minute
+
+        // Calculate approximate step length and speed
+        double cadenceRun = Math.min(
+            Constants.CADENCE_RUN_MAX,
+            Math.max(Constants.CADENCE_RUN_MIN, cadence)
+        ) - Constants.CADENCE_RUN_MIN;
+
+        if (cadenceRun < 0) {
+            cadenceRun = 0.0;
+        } else if (cadenceRun > (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN)) {
+            cadenceRun = Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN;
+        }
+        double over = cadenceRun / (Constants.CADENCE_RUN_MAX - Constants.CADENCE_RUN_MIN);
+
+        double length = Constants.STEP_LENGTH_WALK
+            + (over * (Constants.STEP_LENGTH_RUN - Constants.STEP_LENGTH_WALK));
+        double distance = delta * length; // steps → metres
+        double speedKPH = (distance / time) * 3.6; // km per hour
+
+        // Save history
+        final OnFootMetrics metrics = new OnFootMetrics();
+        metrics.timestamp = event.timestamp;
+        metrics.steps = steps;
+        metrics.cadence = cadence;
+        metrics.length = length;
+        metrics.speed = speedKPH;
+
+        mOnFootHistory.add(metrics);
+        Collections.sort(mOnFootHistory);
+
+        // Get activity type within time frame
+        final ArrayList<OnFootMetrics> toDelete = new ArrayList<OnFootMetrics>();
+
+        long timeFrame = (long)(30 * 1e9); // 30 seconds (in ns)
+        long still = 0;
+        long walk = 0;
+        long run = 0;
+
+        boolean first = true;
+        long prevTimestamp = event.timestamp - timeFrame; // Start of our time frame
+        for (OnFootMetrics entry : mOnFootHistory) {
+            if (entry.timestamp < (event.timestamp - timeFrame)) { // Too old entry
+                toDelete.add(entry);
+                continue;
+            }
+
+            if (first) { // Consider pause between start of time frame and first entry as STILL
+                still += (entry.timestamp - prevTimestamp);
+                first = false;
+
+                prevTimestamp = entry.timestamp;
+                continue;
+            }
+
+            if (entry.cadence < Constants.CADENCE_WALK_MIN) {
+                still += (entry.timestamp - prevTimestamp);
+            } else if (entry.cadence < Constants.CADENCE_RUN_MIN) {
+                walk += (entry.timestamp - prevTimestamp);
+            } else {
+                run += (entry.timestamp - prevTimestamp);
+            }
+
+            prevTimestamp = entry.timestamp;
+        }
+
+        // Delete old values
+        for (OnFootMetrics del : toDelete) {
+            mOnFootHistory.remove(del);
+        }
+
+        // Get movement activity type
+        double coefRun = run / (double)timeFrame;
+        double coefWalk = walk / (double)timeFrame;
+        double coefStill = still / (double)timeFrame;
+
+        MovementEnum current = MovementEnum.UNKNOWN;
+        if (coefStill > coefWalk && coefStill > coefRun) {
+            current = MovementEnum.STILL;
+        } else if (coefWalk > coefStill && coefWalk > coefRun) {
+            current = MovementEnum.WALK;
+        } else if (coefRun > coefStill && coefRun > coefWalk) {
+            current = MovementEnum.RUN;
+        }
+
+        RemoteLog.d("Movement: "
+                + (int)cadence + " spm | "
+                + String.format("%.1f", speedKPH) + " kph"
+        );
+
+        boolean noData = (mMovement == null);
+        boolean change = (mMovement != null
+            && mMovement.type != current
+            && (current.ordinal() > mMovement.type.ordinal() || event.timestamp > (mMovement.start + 15 * 1e9))
+        ); // "Higher" type of activity or 15 secs after last activity change
+
+        if (noData || change) {
+            if (mMovement != null) {
+                mHelper.saveMovement(mMovement);
+
+                RemoteLog.d("Changing movement " + mMovement.type + " → " + current);
+                mVibrator.vibrate(250); // Debug
+            }
+
+            mMovement = new Movement(current, event.timestamp);
+        }
+
+        mMovement.end = event.timestamp;
         mLastStepNanos = event.timestamp;
     }
 
