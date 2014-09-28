@@ -537,13 +537,13 @@ public class LocationService
             double coefWalk = walk / (double) timeFrame;
             double coefStill = still / (double) timeFrame;
 
-            MovementEnum currentMovement = MovementEnum.UNKNOWN;
+            MovementEnum current = MovementEnum.UNKNOWN;
             if (coefStill > coefWalk && coefStill > coefRun) {
-                currentMovement = MovementEnum.STILL;
+                current = MovementEnum.STILL;
             } else if (coefWalk > coefStill && coefWalk > coefRun) {
-                currentMovement = MovementEnum.WALK;
+                current = MovementEnum.WALK;
             } else if (coefRun > coefStill && coefRun > coefWalk) {
-                currentMovement = MovementEnum.RUN;
+                current = MovementEnum.RUN;
             }
 
             RemoteLog.d("Movement: "
@@ -552,20 +552,20 @@ public class LocationService
             );
 
             boolean noData = (mMovement == null);
-            boolean hysteresis = (mMovement != null
-                && (currentMovement.ordinal() > mMovement.type.ordinal()
-                || event.timestamp > (mMovement.start + 15*1e9))
+            boolean change = (mMovement != null
+                && mMovement.type != current
+                && (current.ordinal() > mMovement.type.ordinal() || event.timestamp > (mMovement.start + 15*1e9))
             ); // "Higher" type of activity or 15 secs after last activity change
 
-            if (noData || hysteresis) {
+            if (noData || change) {
                 if (mMovement != null) {
                     mHelper.saveMovement(mMovement);
 
-                    RemoteLog.d("Changing movement " + mMovement.type + " → " + currentMovement);
+                    RemoteLog.d("Changing movement " + mMovement.type + " → " + current);
                     mVibrator.vibrate(250); // Debug
                 }
 
-                mMovement = new Movement(currentMovement, event.timestamp);
+                mMovement = new Movement(current, event.timestamp);
             }
 
             mMovement.end = event.timestamp;
