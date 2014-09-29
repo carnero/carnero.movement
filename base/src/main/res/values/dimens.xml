@@ -10,6 +10,9 @@
     <dimen name="graph_point">3dp</dimen>
     <dimen name="graph_point_small">1dp</dimen>
     <dimen name="graph_point_padding">2dp</dimen>
-    <dimen name="graph_padding_top">16dp</dimen>
+    <dimen name="graph_padding_top">32dp</dimen>
     <dimen name="graph_padding_bottom">2dp</dimen>
+
+    <dimen name="swarm_icon_width">24dp</dimen>
+    <dimen name="swarm_icon_height">30dp</dimen>
 </resources>

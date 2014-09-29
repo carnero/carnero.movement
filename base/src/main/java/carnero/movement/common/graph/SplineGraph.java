@@ -22,7 +22,7 @@ public class SplineGraph extends View {
     private int[] mPaddingRes = new int[]{
         R.dimen.graph_padding_top,
         0,
-        R.dimen.graph_padding_bottom,
+        0,
         0
     };
 

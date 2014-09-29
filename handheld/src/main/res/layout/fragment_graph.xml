@@ -44,6 +44,7 @@
             android:layout_alignParentEnd="true"
             android:singleLine="true"
             android:ellipsize="end" />
+
         <TextView
             style="@style/Text"
             android:id="@+id/stats_steps"
@@ -70,6 +71,7 @@
             android:layout_margin="16dp"
             android:src="@drawable/no_data"
             android:contentDescription="@string/no_data" />
+
         <TextView
             style="@style/Text.NoData"
             android:layout_width="wrap_content"
@@ -95,15 +97,16 @@
     <RelativeLayout
         android:id="@+id/checkins_container"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="match_parent"
+        android:layout_below="@id/stats_container"
         android:layout_above="@id/separator"
-        android:gravity="top"/>
+        android:layout_marginTop="16dp" />
 
     <carnero.movement.common.graph.SplineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/stats_container"
-        android:layout_above="@id/checkins_container"
+        android:layout_above="@id/separator"
         android:layout_marginTop="16dp" />
 </RelativeLayout>

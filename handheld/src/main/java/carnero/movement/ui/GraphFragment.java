@@ -22,20 +22,22 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.*;
-import carnero.movement.common.graph.ActivitiesGraph;
-import carnero.movement.common.model.Movement;
-import carnero.movement.common.model.MovementEnum;
-import carnero.movement.graph.DistancePath;
+import carnero.movement.common.BaseAsyncTask;
+import carnero.movement.common.ImageLoaderSingleton;
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
-import carnero.movement.graph.StepsPath;
+import carnero.movement.common.model.Movement;
+import carnero.movement.common.model.MovementEnum;
+import carnero.movement.common.model.XY;
 import carnero.movement.db.Helper;
+import carnero.movement.graph.DistancePath;
+import carnero.movement.graph.StepsPath;
 import carnero.movement.model.Checkin;
 import carnero.movement.model.Location;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
-import carnero.movement.common.model.XY;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
@@ -436,14 +438,38 @@ public class GraphFragment extends Fragment {
             vGraph.setData(mPaths);
 
             // Checkins
-            int widthCheckins = vCheckins.getWidth();
-            double widthMilli = widthCheckins / (double) (24 * 60 * 60 * 1000);
+            int containerWidth = vCheckins.getWidth();
+            int containerHeight = vCheckins.getHeight();
+            int checkinWidth = getResources().getDimensionPixelSize(R.dimen.swarm_icon_width);
+            int checkinHeight = getResources().getDimensionPixelSize(R.dimen.swarm_icon_height);
+            double widthMilli = containerWidth / (double)(24 * 60 * 60 * 1000);
 
             vCheckins.removeAllViewsInLayout();
-            if (widthCheckins > 0) {
+            if (containerWidth > 0) {
                 for (Checkin checkin : mCheckins) {
-                    View layout = mInflater.inflate(R.layout.item_checkin, vCheckins, false);
+                    View layout = mInflater.inflate(R.layout.item_swarm, vCheckins, false);
                     ImageView icon = (ImageView) layout.findViewById(R.id.icon);
+
+                    int marginLeft = (int)Math.round((checkin.createdAt - mMidnight) * widthMilli);
+                    int marginBottom = containerHeight - mPathDistance.getPixelValue(marginLeft);
+
+                    if (marginLeft < 0) {
+                        marginLeft = 0;
+                    } else if (marginLeft > containerWidth) {
+                        marginLeft = containerWidth;
+                    }
+                    if (marginBottom < 0) {
+                        marginBottom = 0;
+                    } else if (marginBottom > containerHeight - checkinHeight) {
+                        marginBottom = containerHeight - checkinHeight;
+                    }
+
+                    if (mPathDistance.isIncreasing(marginLeft)) {
+                        marginLeft = marginLeft - checkinWidth;
+                        layout.setBackgroundResource(R.drawable.bg_swarm_left);
+                    } else {
+                        layout.setBackgroundResource(R.drawable.bg_swarm_right);
+                    }
 
                     ImageLoaderSingleton.getInstance()
                         .displayImage(checkin.iconPrefix + Checkin.sizes[3] + checkin.iconSuffix, icon);
@@ -453,7 +479,9 @@ public class GraphFragment extends Fragment {
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     );
                     params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-                    params.leftMargin = (int) Math.round((checkin.createdAt - mMidnight) * widthMilli);
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+                    params.leftMargin = marginLeft;
+                    params.bottomMargin = marginBottom;
 
                     vCheckins.addView(layout, params);
                 }

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="24dp"
-    android:layout_height="30dp"
-    android:background="@drawable/bg_swarm" >
-    
+    android:layout_width="@dimen/swarm_icon_width"
+    android:layout_height="@dimen/swarm_icon_height"
+    android:background="@drawable/bg_swarm_right">
+
     <ImageView
         android:id="@+id/icon"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:layout_gravity="center"
-        android:scaleType="fitStart"/>
+        android:scaleType="fitStart" />
 </FrameLayout>

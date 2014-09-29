@@ -8,7 +8,6 @@ import android.graphics.*;
 
 import carnero.movement.common.R;
 import carnero.movement.common.model.XY;
-import carnero.movement.common.remotelog.RemoteLog;
 
 @SuppressWarnings("unused")
 public abstract class SplinePath {
@@ -16,6 +15,7 @@ public abstract class SplinePath {
     private final ArrayList<XY> mPoints = new ArrayList<XY>();
     private final ArrayList<DeltaPoint> mPointsAligned = new ArrayList<DeltaPoint>();
     private final ArrayList<DeltaPoint> mPixels = new ArrayList<DeltaPoint>();
+    private int[] mPadding;
     private Float mMaxY = null;
     private Spline mSpline;
     private Path mPath;
@@ -134,10 +134,38 @@ public abstract class SplinePath {
         mMaxY = max;
     }
 
+    public int getPixelValue(int x) {
+        if (mPixels.size() <= x) {
+            return 0;
+        }
+
+        if (x < 0) {
+            x = 0;
+        }
+
+        return mPixels.get(x).y + mPadding[0];
+    }
+
+    public boolean isIncreasing(int x) {
+        if (mPixels.size() <= (x + 1)) {
+            return false;
+        }
+
+        if (x < 0) {
+            x = 0;
+        }
+
+        int valueThis = mPixels.get(x).y;
+        int valueNext = mPixels.get(x + 1).y;
+
+        return (valueThis > valueNext); // It's drawn from top to bottom
+    }
+
     public void alignToViewPort(int width, int height, int[] padding) {
         if (width == 0 || height == 0) {
             return;
         }
+        mPadding = padding;
 
         // Set gradients
         if (mFillGradient == GRADIENT_HORIZONTAL) {
@@ -239,10 +267,9 @@ public abstract class SplinePath {
 
         ArrayList<DeltaPoint> curve = new ArrayList<DeltaPoint>(width);
         for (int i = 0; i < width; i++) {
-            int curveX = i;
             int curveY = (int)mSpline.interpolate(i);
 
-            curve.add(i, new DeltaPoint(curveX, curveY));
+            curve.add(i, new DeltaPoint(i, curveY));
         }
 
         synchronized (mPixels) {
