@@ -74,6 +74,7 @@ public class LocationService
     private int mSteps;
     private float mDistance;
     private Movement mMovement;
+    private Movement mMovementWear;
     private Location mLocation;
     //
     private static final int sLocationTimeThreshold = 5 * 60 * 1000; // 5min
@@ -569,7 +570,6 @@ public class LocationService
                 mHelper.saveMovement(mMovement);
 
                 RemoteLog.d("Changing movement " + mMovement.type + " → " + current);
-                mVibrator.vibrate(250); // Debug
             }
 
             mMovement = new Movement(current, event.timestamp);
@@ -629,9 +629,11 @@ public class LocationService
     }
 
     private void sendDataToWear() {
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) { // Once in 1 min
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))
+            && mMovementWear != null && mMovementWear.type == mMovement.type) {
             return;
         }
+
         // Summary
         final MovementChange today = getToday();
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
@@ -648,8 +650,13 @@ public class LocationService
         statusMap.putDouble("steps_change", today.stepsChange);
         statusMap.putDouble("distance_change", today.distanceChange);
         statusMap.putLong("motion", mLastMotion);
+        if (mMovement != null) {
+            statusMap.putInt("activity", mMovement.type.ordinal());
+        }
 
         statusList.add(statusMap);
+
+        mMovementWear = mMovement;
 
         // History
         double minDst = Double.MAX_VALUE;
@@ -736,11 +743,12 @@ public class LocationService
     }
 
     private void notifyHandheld() {
-        final String text;
-        final MovementChange today = getToday();
+        String text_1l;
+        String text_2l = "";
 
+        final MovementChange today = getToday();
         if (today == null) {
-            text = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";
+            text_1l = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";
         } else {
             double stepsPercent;
             double distancePercent;
@@ -782,10 +790,33 @@ public class LocationService
                 distanceString = getString(R.string.stats_lot);
             }
 
-            text = getString(R.string.notification_distance, distanceChange + " " + distanceString)
+            text_1l = getString(R.string.notification_distance, distanceChange + " " + distanceString)
                 + " | "
                 + getString(R.string.notification_steps, stepsChange + " " + stepsString);
+
+            // Activity types
+            final ArrayList<Movement> movements = mHelper.getMovementsForDay(0);
+            if (movements != null) {
+                long walk = 0;
+                long run = 0;
+                for (Movement movement : movements) {
+                    if (movement.type == MovementEnum.WALK) {
+                        walk += movement.end - movement.start;
+                    } else if (movement.type == MovementEnum.RUN) {
+                        run += movement.end - movement.start;
+                    }
+                }
+
+                int walkMins = (int) Math.round(walk / 1e9 / 60.0);
+                int runMins = (int) Math.round(run / 1e9 / 60.0);
+
+                text_2l = getString(R.string.notification_activity, walkMins, runMins);
+            }
         }
+
+        final Notification.BigTextStyle style = new Notification.BigTextStyle()
+            .setBigContentTitle(getString(R.string.notification_title))
+            .bigText(text_1l + "\n" + text_2l);
 
         final Notification.Builder builder = new Notification.Builder(this)
             .setPriority(Notification.PRIORITY_MIN)
@@ -793,8 +824,9 @@ public class LocationService
             .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)
             .setTicker(getString(R.string.notification_ticker))
+            .setStyle(style)
             .setContentTitle(getString(R.string.notification_title))
-            .setContentText(text)
+            .setContentText(text_1l)
             .setContentIntent(PendingIntent.getActivity(
                 LocationService.this,
                 1010,

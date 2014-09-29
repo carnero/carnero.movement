@@ -6,8 +6,12 @@ import carnero.movement.common.Utils;
 import carnero.movement.db.Helper;
 import carnero.movement.db.Structure;
 import carnero.movement.service.FoursquareService;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.Tracker;
 
 public class App extends Application {
+
+    private static Tracker sTracker;
 
     @Override
     public void onCreate() {
@@ -27,5 +31,14 @@ public class App extends Application {
 
         // Set alarm for foursquare
         FoursquareService.setAlarm(false);
+    }
+
+    public static synchronized Tracker getTracker() {
+        if (sTracker == null) {
+            final GoogleAnalytics analytics = GoogleAnalytics.getInstance(get());
+            sTracker = analytics.newTracker(R.xml.global_tracker);
+        }
+
+        return sTracker;
     }
 }

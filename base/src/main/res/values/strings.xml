@@ -13,6 +13,7 @@
     <string name="notification_text">Watching you...</string>
     <string name="notification_distance">Distance: %1$s</string>
     <string name="notification_steps">Steps: %1$s</string>
+    <string name="notification_activity">Walk: %1$d mins | Run: %2$s mins</string>
 
     <string name="stats_total">%1$s\n%2$d steps</string>
     <string name="stats_change">%1$s <b>%2$s</b>\n%3$d steps <b>%4$s</b></string>

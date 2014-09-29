@@ -56,11 +56,11 @@ public class ActivitiesGraph extends View {
      * Initialize graph (paint, paths...)
      */
     private void init() {
+        mColors[MovementEnum.UNKNOWN.ordinal()] = getResources().getColor(R.color.none);
         mColors[MovementEnum.STILL.ordinal()] = getResources().getColor(R.color.movement_still);
         mColors[MovementEnum.WALK.ordinal()] = getResources().getColor(R.color.movement_walk);
         mColors[MovementEnum.RUN.ordinal()] = getResources().getColor(R.color.movement_run);
         mColors[MovementEnum.RIDE.ordinal()] = getResources().getColor(R.color.movement_ride);
-        mColors[MovementEnum.UNKNOWN.ordinal()] = getResources().getColor(R.color.none);
 
         mPaint = new Paint();
         mPaint.setAntiAlias(false);

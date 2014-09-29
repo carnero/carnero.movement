@@ -6,6 +6,8 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 
+import carnero.movement.common.model.MovementEnum;
+
 public class ModelDataContainer implements Parcelable {
 
     public int stepsTotal;
@@ -14,6 +16,7 @@ public class ModelDataContainer implements Parcelable {
     public float distanceToday;
     public double stepsChange;
     public double distanceChange;
+    public int movement;
     public final ArrayList<Double> stepsList = new ArrayList<Double>();
     public final ArrayList<Double> distanceList = new ArrayList<Double>();
 
@@ -40,6 +43,7 @@ public class ModelDataContainer implements Parcelable {
         distanceToday = bundle.getFloat("distanceToday");
         stepsChange = bundle.getDouble("stepsChange");
         distanceChange = bundle.getDouble("distanceChange");
+        movement = bundle.getInt("movement");
 
         double[] stepsArray = bundle.getDoubleArray("stepsList");
         double[] distanceArray = bundle.getDoubleArray("distanceList");
@@ -73,6 +77,7 @@ public class ModelDataContainer implements Parcelable {
         bundle.putFloat("distanceToday", distanceToday);
         bundle.putDouble("stepsChange", stepsChange);
         bundle.putDouble("distanceChange", distanceChange);
+        bundle.putInt("movement", movement);
         bundle.putDoubleArray("stepsList", stepsArray);
         bundle.putDoubleArray("distanceList", distanceArray);
 

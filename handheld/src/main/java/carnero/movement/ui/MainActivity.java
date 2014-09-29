@@ -37,6 +37,7 @@ import carnero.movement.common.model.XY;
 import com.foursquare.android.nativeoauth.FoursquareOAuth;
 import com.foursquare.android.nativeoauth.model.AccessTokenResponse;
 import com.foursquare.android.nativeoauth.model.AuthCodeResponse;
+import com.google.android.gms.analytics.HitBuilders;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
@@ -172,11 +173,21 @@ public class MainActivity extends AbstractBaseActivity {
 
                 FoursquareService.setAlarm(true);
 
+                App.getTracker().send(new HitBuilders.EventBuilder()
+                    .setCategory("foursquare")
+                    .setAction("connection_done")
+                    .build());
+
                 break;
         }
     }
 
     private void startFsqConnection() {
+        App.getTracker().send(new HitBuilders.EventBuilder()
+            .setCategory("foursquare")
+            .setAction("connection_init")
+            .build());
+
         final Intent intent = FoursquareOAuth.getConnectIntent(
             App.get(),
             Constants.FSQ_CLIENT_ID

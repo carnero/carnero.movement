@@ -4,12 +4,26 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/map"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true" />
+
+    <View
+        android:id="@+id/separator"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@id/map"
+        android:background="@color/separator" />
+
     <fr.castorflex.android.smoothprogressbar.SmoothProgressBar
         android:id="@+id/progressbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:visibility="gone"
+        android:layout_toLeftOf="@id/separator"
+        android:visibility="invisible"
         android:indeterminate="true"
         app:spb_sections_count="4"
         app:spb_color="@color/primary"
@@ -21,21 +35,6 @@
         app:spb_progressiveStart_activated="true"
         app:spb_progressiveStart_speed="0.5"
         app:spb_progressiveStop_speed="1.0" />
-
-    <com.google.android.gms.maps.MapView
-        android:id="@+id/map"
-        android:layout_width="240dp"
-        android:layout_height="match_parent"
-        android:layout_below="@id/progressbar"
-        android:layout_alignParentRight="true" />
-
-    <View
-        android:id="@+id/separator"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:layout_below="@id/progressbar"
-        android:layout_toLeftOf="@id/map"
-        android:background="@color/separator" />
 
     <RelativeLayout
         android:id="@+id/stats_container"
@@ -100,7 +99,8 @@
         android:id="@+id/activities"
         android:layout_width="match_parent"
         android:layout_height="8dp"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@id/separator" />
 
     <carnero.movement.common.graph.SplineGraph
         android:id="@+id/graph"

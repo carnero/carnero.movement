@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ga_trackingId">UA-1103507-23</string>
+
+    <bool name="ga_autoActivityTracking">true</bool>
+    <integer name="ga_sessionTimeout">300</integer>
+
+    <screenName name="carnero.movement.ui.GraphFragment">
+        Graph
+    </screenName>
+</resources>

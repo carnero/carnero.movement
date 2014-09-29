@@ -17,6 +17,7 @@ import android.util.Log;
 import carnero.movement.R;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Utils;
+import carnero.movement.common.model.MovementEnum;
 import carnero.movement.data.ModelDataContainer;
 import carnero.movement.common.model.Size;
 import carnero.movement.ui.DistanceActivity;
@@ -108,6 +109,9 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         container.distanceToday = dataMap.getFloat("distance_today");
         container.stepsChange = dataMap.getDouble("steps_change");
         container.distanceChange = dataMap.getDouble("distance_change");
+        if (dataMap.containsKey("activity")) {
+            container.movement = dataMap.getInt("activity");
+        }
 
         // Data
         if (data.containsKey("steps")) {
@@ -226,13 +230,34 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             priority = Notification.PRIORITY_HIGH;
         }
 
+        final MovementEnum movement = MovementEnum.values()[container.movement];
+
+        String title;
+        switch (movement) {
+            case STILL:
+                title = "Still";
+                break;
+            case WALK:
+                title = "Walking";
+                break;
+            case RUN:
+                title = "Running";
+                break;
+            case RIDE:
+                title = "Riding";
+                break;
+            default:
+                title = "What the...?";
+        }
+
+
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
             .setPriority(priority)
             .setOngoing(false)
             .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)
             .setLargeIcon(graphBmp)
-                // .setContentTitle(getString(R.string.app_name))
+            .setContentTitle(title)
             .setStyle(style);
 
         final ArrayList<Notification> pages = new ArrayList<Notification>();

@@ -16,6 +16,6 @@ public class Constants {
     public static final float STEP_LENGTH_WALK = 0.6f; // metres
     public static final float STEP_LENGTH_RUN = 1.3f;
     public static final int CADENCE_WALK_MIN = 30; // steps per minute
-    public static final int CADENCE_RUN_MIN = 110;
+    public static final int CADENCE_RUN_MIN = 140;
     public static final int CADENCE_RUN_MAX = 190;
 }

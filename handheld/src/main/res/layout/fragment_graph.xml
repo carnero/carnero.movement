@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:indeterminate="true"
         app:spb_sections_count="4"
         app:spb_color="@color/primary"

@@ -17,12 +17,14 @@ import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import carnero.movement.App;
 import carnero.movement.R;
 import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.graph.ActivitiesGraph;
 import carnero.movement.common.model.Movement;
+import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.common.graph.SplineGraph;
@@ -34,6 +36,7 @@ import carnero.movement.model.Location;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
 import carnero.movement.common.model.XY;
+import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
@@ -122,6 +125,8 @@ public class GraphFragment extends Fragment {
         vMap.onResume();
 
         new DataTask().start();
+
+        App.getTracker().send(new HitBuilders.AppViewBuilder().build());
     }
 
     @Override
@@ -170,6 +175,8 @@ public class GraphFragment extends Fragment {
     private class DataTask extends BaseAsyncTask {
 
         private MovementContainer mContainer;
+        private int mWalk = 0; // seconds
+        private int mRun = 0; // seconds
         //
         private double mMinDst = Double.MAX_VALUE;
         private double mMaxDst = Double.MIN_VALUE;
@@ -277,6 +284,19 @@ public class GraphFragment extends Fragment {
             // Movements
             ArrayList<Movement> movements = mHelper.getMovementsForDay(getDay());
             if (movements != null) {
+                long walk = 0;
+                long run = 0;
+                for (Movement movement : movements) {
+                    if (movement.type == MovementEnum.WALK) {
+                        walk += movement.end - movement.start;
+                    } else if (movement.type == MovementEnum.RUN) {
+                        run += movement.end - movement.start;
+                    }
+                }
+
+                mWalk = (int) (walk / 1e9);
+                mRun = (int) (run / 1e9);
+
                 synchronized (mMovements) {
                     mMovements.clear();
                     mMovements.addAll(movements);
@@ -404,7 +424,7 @@ public class GraphFragment extends Fragment {
                 vNoData.setVisibility(View.VISIBLE);
 
                 if (isAdded()) {
-                    vProgressBar.setVisibility(View.GONE);
+                    vProgressBar.setVisibility(View.INVISIBLE);
                 }
                 return;
             }
@@ -459,7 +479,7 @@ public class GraphFragment extends Fragment {
 
             // Progress bar
             if (isAdded()) {
-                vProgressBar.setVisibility(View.GONE);
+                vProgressBar.setVisibility(View.INVISIBLE);
             }
         }
     }
