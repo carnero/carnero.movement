@@ -13,19 +13,19 @@ import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.Preferences;
-import carnero.movement.common.Utils;
+import carnero.movement.common.*;
 import carnero.movement.common.graph.ActivitiesGraph;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
-import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
@@ -45,14 +45,15 @@ public class GraphFragment extends Fragment {
 
     private Helper mHelper;
     private Preferences mPreferences;
+    private LayoutInflater mInflater;
     private boolean mAbsolute = false;
+    private long mMidnight = 0;
     private final ArrayList<XY> mPointsDistance = new ArrayList<XY>();
     private final ArrayList<XY> mPointsSteps = new ArrayList<XY>();
     private final SplinePath mPathDistance = new DistancePath();
     private final SplinePath mPathSteps = new StepsPath();
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
-    private final ArrayList<Movement> mMovements = new ArrayList<Movement>();
     //
     private float mMapStrokeWidth;
     private int mMapColorStart;
@@ -68,14 +69,12 @@ public class GraphFragment extends Fragment {
     TextView vStatsDistance;
     @InjectView(R.id.graph)
     SplineGraph vGraph;
-    @InjectView(R.id.activities)
-    ActivitiesGraph vActivities;
+    @InjectView(R.id.checkins_container)
+    RelativeLayout vCheckins;
     @InjectView(R.id.separator)
     View vSeparator;
     @InjectView(R.id.map)
     MapView vMap;
-    @InjectView(R.id.visual_helper)
-    View vVisualHelper;
     @InjectView(R.id.no_data)
     View vNoData;
     @InjectView(R.id.progressbar)
@@ -97,8 +96,17 @@ public class GraphFragment extends Fragment {
 
         mHelper = Helper.getInstance();
         mPreferences = new Preferences();
+        mInflater = LayoutInflater.from(getActivity());
 
         mAbsolute = mPreferences.getGraphType();
+
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, getDay());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        mMidnight = calendar.getTimeInMillis();
 
         mMapStrokeWidth = getResources().getDimension(R.dimen.map_line_stroke);
         mMapColorStart = getResources().getColor(R.color.map_history_start);
@@ -296,23 +304,10 @@ public class GraphFragment extends Fragment {
 
                 mWalk = (int) (walk / 1e9);
                 mRun = (int) (run / 1e9);
-
-                synchronized (mMovements) {
-                    mMovements.clear();
-                    mMovements.addAll(movements);
-                }
             }
 
             // Pre-generate map polylines
             if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
-                final Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_MONTH, getDay());
-                calendar.set(Calendar.HOUR_OF_DAY, 0);
-                calendar.set(Calendar.MINUTE, 0);
-                calendar.set(Calendar.SECOND, 0);
-
-                final long midnight = calendar.getTimeInMillis();
-
                 final int colorStartR = Color.red(mMapColorStart);
                 final int colorStartG = Color.green(mMapColorStart);
                 final int colorStartB = Color.blue(mMapColorStart);
@@ -336,9 +331,9 @@ public class GraphFragment extends Fragment {
                     if (latLngPrev != null) {
                         int color = Color.argb(
                             255,
-                            (int)(colorStartB + (colorRStep * (model.time - midnight))),
-                            (int)(colorStartG + (colorGStep * (model.time - midnight))),
-                            (int)(colorStartB + (colorBStep * (model.time - midnight)))
+                            (int)(colorStartB + (colorRStep * (model.time - mMidnight))),
+                            (int)(colorStartG + (colorGStep * (model.time - mMidnight))),
+                            (int)(colorStartB + (colorBStep * (model.time - mMidnight)))
                         );
 
                         final PolylineOptions polylineOpts = new PolylineOptions();
@@ -417,7 +412,7 @@ public class GraphFragment extends Fragment {
                 vStatsSteps.setVisibility(View.GONE);
                 vStatsDistance.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
-                vVisualHelper.setVisibility(View.GONE);
+                vCheckins.setVisibility(View.GONE);
                 vSeparator.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
 
@@ -440,8 +435,30 @@ public class GraphFragment extends Fragment {
             // Graph
             vGraph.setData(mPaths);
 
-            // Movements
-            vActivities.setData(getDay(), mMovements);
+            // Checkins
+            int widthCheckins = vCheckins.getWidth();
+            double widthMilli = widthCheckins / (double) (24 * 60 * 60 * 1000);
+
+            vCheckins.removeAllViewsInLayout();
+            if (widthCheckins > 0) {
+                for (Checkin checkin : mCheckins) {
+                    View layout = mInflater.inflate(R.layout.item_checkin, vCheckins, false);
+                    ImageView icon = (ImageView) layout.findViewById(R.id.icon);
+
+                    ImageLoaderSingleton.getInstance()
+                        .displayImage(checkin.iconPrefix + Checkin.sizes[3] + checkin.iconSuffix, icon);
+
+                    LayoutParams params = new LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+                    params.leftMargin = (int) Math.round((checkin.createdAt - mMidnight) * widthMilli);
+
+                    vCheckins.addView(layout, params);
+                }
+            }
+            vCheckins.bringToFront();
 
             // Locations
             final GoogleMap map = vMap.getMap();

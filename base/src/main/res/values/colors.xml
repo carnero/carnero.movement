@@ -43,4 +43,5 @@
 
     <!-- Other -->
     <color name="separator">#ff999999</color>
+    <color name="swarm">#ffffa633</color>
 </resources>

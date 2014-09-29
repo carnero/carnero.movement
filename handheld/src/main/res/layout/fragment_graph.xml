@@ -92,56 +92,18 @@
         android:layout_above="@id/map"
         android:background="@color/separator" />
 
-    <carnero.movement.common.graph.ActivitiesGraph
-        android:id="@+id/activities"
+    <RelativeLayout
+        android:id="@+id/checkins_container"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
-        android:layout_above="@id/separator" />
+        android:layout_height="30dp"
+        android:layout_above="@id/separator"
+        android:gravity="top"/>
 
     <carnero.movement.common.graph.SplineGraph
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/stats_container"
-        android:layout_above="@id/activities"
+        android:layout_above="@id/checkins_container"
         android:layout_marginTop="16dp" />
-
-    <LinearLayout
-        android:id="@+id/visual_helper"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/stats_container"
-        android:layout_above="@id/map"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal">
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="25"/>
-        <View
-            android:layout_width="1px"
-            android:layout_height="match_parent"
-            android:background="@drawable/divider_full" />
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="25"/>
-        <View
-            android:layout_width="1px"
-            android:layout_height="match_parent"
-            android:background="@drawable/divider_full" />
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="25"/>
-        <View
-            android:layout_width="1px"
-            android:layout_height="match_parent"
-            android:background="@drawable/divider_full" />
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="25"/>
-    </LinearLayout>
 </RelativeLayout>

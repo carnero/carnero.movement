@@ -56,7 +56,6 @@ public class LocationService
     private PowerManager mPowerManager;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
-    private Vibrator mVibrator;
     private NotificationManagerCompat mNotificationManager;
     private PowerManager.WakeLock mWakeLock;
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
@@ -68,6 +67,7 @@ public class LocationService
     private long mLastMotion;
     private long mLastSaveToDB = 0;
     private long mLastSentToWear = 0;
+    private long mLastSentToNotification = 0;
     // counters
     private int mStepsStart;
     private int mStepsSensor;
@@ -100,7 +100,6 @@ public class LocationService
         mPowerManager = (PowerManager)getSystemService(POWER_SERVICE);
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mLocationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        mVibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
         mNotificationManager = NotificationManagerCompat.from(this);
 
         // Load saved values
@@ -743,6 +742,10 @@ public class LocationService
     }
 
     private void notifyHandheld() {
+        if (mLastSentToNotification > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) {
+            return;
+        }
+
         String text_1l;
         String text_2l = "";
 
@@ -835,5 +838,7 @@ public class LocationService
             ));
 
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
+
+        mLastSentToNotification = SystemClock.elapsedRealtime();
     }
 }

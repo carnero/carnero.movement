@@ -19,7 +19,12 @@ public class SplineGraph extends View {
     private Canvas mCacheCanvas;
     private int[] mPadding = new int[]{0, 0, 0, 0}; // top, right, bottom, left
     // TODO: move to XML
-    private int[] mPaddingRes = new int[]{R.dimen.graph_padding_top, 0, 0, 0};
+    private int[] mPaddingRes = new int[]{
+        R.dimen.graph_padding_top,
+        0,
+        R.dimen.graph_padding_bottom,
+        0
+    };
 
     @SuppressWarnings("unused")
     public SplineGraph(Context context) {
