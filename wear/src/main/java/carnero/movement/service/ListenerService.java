@@ -230,34 +230,12 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             priority = Notification.PRIORITY_HIGH;
         }
 
-        final MovementEnum movement = MovementEnum.values()[container.movement];
-
-        String title;
-        switch (movement) {
-            case STILL:
-                title = "Still";
-                break;
-            case WALK:
-                title = "Walking";
-                break;
-            case RUN:
-                title = "Running";
-                break;
-            case RIDE:
-                title = "Riding";
-                break;
-            default:
-                title = "What the...?";
-        }
-
-
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
             .setPriority(priority)
             .setOngoing(false)
             .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)
             .setLargeIcon(graphBmp)
-            .setContentTitle(title)
             .setStyle(style);
 
         final ArrayList<Notification> pages = new ArrayList<Notification>();

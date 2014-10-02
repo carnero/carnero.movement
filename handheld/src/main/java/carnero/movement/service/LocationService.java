@@ -628,7 +628,7 @@ public class LocationService
     }
 
     private void sendDataToWear() {
-        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))
+        if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 60 * 1000))
             && mMovementWear != null && mMovementWear.type == mMovement.type) {
             return;
         }
