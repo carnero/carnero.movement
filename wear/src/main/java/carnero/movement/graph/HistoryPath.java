@@ -10,12 +10,12 @@ public class HistoryPath extends SplinePath {
     @Override
     public void init(Resources resources) {
         mFillPath = true;
-        mFillColor1Res = R.color.graph_history_fill;
-        mFillColor2Res = R.color.none;
+        mFillColor1Res = R.color.graph_history;
+        mFillColor2Res = R.color.graph_history;
         mFillGradient = GRADIENT_NONE;
         mStrokeWidthRes = R.dimen.graph_stroke;
-        mStrokeColor1Res = R.color.graph_history_outline;
-        mStrokeColor2Res = R.color.none;
+        mStrokeColor1Res = R.color.graph_history;
+        mStrokeColor2Res = R.color.graph_history;
         mStrokeGradient = false;
         mPathWidthRes = R.dimen.graph_path;
         mShowPoints = false;

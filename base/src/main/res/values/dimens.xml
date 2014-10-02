@@ -4,7 +4,7 @@
     <dimen name="margin_map">32dp</dimen>
 
     <dimen name="map_line_stroke">3dp</dimen>
-    <dimen name="graph_path">6dp</dimen>
+    <dimen name="graph_path">0dp</dimen>
     <dimen name="graph_stroke">2dp</dimen>
     <dimen name="graph_outline">1dp</dimen>
     <dimen name="graph_point">3dp</dimen>

@@ -4,9 +4,9 @@
     <color name="white">@android:color/white</color>
 
     <!-- Material -->
-    <color name="primary">#ff0091f5</color>
-    <color name="primary_dark">#ff0064ae</color>
-    <color name="accent">#ff0064ae</color>
+    <color name="primary">#ffffffff</color>
+    <color name="primary_dark">#ffffffff</color>
+    <color name="accent">#ffffffff</color>
 
     <!-- App -->
     <color name="bcg">@android:color/white</color>
@@ -15,25 +15,14 @@
     <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
-    <color name="graph_distance_point">#ffaaaaaa</color>
-    <color name="graph_distance">#220098ff</color>
-    <color name="graph_distance_outline_start">#ff009aff</color>
-    <color name="graph_distance_outline_end">#fffe4bff</color>
-    <color name="graph_distance_fill_start">#88009aff</color>
-    <color name="graph_distance_fill_end">#88fe4bff</color>
-
-    <color name="graph_steps_outline">#aa00e856</color>
-    <color name="graph_steps_fill">#3300e856</color>
-
-    <color name="graph_history_outline">#ffdddddd</color>
-    <color name="graph_history_fill">#ffeeeeee</color>
-
-    <color name="graph_actionbar_outline_start">#33ffffff</color>
-    <color name="graph_actionbar_outline_end">#ffffffff</color>
+    <color name="graph_distance">#ffab47bc</color>
+    <color name="graph_steps">#ff26c6da</color>
+    <color name="graph_steps_light">#ffb2ebf2</color>
+    <color name="graph_history">#ffbdbdbd</color>
 
     <color name="graph_divider">#22000000</color>
-    <color name="map_history_start">@color/graph_distance_outline_start</color>
-    <color name="map_history_end">@color/graph_distance_outline_end</color>
+    <color name="map_history_start">#ff9e9e9e</color>
+    <color name="map_history_end">#ffab47bc</color>
 
     <!-- Movements -->
     <color name="movement_still">#fff0f0f0</color>

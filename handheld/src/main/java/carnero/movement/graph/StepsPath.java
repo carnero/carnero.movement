@@ -9,17 +9,17 @@ public class StepsPath extends SplinePath {
 
     @Override
     public void init(Resources resources) {
-        mFillPath = false;
-        mFillColor1Res = R.color.none;
-        mFillColor2Res = R.color.none;
+        mFillPath = true;
+        mFillColor1Res = R.color.graph_steps_light;
+        mFillColor2Res = R.color.graph_steps_light;
         mFillGradient = GRADIENT_NONE;
         mStrokeWidthRes = R.dimen.graph_stroke;
-        mStrokeColor1Res = R.color.graph_steps_outline;
-        mStrokeColor2Res = R.color.none;
+        mStrokeColor1Res = R.color.graph_steps_light;
+        mStrokeColor2Res = R.color.graph_steps_light;
         mStrokeGradient = false;
         mPathWidthRes = R.dimen.graph_path;
         mShowPoints = false;
-        mPointColorRes = R.color.graph_steps_outline;
+        mPointColorRes = R.color.none;
         mPointSizeRes = R.dimen.graph_point_small;
         mPointPaddingRes = R.dimen.graph_point_padding;
 

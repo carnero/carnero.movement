@@ -172,7 +172,7 @@ public class GraphFragment extends Fragment {
 
     private void initGraph() {
         mPaths.clear();
-        mPaths.add(mPathSteps); // steps are below
+        mPaths.add(mPathSteps);
         mPaths.add(mPathDistance);
     }
 
