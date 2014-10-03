@@ -2,12 +2,12 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/swarm_icon_width"
     android:layout_height="@dimen/swarm_icon_height"
-    android:background="@drawable/bg_swarm_right">
+    android:background="@color/swarm" >
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_gravity="center"
-        android:scaleType="fitStart" />
+        android:scaleType="center" />
 </FrameLayout>

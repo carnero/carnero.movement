@@ -256,7 +256,7 @@ public class Helper extends SQLiteOpenHelper {
                 Structure.Table.History.projectionFull,
                 Structure.Table.History.TIME + " >= " + start + " and " + Structure.Table.History.TIME + " <= " + end,
                 null, null, null,
-                Structure.Table.History.TIME + " desc"
+                Structure.Table.History.TIME + " asc"
             );
 
             if (cursor.moveToFirst()) {

@@ -447,6 +447,7 @@ public class GraphFragment extends Fragment {
             int containerHeight = vCheckins.getHeight();
             int checkinWidth = getResources().getDimensionPixelSize(R.dimen.swarm_icon_width);
             int checkinHeight = getResources().getDimensionPixelSize(R.dimen.swarm_icon_height);
+            int checkinMarginBottom = getResources().getDimensionPixelSize(R.dimen.swarm_icon_margin_bottom);
             double widthMilli = containerWidth / (double)(24 * 60 * 60 * 1000);
 
             vCheckins.removeAllViewsInLayout();
@@ -486,7 +487,7 @@ public class GraphFragment extends Fragment {
                     params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
                     params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
                     params.leftMargin = marginLeft;
-                    params.bottomMargin = marginBottom;
+                    params.bottomMargin = marginBottom + checkinMarginBottom;
 
                     vCheckins.addView(layout, params);
                 }

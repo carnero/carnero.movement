@@ -35,7 +35,7 @@ public class MainActivity extends AbstractBaseActivity {
     private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
     //
-    private static final int HISTORY_PAGES = 7;
+    private static final int HISTORY_PAGES = 31;
     private static final int REQUEST_FSQ_CONNECT = 1001;
     private static final int REQUEST_FSQ_EXCHANGE = 1002;
     //
