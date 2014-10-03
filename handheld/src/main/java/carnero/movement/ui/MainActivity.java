@@ -1,57 +1,48 @@
 package carnero.movement.ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import android.app.ActionBar;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
-import carnero.movement.common.Utils;
-import carnero.movement.common.graph.SplineGraph;
-import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.remotelog.RemoteLog;
-import carnero.movement.db.Helper;
-import carnero.movement.model.MovementData;
 import carnero.movement.service.FoursquareService;
 import carnero.movement.service.LocationService;
-import carnero.movement.common.model.XY;
 import com.foursquare.android.nativeoauth.FoursquareOAuth;
 import com.foursquare.android.nativeoauth.model.AccessTokenResponse;
 import com.foursquare.android.nativeoauth.model.AuthCodeResponse;
 import com.google.android.gms.analytics.HitBuilders;
-import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 public class MainActivity extends AbstractBaseActivity {
 
-    private PagerAdapter mPagerAdapter;
+    private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
     //
     private static final int HISTORY_PAGES = 7;
     private static final int REQUEST_FSQ_CONNECT = 1001;
     private static final int REQUEST_FSQ_EXCHANGE = 1002;
     //
+    @InjectView(R.id.label)
+    TextView vLabel;
     @InjectView(R.id.pager)
     ViewPager vPager;
-    TextView vTotalDistance;
-    TextView vTotalSteps;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -68,34 +59,32 @@ public class MainActivity extends AbstractBaseActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
 
-        // ActionBar
-        final View customView = LayoutInflater.from(this).inflate(R.layout.item_actionbar_graph, null);
-        vTotalDistance = (TextView)customView.findViewById(R.id.total_distance);
-        vTotalSteps = (TextView)customView.findViewById(R.id.total_steps);
-
-        ActionBar actionBar = getActionBar();
-        if (actionBar != null) {
-            actionBar.setCustomView(customView);
-            actionBar.setDisplayShowCustomEnabled(true);
-
-            SystemBarTintManager tintManager = new SystemBarTintManager(this);
-            tintManager.setStatusBarTintEnabled(true);
-            tintManager.setStatusBarTintColor(getResources().getColor(R.color.primary_dark));
-
-            SystemBarTintManager.SystemBarConfig config = tintManager.getConfig();
-            vPager.setPadding(0, config.getPixelInsetTop(true), 0, 0);
-        }
-
         // Set ViewPager
         mPagerAdapter = new PagesAdapter();
         vPager.setOffscreenPageLimit(3);
         vPager.setAdapter(mPagerAdapter);
         vPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.margin_page));
         vPager.setCurrentItem(mPagerAdapter.getCount() - 1);
+        vPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-        // Set statistics
-        vTotalDistance.setText(Utils.formatDistance(mPreferences.getDistance()));
-        vTotalSteps.setText(getString(R.string.stats_steps, mPreferences.getSteps()));
+            @Override
+            public void onPageSelected(int i) {
+                final GraphFragment fragment = mPagerAdapter.getFragment(i);
+                if (fragment != null) {
+                    vLabel.setText(fragment.getLabel());
+                }
+            }
+
+            @Override
+            public void onPageScrolled(int i, float v, int i2) {
+                // empty
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int i) {
+                // empty
+            }
+        });
     }
 
     @Override
@@ -161,6 +150,16 @@ public class MainActivity extends AbstractBaseActivity {
         }
     }
 
+    public void setLabel(int day, String label) {
+        if (day == getDay(vPager.getCurrentItem())) {
+            vLabel.setText(label);
+        }
+    }
+
+    private int getDay(int position) {
+        return (position - HISTORY_PAGES + 1);
+    }
+
     private void startFsqConnection() {
         App.getTracker().send(new HitBuilders.EventBuilder()
             .setCategory("foursquare")
@@ -186,7 +185,9 @@ public class MainActivity extends AbstractBaseActivity {
 
     // Classes
 
-    private class PagesAdapter extends FragmentStatePagerAdapter {
+    public class PagesAdapter extends FragmentStatePagerAdapter {
+
+        private final HashMap<Integer, GraphFragment> mFragments = new HashMap<Integer, GraphFragment>();
 
         public PagesAdapter() {
             super(getSupportFragmentManager());
@@ -194,12 +195,26 @@ public class MainActivity extends AbstractBaseActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return GraphFragment.newInstance(position - HISTORY_PAGES + 1);
+            final GraphFragment fragment = GraphFragment.newInstance(getDay(position));
+            mFragments.put(position, fragment);
+
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            mFragments.remove(position);
+
+            super.destroyItem(container, position, object);
         }
 
         @Override
         public int getCount() {
             return HISTORY_PAGES;
+        }
+
+        public GraphFragment getFragment(int position) {
+            return mFragments.get(position);
         }
     }
 }

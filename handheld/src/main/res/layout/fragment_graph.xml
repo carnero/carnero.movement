@@ -22,26 +22,20 @@
         app:spb_progressiveStart_speed="0.5"
         app:spb_progressiveStop_speed="1.0" />
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/stats_container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_below="@id/progressbar"
-        android:padding="16dp">
-
-        <TextView
-            style="@style/Text.Label"
-            android:id="@+id/label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true" />
+        android:gravity="end|center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" >
 
         <TextView
             style="@style/Text"
             android:id="@+id/stats_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:singleLine="true"
             android:ellipsize="end" />
 
@@ -50,11 +44,10 @@
             android:id="@+id/stats_steps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_below="@id/stats_distance"
+            android:layout_marginStart="16dp"
             android:singleLine="true"
             android:ellipsize="end" />
-    </RelativeLayout>
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/no_data"
@@ -84,7 +77,7 @@
     <com.google.android.gms.maps.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="160dp"
         android:layout_alignParentBottom="true" />
 
     <View

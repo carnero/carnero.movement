@@ -1,5 +1,36 @@
-<android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/pager"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bcg" />
+    android:orientation="vertical"
+    android:background="@color/bcg">
+
+    <!-- Spacer because of translucent system bar -->
+    <View
+        android:id="@+id/action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="78dp"
+        android:background="@color/primary" />
+
+    <LinearLayout
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:elevation="5dp"
+        android:background="@color/primary">
+
+        <TextView
+            style="@style/Text.Label"
+            android:id="@+id/label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

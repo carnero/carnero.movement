@@ -1,10 +1,13 @@
 <resources>
+    <style name="MovementTheme" parent="android:Theme.Material.Light">
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowContentOverlay">@null</item>
 
-    <style name="MovementTheme" parent="android:Theme.Holo.Light">
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">@bool/translucentNavBar</item>
-
-        <item name="android:actionBarStyle">@style/ActionBar</item>
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
     </style>
 
     <style name="MovementTheme.Dialog">
@@ -16,18 +19,15 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="ActionBar" parent="@android:style/Widget.Holo.ActionBar.Solid">
-        <item name="android:background">@color/primary</item>
-    </style>
-
     <style name="Text" parent="android:Widget.TextView">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text</item>
-        <item name="android:fontFamily">sans-serif-thin</item>
     </style>
 
     <style name="Text.Label">
-        <item name="android:textSize">36sp</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:textColor">@color/text_label</item>
+        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="Text.NoData">

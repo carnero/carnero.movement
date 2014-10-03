@@ -56,6 +56,7 @@ public class GraphFragment extends Fragment {
     private final SplinePath mPathSteps = new StepsPath();
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
+    private String mLabel;
     //
     private float mMapStrokeWidth;
     private int mMapColorStart;
@@ -63,8 +64,6 @@ public class GraphFragment extends Fragment {
     //
     private static final String ARGS_DAY = "day";
     //
-    @InjectView(R.id.label)
-    TextView vLabel;
     @InjectView(R.id.stats_steps)
     TextView vStatsSteps;
     @InjectView(R.id.stats_distance)
@@ -178,6 +177,10 @@ public class GraphFragment extends Fragment {
 
     private int getDay() {
         return getArguments().getInt(ARGS_DAY, 0);
+    }
+
+    public String getLabel() {
+        return mLabel;
     }
 
     // Classes
@@ -396,18 +399,20 @@ public class GraphFragment extends Fragment {
 
             // Date
             if (getDay() == 0) {
-                vLabel.setText(R.string.today);
+                mLabel = getString(R.string.today);
             } else if (getDay() == -1) {
-                vLabel.setText(R.string.yesterday);
+                mLabel = getString(R.string.yesterday);
             } else {
                 Calendar calendar = Calendar.getInstance();
                 calendar.add(Calendar.DAY_OF_MONTH, getDay());
 
                 DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
-                String date = format.format(calendar.getTime());
 
-                vLabel.setText(date);
+                mLabel = format.format(calendar.getTime());
             }
+
+            MainActivity activity = (MainActivity) getActivity();
+            activity.setLabel(getDay(), mLabel);
 
             // No data
             if (mContainer == null || mContainer.locations == null || mContainer.locations.size() < 2) {

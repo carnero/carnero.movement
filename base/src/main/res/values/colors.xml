@@ -4,14 +4,15 @@
     <color name="white">@android:color/white</color>
 
     <!-- Material -->
-    <color name="primary">#ffffffff</color>
-    <color name="primary_dark">#ffffffff</color>
+    <color name="primary">#ffce93d8</color>
+    <color name="primary_dark">#ffab47bc</color>
     <color name="accent">#ffffffff</color>
 
     <!-- App -->
     <color name="bcg">@android:color/white</color>
-    <color name="text">#ff333333</color>
-    <color name="text_primary">@android:color/white</color>
+    <color name="text">#ff212121</color> <!-- 87% -->
+    <color name="text_label">#ffffffff</color>
+    <color name="text_primary">#ffffffff</color>
     <color name="text_nodata">#ffcccccc</color>
 
     <!-- Data visualisation -->
