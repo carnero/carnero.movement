@@ -48,7 +48,6 @@ public class GraphFragment extends Fragment {
     private Helper mHelper;
     private Preferences mPreferences;
     private LayoutInflater mInflater;
-    private boolean mAbsolute = false;
     private long mMidnight = 0;
     private final ArrayList<XY> mPointsDistance = new ArrayList<XY>();
     private final ArrayList<XY> mPointsSteps = new ArrayList<XY>();
@@ -99,8 +98,6 @@ public class GraphFragment extends Fragment {
         mPreferences = new Preferences();
         mInflater = LayoutInflater.from(getActivity());
 
-        mAbsolute = mPreferences.getGraphType();
-
         final Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DAY_OF_MONTH, getDay());
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -148,14 +145,6 @@ public class GraphFragment extends Fragment {
     public void onDestroyView() {
         vMap.onDestroy();
         super.onDestroyView();
-    }
-
-    public void changeGraph() {
-        mAbsolute = !mAbsolute;
-
-        mPreferences.setGraphType(mAbsolute);
-
-        new DataTask().start();
     }
 
     private void initMap() {
@@ -264,10 +253,9 @@ public class GraphFragment extends Fragment {
                 } else {
                     steps = model.steps - stepsPrev;
                     distance = model.distance - distancePrev;
-                    if (!mAbsolute) {
-                        stepsPrev = model.steps;
-                        distancePrev = model.distance;
-                    }
+
+                    stepsPrev = model.steps;
+                    distancePrev = model.distance;
                 }
 
                 // Min/max values
