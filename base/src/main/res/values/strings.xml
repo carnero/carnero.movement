@@ -23,4 +23,5 @@
     <string name="no_data">no data for this day</string>
 
     <string name="menu_foursquare">Connect Swarm</string>
+    <string name="menu_achievements">My achievements</string>
 </resources>

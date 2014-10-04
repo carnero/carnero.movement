@@ -1,13 +1,11 @@
 package carnero.movement.ui;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -29,15 +27,20 @@ import com.foursquare.android.nativeoauth.FoursquareOAuth;
 import com.foursquare.android.nativeoauth.model.AccessTokenResponse;
 import com.foursquare.android.nativeoauth.model.AuthCodeResponse;
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.Games;
+import com.google.example.games.basegameutils.BaseGameActivity;
 
-public class MainActivity extends AbstractBaseActivity {
+public class MainActivity extends BaseGameActivity implements GoogleApiClient.ConnectionCallbacks {
 
     private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
+    private GoogleApiClient mGoogleApiClient;
     //
     private static final int HISTORY_PAGES = 31;
     private static final int REQUEST_FSQ_CONNECT = 1001;
     private static final int REQUEST_FSQ_EXCHANGE = 1002;
+    private static final int REQUEST_ACHIEVEMENTS = 1003;
     //
     @InjectView(R.id.label)
     TextView vLabel;
@@ -46,10 +49,19 @@ public class MainActivity extends AbstractBaseActivity {
 
     @Override
     protected void onCreate(Bundle state) {
+        // Play Services: Games
+        setRequestedClients(BaseGameActivity.CLIENT_GAMES);
+
         super.onCreate(state);
 
         // Init
         mPreferences = new Preferences();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+            .addApi(Games.API)
+            .addScope(Games.SCOPE_GAMES)
+            .addConnectionCallbacks(this)
+            .build();
+        mGoogleApiClient.connect();
 
         // Start service
         final Intent serviceIntent = new Intent(this, LocationService.class);
@@ -88,6 +100,15 @@ public class MainActivity extends AbstractBaseActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         final MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.activity_main, menu);
@@ -98,6 +119,7 @@ public class MainActivity extends AbstractBaseActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.menu_foursquare).setVisible(!mPreferences.hasFoursquareToken());
+        menu.findItem(R.id.menu_achievements).setVisible(mGoogleApiClient.isConnected());
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -107,6 +129,10 @@ public class MainActivity extends AbstractBaseActivity {
         switch (item.getItemId()) {
             case R.id.menu_foursquare:
                 startFsqConnection();
+
+                return true;
+            case R.id.menu_achievements:
+                startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()), REQUEST_ACHIEVEMENTS);
 
                 return true;
             default:
@@ -148,6 +174,30 @@ public class MainActivity extends AbstractBaseActivity {
 
                 break;
         }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        invalidateOptionsMenu();
+
+        // TODO
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        invalidateOptionsMenu();
+
+        // TODO
+    }
+
+    @Override
+    public void onSignInSucceeded() {
+        // TODO
+    }
+
+    @Override
+    public void onSignInFailed() {
+        // TODO
     }
 
     public void setLabel(int day, String label) {

@@ -1,0 +1,17 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 20
+    }
+}
+
+dependencies {
+    // compile 'com.android.support:appcompat-v7:20.0.+'
+    compile 'com.android.support:support-v4:20.+'
+    compile 'com.google.android.gms:play-services:5.+'
+}

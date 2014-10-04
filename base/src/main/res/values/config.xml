@@ -1,3 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_id">381663199522</string>
+    <string name="achievement_first_steps">CgkIooKZ540LEAIQAQ</string>
+    <string name="achievement_first_run">CgkIooKZ540LEAIQAg</string>
+    <string name="achievement_make_it_social">CgkIooKZ540LEAIQAw</string>
+    <string name="achievement_100_km">CgkIooKZ540LEAIQBA</string>
+    <string name="achievement_100k_steps">CgkIooKZ540LEAIQBQ</string>
 </resources>

@@ -6,4 +6,9 @@
         android:title="@string/menu_foursquare"
         android:showAsAction="never"
         android:visible="false" />
+    <item
+        android:id="@+id/menu_achievements"
+        android:title="@string/menu_achievements"
+        android:showAsAction="never"
+        android:visible="false" />
 </menu>
