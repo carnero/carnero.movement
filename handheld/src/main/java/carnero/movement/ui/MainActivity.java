@@ -289,10 +289,14 @@ public class MainActivity
 
     public class AchievementsTask extends BaseAsyncTask {
 
-        private HashMap<String, Boolean> mAvailable = new HashMap<String, Boolean>();
-
         @Override
         public void inBackground() {
+            final HashMap<String, Boolean> available = new HashMap<String, Boolean>();
+            final Set<String> queue = mPreferences.getAchievementsToUnlock();
+            if (queue == null || queue.isEmpty()) {
+                return; // Nothing to do
+            }
+
             // Load achievements
             PendingResult pending = Games.Achievements.load(mGoogleApiClient, false);
             Achievements.LoadAchievementsResult result = (Achievements.LoadAchievementsResult)pending
@@ -309,7 +313,7 @@ public class MainActivity
             for (int i = 0; i < bufSize; i++) {
                 Achievement achievement = buffer.get(i);
 
-                mAvailable.put(
+                available.put(
                     achievement.getAchievementId(),
                     achievement.getState() == Achievement.STATE_UNLOCKED
                 );
@@ -318,14 +322,9 @@ public class MainActivity
             buffer.close();
             result.release();
 
-            Set<String> queue = mPreferences.getAchievementsToUnlock();
-            if (queue == null || queue.isEmpty()) {
-                return; // Nothing to do
-            }
-
             // Unlock waiting achievements
             for (String item : queue) {
-                Boolean unlocked = mAvailable.get(item);
+                Boolean unlocked = available.get(item);
                 if (unlocked != null && unlocked) {
                     mPreferences.removeAchievementFromQueue(item);
                     continue;
