@@ -317,10 +317,7 @@ public class MainActivity
 
             buffer.close();
             result.release();
-        }
 
-        @Override
-        public void postExecute() {
             Set<String> queue = mPreferences.getAchievementsToUnlock();
             if (queue == null || queue.isEmpty()) {
                 return; // Nothing to do
@@ -334,16 +331,22 @@ public class MainActivity
                     continue;
                 }
 
-                PendingResult pending = Games.Achievements.unlockImmediate(mGoogleApiClient, item);
-                Achievements.UpdateAchievementResult result = (Achievements.UpdateAchievementResult)pending.await();
+                PendingResult updatePending = Games.Achievements.unlockImmediate(mGoogleApiClient, item);
+                Achievements.UpdateAchievementResult updateResult = (Achievements.UpdateAchievementResult)updatePending
+                    .await(60, TimeUnit.SECONDS);
 
-                if (result != null) {
-                    int status = result.getStatus().getStatusCode();
-                    if (status == GamesStatusCodes.STATUS_OK) {
+                if (updateResult != null) {
+                    int updateStatus = updateResult.getStatus().getStatusCode();
+                    if (updateStatus == GamesStatusCodes.STATUS_OK) {
                         mPreferences.removeAchievementFromQueue(item);
                     }
                 }
             }
+        }
+
+        @Override
+        public void postExecute() {
+            // Nothing
         }
     }
 }

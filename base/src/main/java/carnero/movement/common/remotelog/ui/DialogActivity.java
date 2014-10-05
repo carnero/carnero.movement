@@ -98,7 +98,7 @@ public class DialogActivity extends Activity {
 
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("message/rfc822");
-                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"carnero@inmite.eu"});
+                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"carnero@carnero.cc"});
                 intent.putExtra(Intent.EXTRA_SUBJECT, "Application log: " + getString(R.string.app_name));
                 intent.putExtra(Intent.EXTRA_TEXT, info.toString());
                 intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
