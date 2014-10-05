@@ -8,6 +8,9 @@
         <item name="android:colorPrimaryDark">@color/primary_dark</item>
         <item name="android:colorAccent">@color/accent</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
+
+        <item name="android:textAppearanceLargePopupMenu">@style/PopupMenu.Large</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/PopupMenu.Small</item>
     </style>
 
     <style name="MovementTheme.Dialog">
@@ -17,6 +20,14 @@
         <item name="android:windowAnimationStyle">@android:style/Animation</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="PopupMenu" />
+    <style name="PopupMenu.Large" parent="@android:style/TextAppearance.Material.Widget.PopupMenu.Large" >
+        <item name="android:textColor">@color/text</item>
+    </style>
+    <style name="PopupMenu.Small" parent="@android:style/TextAppearance.Material.Widget.PopupMenu.Small" >
+        <item name="android:textColor">@color/text</item>
     </style>
 
     <style name="Text" parent="android:Widget.TextView">
@@ -32,11 +43,5 @@
 
     <style name="Text.NoData">
         <item name="android:textColor">@color/text_nodata</item>
-    </style>
-
-    <style name="Text.ActionBar">
-        <item name="android:textSize">14dp</item>
-        <item name="android:textColor">@color/text</item>
-        <item name="android:fontFamily">sans-serif-light</item>
     </style>
 </resources>

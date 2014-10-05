@@ -1,8 +1,14 @@
 package carnero.movement.common;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
+
+import carnero.movement.common.remotelog.RemoteLog;
 
 public class Preferences {
 
@@ -20,6 +26,7 @@ public class Preferences {
     private static final String PREF_GRAPH_ABS = "graph_type";
     private static final String PREF_BACKUP = "db_backup";
     private static final String PREF_FOURSQUARE_TOKEN = "fsq_token";
+    private static final String PREF_ACHIEVEMENTS_QUEUE = "achievements_queue";
 
     public Preferences() {
         mPrefs = Application.get().getSharedPreferences(FILE, Context.MODE_PRIVATE);
@@ -141,5 +148,43 @@ public class Preferences {
 
     public String getFoursquareToken() {
         return mPrefs.getString(PREF_FOURSQUARE_TOKEN, null);
+    }
+
+    /* Achievements */
+
+    public synchronized void addAchievementToQueue(String achievement) {
+        final Set<String> stored = mPrefs.getStringSet(PREF_ACHIEVEMENTS_QUEUE, null);
+        if (stored != null && stored.contains(achievement)) {
+            return; // Already saved
+        }
+
+        final HashSet<String> set = new HashSet<String>();
+        if (stored != null) {
+            set.addAll(stored);
+        }
+        set.add(achievement);
+
+        mPrefs.edit()
+            .putStringSet(PREF_ACHIEVEMENTS_QUEUE, set)
+            .commit();
+    }
+
+    public synchronized void removeAchievementFromQueue(String achievement) {
+        final Set<String> stored = mPrefs.getStringSet(PREF_ACHIEVEMENTS_QUEUE, null);
+        if (stored == null || !stored.contains(achievement)) {
+            return; // Already removed
+        }
+
+        final HashSet<String> set = new HashSet<String>();
+        set.addAll(stored);
+        set.remove(achievement);
+
+        mPrefs.edit()
+            .putStringSet(PREF_ACHIEVEMENTS_QUEUE, set)
+            .commit();
+    }
+
+    public synchronized Set<String> getAchievementsToUnlock() {
+        return mPrefs.getStringSet(PREF_ACHIEVEMENTS_QUEUE, new HashSet<String>());
     }
 }

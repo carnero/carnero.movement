@@ -30,7 +30,7 @@
             android:value="@string/app_id" />
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyBx7ll7LHbYuP3XW62xbxFkNRlO4fKhV8A" />
+            android:value="@string/map_api_key" />
 
         <activity android:name="carnero.movement.ui.MainActivity">
 

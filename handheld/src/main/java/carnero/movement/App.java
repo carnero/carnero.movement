@@ -3,6 +3,7 @@ package carnero.movement;
 import carnero.movement.common.Application;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.db.Structure;
 import carnero.movement.service.FoursquareService;
@@ -23,6 +24,10 @@ public class App extends Application {
             boolean status = Utils.backupDatabase(Structure.name);
 
             if (status) {
+                RemoteLog.i(
+                    "Database backed up (" + preferences.getSteps() + " steps, " + preferences.getDistance() + " m)"
+                );
+
                 preferences.saveLastBackup(System.currentTimeMillis());
             }
         }

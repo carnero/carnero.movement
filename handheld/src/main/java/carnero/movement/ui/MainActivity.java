@@ -1,6 +1,8 @@
 package carnero.movement.ui;
 
 import java.util.HashMap;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
+import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Constants;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.remotelog.RemoteLog;
@@ -27,11 +30,19 @@ import com.foursquare.android.nativeoauth.FoursquareOAuth;
 import com.foursquare.android.nativeoauth.model.AccessTokenResponse;
 import com.foursquare.android.nativeoauth.model.AuthCodeResponse;
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.GamesStatusCodes;
+import com.google.android.gms.games.achievement.Achievement;
+import com.google.android.gms.games.achievement.AchievementBuffer;
+import com.google.android.gms.games.achievement.Achievements;
 import com.google.example.games.basegameutils.BaseGameActivity;
 
-public class MainActivity extends BaseGameActivity implements GoogleApiClient.ConnectionCallbacks {
+public class MainActivity
+    extends BaseGameActivity
+    implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
@@ -60,6 +71,7 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
             .addApi(Games.API)
             .addScope(Games.SCOPE_GAMES)
             .addConnectionCallbacks(this)
+            .addOnConnectionFailedListener(this)
             .build();
         mGoogleApiClient.connect();
 
@@ -161,6 +173,8 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
                 if (!TextUtils.isEmpty(token)) {
                     mPreferences.saveFoursquareToken(token);
                     invalidateOptionsMenu();
+
+                    Games.Achievements.unlock(getApiClient(), getString(R.string.achievement_make_it_social));
                 } else {
                     RemoteLog.e("Failed to get Foursquare token: " + responseExchange.getException().getMessage());
                 }
@@ -180,13 +194,18 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
     public void onConnected(Bundle bundle) {
         invalidateOptionsMenu();
 
-        // TODO
+        new AchievementsTask().start();
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         invalidateOptionsMenu();
 
+        // TODO
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
         // TODO
     }
 
@@ -265,6 +284,66 @@ public class MainActivity extends BaseGameActivity implements GoogleApiClient.Co
 
         public GraphFragment getFragment(int position) {
             return mFragments.get(position);
+        }
+    }
+
+    public class AchievementsTask extends BaseAsyncTask {
+
+        private HashMap<String, Boolean> mAvailable = new HashMap<String, Boolean>();
+
+        @Override
+        public void inBackground() {
+            // Load achievements
+            PendingResult pending = Games.Achievements.load(mGoogleApiClient, false);
+            Achievements.LoadAchievementsResult result = (Achievements.LoadAchievementsResult)pending
+                .await(60, TimeUnit.SECONDS);
+
+            int status = result.getStatus().getStatusCode();
+            if (status != GamesStatusCodes.STATUS_OK) {
+                result.release();
+                return;
+            }
+
+            AchievementBuffer buffer = result.getAchievements();
+            int bufSize = buffer.getCount();
+            for (int i = 0; i < bufSize; i++) {
+                Achievement achievement = buffer.get(i);
+
+                mAvailable.put(
+                    achievement.getAchievementId(),
+                    achievement.getState() == Achievement.STATE_UNLOCKED
+                );
+            }
+
+            buffer.close();
+            result.release();
+        }
+
+        @Override
+        public void postExecute() {
+            Set<String> queue = mPreferences.getAchievementsToUnlock();
+            if (queue == null || queue.isEmpty()) {
+                return; // Nothing to do
+            }
+
+            // Unlock waiting achievements
+            for (String item : queue) {
+                Boolean unlocked = mAvailable.get(item);
+                if (unlocked != null && unlocked) {
+                    mPreferences.removeAchievementFromQueue(item);
+                    continue;
+                }
+
+                PendingResult pending = Games.Achievements.unlockImmediate(mGoogleApiClient, item);
+                Achievements.UpdateAchievementResult result = (Achievements.UpdateAchievementResult)pending.await();
+
+                if (result != null) {
+                    int status = result.getStatus().getStatusCode();
+                    if (status == GamesStatusCodes.STATUS_OK) {
+                        mPreferences.removeAchievementFromQueue(item);
+                    }
+                }
+            }
         }
     }
 }

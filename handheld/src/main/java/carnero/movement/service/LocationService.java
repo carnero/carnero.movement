@@ -39,9 +39,11 @@ import carnero.movement.model.MovementData;
 import carnero.movement.model.OnFootMetrics;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.example.games.basegameutils.GameHelper;
 import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
@@ -60,6 +62,7 @@ public class LocationService
     private PowerManager.WakeLock mWakeLock;
     private final ArrayList<Location> mLocationHistory = new ArrayList<Location>();
     private final ArrayList<OnFootMetrics> mOnFootHistory = new ArrayList<OnFootMetrics>();
+    private final ArrayList<String> mAchievements = new ArrayList<String>();
     private boolean[] mObtained = new boolean[]{false, false}; // Matches OBTAINED_ constants
     private int mWatchX = 320;
     private int mWatchY = 320;
@@ -580,6 +583,7 @@ public class LocationService
 
     private void handleData() {
         saveToDB();
+        checkAchievements();
         sendDataToWear();
         notifyHandheld();
     }
@@ -624,6 +628,23 @@ public class LocationService
                 (double)today.steps / (double)yesterday.steps,
                 (double)today.distance / (double)yesterday.distance
             );
+        }
+    }
+
+    private void checkAchievements() {
+        // Warning: This is not the only place where achievements are handled
+
+        // Distance
+        if (mDistance > 100000) {
+            addAchievement(getString(R.string.achievement_100_km));
+        }
+
+        // Steps
+        if (mSteps > 100) {
+            addAchievement(getString(R.string.achievement_first_steps));
+        }
+        if (mSteps > 100000) {
+            addAchievement(getString(R.string.achievement_100k_steps));
         }
     }
 
@@ -813,6 +834,10 @@ public class LocationService
                 int walkMins = (int) Math.round(walk / 1e9 / 60.0);
                 int runMins = (int) Math.round(run / 1e9 / 60.0);
 
+                if (runMins > 5) {
+                    addAchievement(getString(R.string.achievement_first_run));
+                }
+
                 text_2l = getString(R.string.notification_activity, walkMins, runMins);
             }
         }
@@ -840,5 +865,14 @@ public class LocationService
         mNotificationManager.notify(Constants.ID_NOTIFICATION_SERVICE, builder.build());
 
         mLastSentToNotification = SystemClock.elapsedRealtime();
+    }
+
+    private void addAchievement(String achievement) {
+        if (mAchievements.contains(achievement)) {
+            return;
+        }
+
+        mPreferences.addAchievementToQueue(achievement);
+        mAchievements.add(achievement);
     }
 }

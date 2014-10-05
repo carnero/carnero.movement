@@ -31,6 +31,7 @@ import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.model.XY;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.StepsPath;
@@ -258,6 +259,13 @@ public class GraphFragment extends Fragment {
                     distancePrev = model.distance;
                 }
 
+                if (steps < 0) {
+                    steps = 0;
+                }
+                if (distance < 0) {
+                    distance = 0;
+                }
+
                 // Min/max values
                 mMinStp = Math.min(mMinStp, steps);
                 mMaxStp = Math.max(mMaxStp, steps);
@@ -419,7 +427,6 @@ public class GraphFragment extends Fragment {
                 return;
             }
 
-            // Stats
             float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
             int stepsDay = mLabelStepsMax - mLabelStepsMin;
 
