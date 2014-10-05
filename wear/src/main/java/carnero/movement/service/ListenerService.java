@@ -184,6 +184,9 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             stepsChange = "↗";
         } else if (container.stepsChange < 1.0) {
             stepsPercent = (1.0 - container.stepsChange) * 100f;
+            if (stepsPercent > 100) {
+                stepsPercent = 100f;
+            }
             stepsChange = "↘";
         } else {
             stepsPercent = 0;
@@ -194,6 +197,9 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             distanceChange = "↗";
         } else if (container.distanceChange < 1.0) {
             distancePercent = (1.0 - container.distanceChange) * 100f;
+            if (distancePercent > 100) {
+                distancePercent = 100f;
+            }
             distanceChange = "↘";
         } else {
             distancePercent = 0;
@@ -212,6 +218,13 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             distanceString = String.valueOf((int)distancePercent) + "%";
         } else {
             distanceString = getString(R.string.stats_lot);
+        }
+
+        if (container.distanceToday < 0) {
+            container.distanceToday = 0;
+        }
+        if (container.stepsToday < 0) {
+            container.stepsToday = 0;
         }
 
         final Notification.BigTextStyle style = new Notification.BigTextStyle();
