@@ -337,6 +337,11 @@ public class MainActivity
                 if (updateResult != null) {
                     int updateStatus = updateResult.getStatus().getStatusCode();
                     if (updateStatus == GamesStatusCodes.STATUS_OK) {
+                        if (item.equalsIgnoreCase(getString(R.string.achievement_100000_km))) {
+                            Games.Achievements.reveal(mGoogleApiClient, getString(R.string.achievement_384400_km));
+                            Games.Achievements.reveal(mGoogleApiClient, getString(R.string.achievement_1_au));
+                        }
+
                         mPreferences.removeAchievementFromQueue(item);
                     }
                 }

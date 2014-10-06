@@ -638,6 +638,21 @@ public class LocationService
         if (mDistance > 100000) {
             addAchievement(getString(R.string.achievement_100_km));
         }
+        if (mDistance > 1000000) {
+            addAchievement(getString(R.string.achievement_1000_km));
+        }
+        if (mDistance > 40075000) {
+            addAchievement(getString(R.string.achievement_40075_km));
+        }
+        if (mDistance > 100000000) {
+            addAchievement(getString(R.string.achievement_100000_km));
+        }
+        if (mDistance > 384400000) {
+            addAchievement(getString(R.string.achievement_384400_km));
+        }
+        if (mDistance > 149597871000l) {
+            addAchievement(getString(R.string.achievement_1_au));
+        }
 
         // Steps
         if (mSteps > 100) {
@@ -645,6 +660,18 @@ public class LocationService
         }
         if (mSteps > 100000) {
             addAchievement(getString(R.string.achievement_100k_steps));
+        }
+        if (mSteps > 500000) {
+            addAchievement(getString(R.string.achievement_500k_steps));
+        }
+        if (mSteps > 1000000) {
+            addAchievement(getString(R.string.achievement_1m_steps));
+        }
+        if (mSteps > 10000000) {
+            addAchievement(getString(R.string.achievement_10m_steps));
+        }
+        if (mSteps > 100000000) {
+            addAchievement(getString(R.string.achievement_100m_steps));
         }
     }
 
