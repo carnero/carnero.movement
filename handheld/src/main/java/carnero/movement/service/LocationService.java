@@ -145,7 +145,7 @@ public class LocationService
         mAlarmManager.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME_WAKEUP,
             SystemClock.elapsedRealtime() + (10 * 60 * 1000),
-            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+            21 * 60 * 1000, // 21 mins
             alarmIntent
         );
 
@@ -200,7 +200,7 @@ public class LocationService
                 };
 
                 final Timer timer = new Timer(true);
-                timer.schedule(task, 60 * 1000); // 1 mins
+                timer.schedule(task, 30 * 1000); // 30 sec
             }
         }
 
@@ -289,7 +289,6 @@ public class LocationService
         if (location.getAccuracy() > 1000) {
             return;
         }
-
 
         boolean distanceThrShort = true;
         boolean distanceThrLong = true;
