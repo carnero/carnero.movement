@@ -13,6 +13,7 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:20.+'
     compile 'com.google.android.gms:play-services:5.0.+'
+    compile "com.android.support:cardview-v7:+"
     compile project(':base-game-utils')
     compile 'com.jakewharton:butterknife:5.1.1'
     compile 'Teleport:teleportlib:0.1.1'
