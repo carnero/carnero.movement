@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.format.DateUtils;
 
 import carnero.movement.App;
+import carnero.movement.common.Utils;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
@@ -120,18 +121,9 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public MovementData getSummaryForDay(int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        long[] dayTimes = Utils.getTimesForDay(day);
 
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        long millisStart = calendar.getTimeInMillis();
-
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        long millisEnd = calendar.getTimeInMillis();
-
-        return getSummary(millisStart, millisEnd);
+        return getSummary(dayTimes[0], dayTimes[1]);
     }
 
     public MovementData getSummary(long start, long end) {
@@ -207,18 +199,9 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public MovementContainer getDataForDay(int day, int intervals) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        long[] dayTimes = Utils.getTimesForDay(day);
 
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        long millisStart = calendar.getTimeInMillis();
-
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        long millisEnd = calendar.getTimeInMillis();
-
-        return getData(millisStart, millisEnd, intervals);
+        return getData(dayTimes[0], dayTimes[1], intervals);
     }
 
     public MovementContainer getData(long start, long end, int intervals) {
@@ -343,21 +326,6 @@ public class Helper extends SQLiteOpenHelper {
         return container;
     }
 
-    public ArrayList<Location> getLocationsForDay(int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        long millisStart = calendar.getTimeInMillis();
-
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        long millisEnd = calendar.getTimeInMillis();
-
-        return getLocations(millisStart, millisEnd);
-    }
-
     public ArrayList<Location> getLocations(long start, long end) {
         final ArrayList<Location> data = new ArrayList<Location>();
 
@@ -420,18 +388,9 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public ArrayList<Movement> getMovementsForDay(int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        long[] dayTimes = Utils.getTimesForDay(day);
 
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        long millisStart = calendar.getTimeInMillis();
-
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        long millisEnd = calendar.getTimeInMillis();
-
-        return getMovements(millisStart, millisEnd);
+        return getMovements(dayTimes[0], dayTimes[1]);
     }
 
     public ArrayList<Movement> getMovements(long start, long end) {
@@ -530,18 +489,9 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public ArrayList<Checkin> getCheckinsForDay(int day) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
+        long[] dayTimes = Utils.getTimesForDay(day);
 
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        long millisStart = calendar.getTimeInMillis();
-
-        calendar.add(Calendar.DAY_OF_MONTH, 1);
-        long millisEnd = calendar.getTimeInMillis();
-
-        return getCheckins(millisStart, millisEnd);
+        return getCheckins(dayTimes[0], dayTimes[1]);
     }
 
     public ArrayList<Checkin> getCheckins(long start, long end) {

@@ -1,6 +1,7 @@
 package carnero.movement.common;
 
 import java.io.*;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -143,5 +144,20 @@ public class Utils {
         }
 
         return true;
+    }
+
+    public static long[] getTimesForDay(int day) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        long millisStart = calendar.getTimeInMillis();
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long millisEnd = calendar.getTimeInMillis();
+
+        return new long[] {millisStart, millisEnd};
     }
 }

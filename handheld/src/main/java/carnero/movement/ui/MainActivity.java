@@ -1,6 +1,8 @@
 package carnero.movement.ui;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -10,19 +12,16 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.ViewGroup;
+import android.view.*;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.Constants;
-import carnero.movement.common.Preferences;
+import carnero.movement.common.*;
+import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.service.FoursquareService;
 import carnero.movement.service.LocationService;
@@ -46,8 +45,9 @@ public class MainActivity
 
     private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
-    private GoogleApiClient mGoogleApiClient;
     private boolean mHasFsqToken = true;
+    private GoogleApiClient mGoogleApiClient;
+    private final HashMap<Long, Achvmnt> mAchievements = new HashMap<Long, Achvmnt>();
     //
     private static final int HISTORY_PAGES = 31;
     private static final int REQUEST_FSQ_CONNECT = 1001;
@@ -99,6 +99,8 @@ public class MainActivity
                 if (fragment != null) {
                     vLabel.setText(fragment.getLabel());
                     vSubLabel.setText(fragment.getSubLabel());
+
+                    displayAchievements();
                 }
             }
 
@@ -233,11 +235,43 @@ public class MainActivity
         if (day == getDay(vPager.getCurrentItem())) {
             vLabel.setText(label);
             vSubLabel.setText(subLabel);
+
+            displayAchievements();
         }
     }
 
     private int getDay(int position) {
         return (position - HISTORY_PAGES + 1);
+    }
+
+    private void displayAchievements() {
+        // Achievements
+        final ArrayList<Achvmnt> achievements = new ArrayList<Achvmnt>();
+        final long[] dayTimes = Utils.getTimesForDay(getDay(vPager.getCurrentItem()));
+
+        synchronized (mAchievements) {
+            final Set<Long> keys = mAchievements.keySet();
+            for (Long key : keys) {
+                Achvmnt achievement = mAchievements.get(key);
+
+                if (achievement != null && key >= dayTimes[0] && key < dayTimes[1]) {
+                    achievements.add(achievement);
+                }
+            }
+        }
+
+        /* TODO: add grid next to date
+        vAchievements.removeAllViews();
+        for (Achvmnt achvmnt : achievements) {
+            View view = mInflater.inflate(R.layout.item_achievement, vAchievements, false);
+            ImageView icon = (ImageView) view.findViewById(R.id.icon);
+
+            vAchievements.addView(view);
+
+            ImageLoaderSingleton.getInstance()
+                .displayImage(achvmnt.unlockedImageUrl, icon);
+        }
+        */
     }
 
     private void startFsqConnection() {
@@ -305,12 +339,6 @@ public class MainActivity
 
         @Override
         public void inBackground() {
-            final HashMap<String, Boolean> available = new HashMap<String, Boolean>();
-            final Set<String> queue = mPreferences.getAchievementsToUnlock();
-            if (queue == null || queue.isEmpty()) {
-                return; // Nothing to do
-            }
-
             // Load achievements
             PendingResult pending = Games.Achievements.load(mGoogleApiClient, false);
             Achievements.LoadAchievementsResult result = (Achievements.LoadAchievementsResult)pending
@@ -324,22 +352,42 @@ public class MainActivity
 
             AchievementBuffer buffer = result.getAchievements();
             int bufSize = buffer.getCount();
+
+            final HashMap<String, Integer> available = new HashMap<String, Integer>();
+            final HashMap<Long, Achvmnt> unlocked = new HashMap<Long, Achvmnt>();
             for (int i = 0; i < bufSize; i++) {
                 Achievement achievement = buffer.get(i);
 
-                available.put(
-                    achievement.getAchievementId(),
-                    achievement.getState() == Achievement.STATE_UNLOCKED
-                );
+                Achvmnt achvmnt = new Achvmnt();
+                achvmnt.id = achievement.getAchievementId();
+                achvmnt.state = achievement.getState();
+                achvmnt.lastChange = achievement.getLastUpdatedTimestamp();
+                achvmnt.unlockedImageUrl = achievement.getUnlockedImageUrl();
+
+                available.put(achvmnt.id, achvmnt.state);
+                if (achvmnt.state == Achievement.STATE_UNLOCKED) {
+                    unlocked.put(achvmnt.lastChange, achvmnt);
+                }
             }
 
             buffer.close();
             result.release();
 
+            synchronized (mAchievements) {
+                mAchievements.clear();
+                mAchievements.putAll(unlocked);
+            }
+
+            // Check waiting achievements
+            final Set<String> queue = mPreferences.getAchievementsToUnlock();
+            if (queue == null || queue.isEmpty()) {
+                return; // Nothing to do
+            }
+
             // Unlock waiting achievements
             for (String item : queue) {
-                Boolean unlocked = available.get(item);
-                if (unlocked != null && unlocked) {
+                int state = available.get(item);
+                if (state == Achievement.STATE_UNLOCKED) {
                     mPreferences.removeAchievementFromQueue(item);
                     continue;
                 }

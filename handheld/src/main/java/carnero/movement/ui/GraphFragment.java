@@ -15,11 +15,8 @@ import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.*;
 import android.widget.FrameLayout.LayoutParams;
-import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -31,6 +28,7 @@ import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
+import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.model.XY;
@@ -43,6 +41,7 @@ import carnero.movement.model.Location;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
 import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
@@ -75,7 +74,7 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.graph)
     SplineGraph vGraph;
     @InjectView(R.id.checkins_container)
-    FrameLayout vCheckins;
+    FrameLayout vCheckinsContainer;
     @InjectView(R.id.separator)
     View vSeparator;
     @InjectView(R.id.map)
@@ -427,7 +426,7 @@ public class GraphFragment extends Fragment {
                 vStatsSteps.setVisibility(View.GONE);
                 vStatsDistance.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
-                vCheckins.setVisibility(View.GONE);
+                vCheckinsContainer.setVisibility(View.GONE);
                 vSeparator.setVisibility(View.GONE);
                 vMap.setVisibility(View.GONE);
 
@@ -450,18 +449,18 @@ public class GraphFragment extends Fragment {
             vGraph.setData(mPaths);
 
             // Checkins
-            int containerWidth = vCheckins.getWidth();
-            int containerHeight = vCheckins.getHeight();
+            int containerWidth = vCheckinsContainer.getWidth();
+            int containerHeight = vCheckinsContainer.getHeight();
             int checkinWidth = getResources().getDimensionPixelSize(R.dimen.swarm_icon_width);
             int checkinHeight = getResources().getDimensionPixelSize(R.dimen.swarm_icon_height);
             int checkinMarginBottom = getResources().getDimensionPixelSize(R.dimen.swarm_icon_margin_bottom);
             double widthMilli = containerWidth / (double)(24 * 60 * 60 * 1000);
 
-            vCheckins.setVisibility(View.GONE);
-            vCheckins.removeAllViewsInLayout();
+            vCheckinsContainer.setVisibility(View.GONE);
+            vCheckinsContainer.removeAllViewsInLayout();
             if (containerWidth > 0) {
                 for (Checkin checkin : mCheckins) {
-                    final View layout = mInflater.inflate(R.layout.item_swarm, vCheckins, false);
+                    final View layout = mInflater.inflate(R.layout.item_swarm, vCheckinsContainer, false);
                     ImageView icon = (ImageView) layout.findViewById(R.id.icon);
 
                     int marginLeft = (int)Math.round((checkin.createdAt - mMidnight) * widthMilli);
@@ -492,14 +491,14 @@ public class GraphFragment extends Fragment {
                     params.leftMargin = marginLeft;
                     params.topMargin = containerHeight - (marginBottom + checkinMarginBottom) - checkinHeight;
 
-                    vCheckins.addView(layout, params);
+                    vCheckinsContainer.addView(layout, params);
 
                     ImageLoaderSingleton.getInstance()
                         .displayImage(checkin.iconPrefix + Checkin.sizes[3] + checkin.iconSuffix, icon);
                 }
             }
-            vCheckins.bringToFront();
-            vCheckins.setVisibility(View.VISIBLE);
+            vCheckinsContainer.bringToFront();
+            vCheckinsContainer.setVisibility(View.VISIBLE);
 
             // Locations
             final GoogleMap map = vMap.getMap();
