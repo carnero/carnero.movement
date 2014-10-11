@@ -1,9 +1,11 @@
 package carnero.movement.ui;
 
 import java.text.DateFormat;
+import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,9 +15,10 @@ import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
+import android.widget.FrameLayout.LayoutParams;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
@@ -57,6 +60,7 @@ public class GraphFragment extends Fragment {
     private final ArrayList<SplinePath> mPaths = new ArrayList<SplinePath>();
     private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
     private String mLabel;
+    private String mSubLabel;
     //
     private float mMapStrokeWidth;
     private int mMapColorStart;
@@ -71,7 +75,7 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.graph)
     SplineGraph vGraph;
     @InjectView(R.id.checkins_container)
-    RelativeLayout vCheckins;
+    FrameLayout vCheckins;
     @InjectView(R.id.separator)
     View vSeparator;
     @InjectView(R.id.map)
@@ -119,7 +123,6 @@ public class GraphFragment extends Fragment {
 
         MapsInitializer.initialize(getActivity());
         vMap.onCreate(state);
-
         initMap();
         initGraph();
 
@@ -171,6 +174,10 @@ public class GraphFragment extends Fragment {
 
     public String getLabel() {
         return mLabel;
+    }
+
+    public String getSubLabel() {
+        return mSubLabel;
     }
 
     // Classes
@@ -396,19 +403,24 @@ public class GraphFragment extends Fragment {
             // Date
             if (getDay() == 0) {
                 mLabel = getString(R.string.today);
+                mSubLabel = null;
             } else if (getDay() == -1) {
                 mLabel = getString(R.string.yesterday);
+                mSubLabel = null;
             } else {
                 Calendar calendar = Calendar.getInstance();
                 calendar.add(Calendar.DAY_OF_MONTH, getDay());
 
                 DateFormat format = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM);
+                DateFormatSymbols symbols = new DateFormatSymbols(Locale.getDefault());
+                String[] days = symbols.getWeekdays();
 
-                mLabel = format.format(calendar.getTime());
+                mLabel = days[calendar.get(Calendar.DAY_OF_WEEK)];
+                mSubLabel = format.format(calendar.getTime());
             }
 
             MainActivity activity = (MainActivity) getActivity();
-            activity.setLabel(getDay(), mLabel);
+            activity.setLabel(getDay(), mLabel, mSubLabel);
 
             // No data
             if (mContainer == null || mContainer.locations == null || mContainer.locations.size() < 2) {
@@ -445,10 +457,11 @@ public class GraphFragment extends Fragment {
             int checkinMarginBottom = getResources().getDimensionPixelSize(R.dimen.swarm_icon_margin_bottom);
             double widthMilli = containerWidth / (double)(24 * 60 * 60 * 1000);
 
+            vCheckins.setVisibility(View.GONE);
             vCheckins.removeAllViewsInLayout();
             if (containerWidth > 0) {
                 for (Checkin checkin : mCheckins) {
-                    View layout = mInflater.inflate(R.layout.item_swarm, vCheckins, false);
+                    final View layout = mInflater.inflate(R.layout.item_swarm, vCheckins, false);
                     ImageView icon = (ImageView) layout.findViewById(R.id.icon);
 
                     int marginLeft = (int)Math.round((checkin.createdAt - mMidnight) * widthMilli);
@@ -472,22 +485,21 @@ public class GraphFragment extends Fragment {
                         layout.setBackgroundResource(R.drawable.bg_swarm_right);
                     }
 
-                    ImageLoaderSingleton.getInstance()
-                        .displayImage(checkin.iconPrefix + Checkin.sizes[3] + checkin.iconSuffix, icon);
-
                     LayoutParams params = new LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
+                        checkinWidth,
+                        checkinHeight
                     );
-                    params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
                     params.leftMargin = marginLeft;
-                    params.bottomMargin = marginBottom + checkinMarginBottom;
+                    params.topMargin = containerHeight - (marginBottom + checkinMarginBottom) - checkinHeight;
 
                     vCheckins.addView(layout, params);
+
+                    ImageLoaderSingleton.getInstance()
+                        .displayImage(checkin.iconPrefix + Checkin.sizes[3] + checkin.iconSuffix, icon);
                 }
             }
             vCheckins.bringToFront();
+            vCheckins.setVisibility(View.VISIBLE);
 
             // Locations
             final GoogleMap map = vMap.getMap();

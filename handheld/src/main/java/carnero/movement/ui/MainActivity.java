@@ -47,6 +47,7 @@ public class MainActivity
     private PagesAdapter mPagerAdapter;
     private Preferences mPreferences;
     private GoogleApiClient mGoogleApiClient;
+    private boolean mHasFsqToken = true;
     //
     private static final int HISTORY_PAGES = 31;
     private static final int REQUEST_FSQ_CONNECT = 1001;
@@ -55,6 +56,8 @@ public class MainActivity
     //
     @InjectView(R.id.label)
     TextView vLabel;
+    @InjectView(R.id.sub_label)
+    TextView vSubLabel;
     @InjectView(R.id.pager)
     ViewPager vPager;
 
@@ -95,6 +98,7 @@ public class MainActivity
                 final GraphFragment fragment = mPagerAdapter.getFragment(i);
                 if (fragment != null) {
                     vLabel.setText(fragment.getLabel());
+                    vSubLabel.setText(fragment.getSubLabel());
                 }
             }
 
@@ -108,6 +112,13 @@ public class MainActivity
                 // empty
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        new MenuTask().start();
     }
 
     @Override
@@ -129,7 +140,7 @@ public class MainActivity
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.menu_foursquare).setVisible(!mPreferences.hasFoursquareToken());
+        menu.findItem(R.id.menu_foursquare).setVisible(!mHasFsqToken);
         menu.findItem(R.id.menu_achievements).setVisible(mGoogleApiClient.isConnected());
 
         return super.onPrepareOptionsMenu(menu);
@@ -218,9 +229,10 @@ public class MainActivity
         // TODO
     }
 
-    public void setLabel(int day, String label) {
+    public void setLabel(int day, String label, String subLabel) {
         if (day == getDay(vPager.getCurrentItem())) {
             vLabel.setText(label);
+            vSubLabel.setText(subLabel);
         }
     }
 
@@ -286,6 +298,9 @@ public class MainActivity
         }
     }
 
+    /**
+     * Check achievements queue and unlock if necessary
+     */
     public class AchievementsTask extends BaseAsyncTask {
 
         @Override
@@ -350,6 +365,27 @@ public class MainActivity
         @Override
         public void postExecute() {
             // Nothing
+        }
+    }
+
+    /**
+     * Load data for options menu off UI
+     */
+    private class MenuTask extends BaseAsyncTask {
+
+        private boolean mHasToken = false;
+
+        @Override
+        public void inBackground() {
+            mHasToken = mPreferences.hasFoursquareToken();
+        }
+
+        @Override
+        public void postExecute() {
+            if (mHasFsqToken != mHasToken) {
+                mHasFsqToken = mHasToken;
+                invalidateOptionsMenu();
+            }
         }
     }
 }

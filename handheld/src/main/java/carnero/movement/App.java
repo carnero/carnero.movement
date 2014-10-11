@@ -1,6 +1,9 @@
 package carnero.movement;
 
+import android.os.StrictMode;
+
 import carnero.movement.common.Application;
+import carnero.movement.common.BaseAsyncTask;
 import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.remotelog.RemoteLog;
@@ -18,24 +21,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // Handle database backup/restore
-        Preferences preferences = new Preferences();
-        if (preferences.getLastBackup() < (System.currentTimeMillis() - (12 * 60 * 60 * 1000))) { // 24 hrs
-            boolean status = Utils.backupDatabase(Structure.name);
-
-            if (status) {
-                RemoteLog.i(
-                    "Database backed up (" + preferences.getSteps() + " steps, " + preferences.getDistance() + " m)"
-                );
-
-                preferences.saveLastBackup(System.currentTimeMillis());
-            }
-        }
-
-        Utils.restoreDatabase(Structure.name);
-
         // Set alarm for foursquare
-        FoursquareService.setAlarm(false);
+        new FoursquareTask().start();
     }
 
     public static synchronized Tracker getTracker() {
@@ -45,5 +32,20 @@ public class App extends Application {
         }
 
         return sTracker;
+    }
+
+    // Classes
+
+    private class FoursquareTask extends BaseAsyncTask {
+
+        @Override
+        public void inBackground() {
+            FoursquareService.setAlarm(false);
+        }
+
+        @Override
+        public void postExecute() {
+            // nothing
+        }
     }
 }

@@ -70,12 +70,6 @@ public class SplineGraph extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
-        // Create canvas if necessary
-        if (mCacheBitmap == null || mCacheBitmap.isRecycled()) {
-            mCacheBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-            mCacheCanvas = new Canvas(mCacheBitmap);
-        }
-
         // Clear canvas
         mCacheCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
@@ -96,6 +90,19 @@ public class SplineGraph extends View {
     protected void onSizeChanged(int w, int h, int wOld, int hOld) {
         super.onSizeChanged(w, h, wOld, hOld);
 
+        if (getWidth() == 0 || getHeight() == 0) {
+            return;
+        }
+
+        // Create canvas if necessary
+        if (mCacheBitmap == null || mCacheBitmap.isRecycled()
+            || mCacheBitmap.getWidth() != getWidth() || mCacheBitmap.getHeight() != getHeight()) {
+
+            mCacheBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+            mCacheCanvas = new Canvas(mCacheBitmap);
+        }
+
+        // Align paths to viewport
         synchronized (mPaths) {
             for (SplinePath path : mPaths) {
                 path.alignToViewPort(getWidth(), getHeight(), mPadding);

@@ -100,7 +100,7 @@
                 android:layout_above="@id/map"
                 android:background="@color/separator" />
 
-            <RelativeLayout
+            <FrameLayout
                 android:id="@+id/checkins_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

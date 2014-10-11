@@ -23,7 +23,7 @@ import carnero.movement.common.remotelog.ui.DialogActivity;
  */
 public final class RemoteLog implements Thread.UncaughtExceptionHandler {
 
-    private static final boolean sEnabled = true;
+    private static final boolean sEnabled = false;
     private static String sTagDefault = Constants.TAG;
     private static LogHelper sHelper;
     private static Thread.UncaughtExceptionHandler sDefaultHandler;

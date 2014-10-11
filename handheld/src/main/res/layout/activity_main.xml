@@ -1,8 +1,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bcg">
+    android:background="@color/bcg"
+    android:orientation="vertical">
 
     <!-- Spacer because of translucent system bar -->
     <View
@@ -11,23 +11,32 @@
         android:layout_height="78dp"
         android:background="@color/primary" />
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/panel"
         android:layout_width="match_parent"
         android:layout_height="72dp"
-        android:orientation="horizontal"
-        android:gravity="start|center_vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:background="@color/primary"
         android:elevation="5dp"
-        android:background="@color/primary">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp" >
 
         <TextView
-            style="@style/Text.Label"
             android:id="@+id/label"
+            style="@style/Text.Label"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"/>
+
+        <TextView
+            android:id="@+id/sub_label"
+            style="@style/Text.Label.Sub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/label"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_toEndOf="@id/label" />
+    </RelativeLayout>
 
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"

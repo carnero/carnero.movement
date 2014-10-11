@@ -19,26 +19,18 @@ public abstract class SplinePath {
     private Float mMaxY = null;
     private Spline mSpline;
     private Path mPath;
-    private Paint mPaintFill;
-    private Paint mPaintPathBase;
     private Paint mPaintPathStroke;
     private Paint mPaintPointBase;
     private Paint mPaintPointStroke;
     //
-    private int mFillColor1;
-    private int mFillColor2;
-    private int mStrokeColor1;
-    private int mStrokeColor2;
+    private int mPathColor;
+    private int mPathColor2;
     //
     protected boolean mFillPath = false;
-    protected int mFillColor1Res = R.color.none;
-    protected int mFillColor2Res = R.color.none;
-    protected int mFillGradient = GRADIENT_NONE;
     protected int mStrokeWidthRes = R.dimen.graph_stroke;
-    protected int mStrokeColor1Res = R.color.none;
-    protected int mStrokeColor2Res = R.color.none;
-    protected boolean mStrokeGradient = false;
-    protected int mPathWidthRes = R.dimen.graph_path;
+    protected int mPathColorRes = R.color.none;
+    protected int mPathColor2Res = R.color.none;
+    protected boolean mPathGradient = false;
     protected boolean mShowPoints = false;
     protected int mPointColorRes = R.color.none;
     protected int mPointSizeRes = R.dimen.graph_point;
@@ -58,14 +50,11 @@ public abstract class SplinePath {
 
     public void init(Resources resources) {
         // Load resources
-        mFillColor1 = resources.getColor(mFillColor1Res);
-        mFillColor2 = resources.getColor(mFillColor2Res);
-        mStrokeColor1 = resources.getColor(mStrokeColor1Res);
-        mStrokeColor2 = resources.getColor(mStrokeColor2Res);
+        mPathColor = resources.getColor(mPathColorRes);
+        mPathColor2 = resources.getColor(mPathColor2Res);
 
         final int pointColor = resources.getColor(mPointColorRes);
         final int strokeWidth = resources.getDimensionPixelSize(mStrokeWidthRes);
-        final int pathWidth = resources.getDimensionPixelSize(mPathWidthRes);
         final int pointSize;
         if (mPointSizeRes == 0) {
             pointSize = strokeWidth;
@@ -80,33 +69,21 @@ public abstract class SplinePath {
         }
 
         // Initialize paints
-        mPaintFill = new Paint();
-        mPaintFill.setColor(mFillColor1);
-        mPaintFill.setStrokeWidth(1);
-        mPaintFill.setStyle(Paint.Style.STROKE);
-
-        mPaintPathBase = new Paint(); // For the transparent "corridor" for line
-        mPaintPathBase.setAntiAlias(true);
-        mPaintPathBase.setColor(Color.TRANSPARENT);
-        mPaintPathBase.setMaskFilter(new BlurMaskFilter(2, BlurMaskFilter.Blur.NORMAL));
-        mPaintPathBase.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        mPaintPathBase.setStrokeWidth(pathWidth);
-        mPaintPathBase.setStyle(Paint.Style.STROKE);
-        mPaintPathBase.setStrokeJoin(Paint.Join.ROUND);
-        mPaintPathBase.setStrokeCap(Paint.Cap.ROUND);
-
         mPaintPathStroke = new Paint(); // For the line itself
         mPaintPathStroke.setAntiAlias(true);
-        mPaintPathStroke.setColor(mStrokeColor1);
+        mPaintPathStroke.setColor(mPathColor);
         mPaintPathStroke.setStrokeWidth(strokeWidth);
-        mPaintPathStroke.setStyle(Paint.Style.STROKE);
         mPaintPathStroke.setStrokeJoin(Paint.Join.ROUND);
         mPaintPathStroke.setStrokeCap(Paint.Cap.ROUND);
+        if (mFillPath) {
+            mPaintPathStroke.setStyle(Paint.Style.FILL);
+        } else {
+            mPaintPathStroke.setStyle(Paint.Style.STROKE);
+        }
 
         mPaintPointBase = new Paint();
         mPaintPointBase.setAntiAlias(true);
         mPaintPointBase.setColor(Color.TRANSPARENT);
-        mPaintPointBase.setMaskFilter(new BlurMaskFilter(2, BlurMaskFilter.Blur.NORMAL));
         mPaintPointBase.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         mPaintPointBase.setStrokeWidth(pointSize + pointPadding);
         mPaintPointBase.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -168,39 +145,14 @@ public abstract class SplinePath {
         mPadding = padding;
 
         // Set gradients
-        if (mFillGradient == GRADIENT_HORIZONTAL) {
+        if (mPathGradient) {
             final Shader shader = new LinearGradient(
                 padding[3],
                 0,
                 width - padding[1],
                 0,
-                mFillColor1,
-                mFillColor2,
-                Shader.TileMode.CLAMP
-            );
-
-            mPaintFill.setShader(shader);
-        } else if (mFillGradient == GRADIENT_VERTICAL) {
-            final Shader shader = new LinearGradient(
-                0,
-                padding[2],
-                0,
-                height - padding[0],
-                mFillColor1,
-                mFillColor2,
-                Shader.TileMode.CLAMP
-            );
-
-            mPaintFill.setShader(shader);
-        }
-        if (mStrokeGradient) {
-            final Shader shader = new LinearGradient(
-                padding[3],
-                0,
-                width - padding[1],
-                0,
-                mStrokeColor1,
-                mStrokeColor2,
+                mPathColor,
+                mPathColor2,
                 Shader.TileMode.CLAMP
             );
 
@@ -276,15 +228,9 @@ public abstract class SplinePath {
             mPixels.clear();
             mPixels.addAll(curve);
         }
-    }
 
-    public void draw(Canvas canvas, int[] padding) {
         // Clear path
         mPath.reset();
-
-        if (mSpline == null) {
-            return;
-        }
 
         // Create path, smooth point-to-point segments
         synchronized (mPixels) {
@@ -312,8 +258,18 @@ public abstract class SplinePath {
             }
 
             boolean first = true;
+            DeltaPoint point = null;
+
+            // Always start at the bottom
+            mPath.lineTo(
+                padding[3],
+                height + padding[0]
+            );
+
+            // Draw path
             for (int i = 0; i < mPixels.size(); i++) {
-                final DeltaPoint point = mPixels.get(i);
+                point = mPixels.get(i);
+
                 if (first) {
                     mPath.moveTo(
                         point.x + padding[3],
@@ -333,24 +289,20 @@ public abstract class SplinePath {
                     );
                 }
             }
-        }
 
-        // Draw curve "corridor"
-        canvas.drawPath(mPath, mPaintPathBase);
-
-        // Fill path
-        if (mFillPath) {
-            synchronized (mPixels) {
-                for (DeltaPoint pixel : mPixels) {
-                    canvas.drawLine(
-                        pixel.x + padding[3],
-                        pixel.y + padding[0],
-                        pixel.x + padding[3],
-                        canvas.getHeight() - padding[2],
-                        mPaintFill
-                    );
-                }
+            // Always end at the bottom
+            if (point != null) {
+                mPath.lineTo(
+                    point.x + padding[3],
+                    height + padding[0]
+                );
             }
+        }
+    }
+
+    public void draw(Canvas canvas, int[] padding) {
+        if (mSpline == null) {
+            return;
         }
 
         // Draw curve

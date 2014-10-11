@@ -1,5 +1,8 @@
 package carnero.movement.model;
 
+import android.view.View;
+import android.widget.RelativeLayout.LayoutParams;
+
 @SuppressWarnings("unused")
 public class Checkin {
 
