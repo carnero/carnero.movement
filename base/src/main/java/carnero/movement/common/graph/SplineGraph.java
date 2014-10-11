@@ -70,14 +70,8 @@ public class SplineGraph extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
-        // Clear canvas
-        mCacheCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-
-        // Draw paths
-        synchronized (mPaths) {
-            for (SplinePath path : mPaths) {
-                path.draw(mCacheCanvas, mPadding);
-            }
+        if (mCacheBitmap == null) {
+            return;
         }
 
         // Draw it out
@@ -90,24 +84,18 @@ public class SplineGraph extends View {
     protected void onSizeChanged(int w, int h, int wOld, int hOld) {
         super.onSizeChanged(w, h, wOld, hOld);
 
-        if (getWidth() == 0 || getHeight() == 0) {
+        if (w <= 0 || h <= 0) {
             return;
-        }
-
-        // Create canvas if necessary
-        if (mCacheBitmap == null || mCacheBitmap.isRecycled()
-            || mCacheBitmap.getWidth() != getWidth() || mCacheBitmap.getHeight() != getHeight()) {
-
-            mCacheBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-            mCacheCanvas = new Canvas(mCacheBitmap);
         }
 
         // Align paths to viewport
         synchronized (mPaths) {
             for (SplinePath path : mPaths) {
-                path.alignToViewPort(getWidth(), getHeight(), mPadding);
+                path.alignToViewPort(w, h, mPadding);
             }
         }
+
+        drawIt();
     }
 
     public void setData(ArrayList<SplinePath> paths) {
@@ -121,6 +109,34 @@ public class SplineGraph extends View {
             }
         }
 
+        drawIt();
         invalidate();
+    }
+
+    private void drawIt() {
+        final int w = getWidth();
+        final int h = getHeight();
+
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+
+        // Create canvas if necessary
+        if (mCacheBitmap == null || mCacheBitmap.isRecycled()
+            || mCacheBitmap.getWidth() != w || mCacheBitmap.getHeight() != h) {
+
+            mCacheBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            mCacheCanvas = new Canvas(mCacheBitmap);
+        }
+
+        // Clear canvas
+        mCacheCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+        // Draw paths
+        synchronized (mPaths) {
+            for (SplinePath path : mPaths) {
+                path.draw(mCacheCanvas, mPadding);
+            }
+        }
     }
 }
