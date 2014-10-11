@@ -8,12 +8,11 @@ android {
         applicationId "carnero.movement"
         minSdkVersion "L"
         targetSdkVersion "L"
-        versionCode 66
-        versionName "0.06.6"
+        versionCode 70
+        versionName "0.07.0"
     }
     buildTypes {
         release {
-            debuggable true
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
