@@ -19,7 +19,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -39,11 +38,9 @@ import carnero.movement.model.MovementData;
 import carnero.movement.model.OnFootMetrics;
 import carnero.movement.receiver.WakeupReceiver;
 import carnero.movement.ui.MainActivity;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.example.games.basegameutils.GameHelper;
 import com.mariux.teleport.lib.TeleportClient;
 import com.mariux.teleport.lib.TeleportService;
 
@@ -581,10 +578,12 @@ public class LocationService
     }
 
     private void handleData() {
+        final MovementChange today = mHelper.getDayToDayChange(0);
+
         saveToDB();
         checkAchievements();
-        sendDataToWear();
-        notifyHandheld();
+        sendDataToWear(today);
+        notifyHandheld(today);
     }
 
     private void saveToDB() {
@@ -595,38 +594,6 @@ public class LocationService
         boolean status = mHelper.saveData(mSteps, mDistance, mLocation);
         if (status) {
             mLastSaveToDB = SystemClock.elapsedRealtime();
-        }
-    }
-
-    private MovementChange getToday() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
-        long yesterdayEnd = calendar.getTimeInMillis();
-
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        long yesterdayStart = calendar.getTimeInMillis();
-
-        final MovementData today = mHelper.getSummaryForDay(0);
-        final MovementData yesterday = mHelper.getSummary(yesterdayStart, yesterdayEnd);
-
-        if (today == null) {
-            return null;
-        } else if (yesterday == null) {
-            return new MovementChange(
-                today.steps,
-                today.distance,
-                1.0,
-                1.0
-            );
-        } else {
-            return new MovementChange(
-                today.steps,
-                today.distance,
-                (double)today.steps / (double)yesterday.steps,
-                (double)today.distance / (double)yesterday.distance
-            );
         }
     }
 
@@ -674,14 +641,13 @@ public class LocationService
         }
     }
 
-    private void sendDataToWear() {
+    private void sendDataToWear(MovementChange today) {
         if (mLastSentToWear > (SystemClock.elapsedRealtime() - (5 * 60 * 1000))
             && mMovementWear != null && mMovementWear.type == mMovement.type) {
             return;
         }
 
         // Summary
-        final MovementChange today = getToday();
         final ArrayList<DataMap> statusList = new ArrayList<DataMap>();
 
         if (today == null) {
@@ -788,17 +754,15 @@ public class LocationService
         mLastSentToWear = SystemClock.elapsedRealtime();
     }
 
-    private void notifyHandheld() {
+    private void notifyHandheld(MovementChange today) {
         if (mLastSentToNotification > (SystemClock.elapsedRealtime() - (1 * 60 * 1000))) {
             return;
         }
 
-        String text_1l;
-        String text_2l = "";
+        String text;
 
-        final MovementChange today = getToday();
         if (today == null) {
-            text_1l = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";
+            text = Utils.formatDistance(mDistance) + " | " + mSteps + " steps";
         } else {
             double stepsPercent;
             double distancePercent;
@@ -840,7 +804,7 @@ public class LocationService
                 distanceString = getString(R.string.stats_lot);
             }
 
-            text_1l = getString(R.string.notification_distance, distanceChange + " " + distanceString)
+            text = getString(R.string.notification_distance, distanceChange + " " + distanceString)
                 + " | "
                 + getString(R.string.notification_steps, stepsChange + " " + stepsString);
 
@@ -857,20 +821,12 @@ public class LocationService
                     }
                 }
 
-                int walkMins = (int) Math.round(walk / 1e9 / 60.0);
                 int runMins = (int) Math.round(run / 1e9 / 60.0);
-
                 if (runMins > 5) {
                     addAchievement(getString(R.string.achievement_first_run));
                 }
-
-                text_2l = getString(R.string.notification_activity, walkMins, runMins);
             }
         }
-
-        final Notification.BigTextStyle style = new Notification.BigTextStyle()
-            .setBigContentTitle(getString(R.string.notification_title))
-            .bigText(text_1l + "\n" + text_2l);
 
         final Notification.Builder builder = new Notification.Builder(this)
             .setPriority(Notification.PRIORITY_MIN)
@@ -878,9 +834,8 @@ public class LocationService
             .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)
             .setTicker(getString(R.string.notification_ticker))
-            .setStyle(style)
             .setContentTitle(getString(R.string.notification_title))
-            .setContentText(text_1l)
+            .setContentText(text)
             .setContentIntent(PendingIntent.getActivity(
                 LocationService.this,
                 1010,

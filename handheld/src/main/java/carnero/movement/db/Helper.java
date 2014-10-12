@@ -16,10 +16,7 @@ import carnero.movement.common.Utils;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
-import carnero.movement.model.Checkin;
-import carnero.movement.model.Location;
-import carnero.movement.model.MovementContainer;
-import carnero.movement.model.MovementData;
+import carnero.movement.model.*;
 
 public class Helper extends SQLiteOpenHelper {
 
@@ -536,5 +533,49 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         return data;
+    }
+
+    /**
+     * Get changes between given day and day before that
+     *
+     * @param day
+     * @return
+     */
+    public MovementChange getDayToDayChange(int day) {
+        final MovementData thisDay = getSummaryForDay(day);
+        final MovementData dayBefore;
+        if (day == 0) { // Get only interval to this time day before (incomplete this day)
+            final Calendar calendar = Calendar.getInstance();
+
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+            long yesterdayEnd = calendar.getTimeInMillis();
+
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            long yesterdayStart = calendar.getTimeInMillis();
+
+            dayBefore = getSummary(yesterdayStart, yesterdayEnd);
+        } else { // Days before today are completed
+            dayBefore = getSummaryForDay(day - 1);
+        }
+
+        if (thisDay == null) {
+            return null;
+        } else if (dayBefore == null) {
+            return new MovementChange(
+                thisDay.steps,
+                thisDay.distance,
+                1.0,
+                1.0
+            );
+        } else {
+            return new MovementChange(
+                thisDay.steps,
+                thisDay.distance,
+                (double)thisDay.steps / (double)dayBefore.steps,
+                (double)thisDay.distance / (double)dayBefore.distance
+            );
+        }
     }
 }
