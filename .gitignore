@@ -5,6 +5,7 @@ holographlibrary/
 build/
 .gradle/
 .DS_Store/
+*.apk
 
 # Stuff
 local.properties

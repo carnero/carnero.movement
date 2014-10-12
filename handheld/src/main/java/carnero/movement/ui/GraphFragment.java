@@ -10,13 +10,9 @@ import java.util.Locale;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.CardView;
-import android.text.TextUtils;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewAnimationUtils;
@@ -40,10 +36,11 @@ import carnero.movement.common.model.XY;
 import carnero.movement.db.Helper;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.StepsPath;
-import carnero.movement.model.*;
+import carnero.movement.model.Checkin;
+import carnero.movement.model.MovementChange;
+import carnero.movement.model.MovementContainer;
+import carnero.movement.model.MovementData;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.maps.*;
-import com.google.android.gms.maps.model.*;
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 public class GraphFragment extends Fragment {
@@ -82,7 +79,9 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.detailed_underlay)
     View vDetailedUnderlay;
     @InjectView(R.id.detailed_container)
-    LinearLayout vDetailedContainer;
+    RelativeLayout vDetailedContainer;
+    @InjectView(R.id.detailed_close)
+    TextView vDetailedClose;
     @InjectView(R.id.value_distance)
     LinearLayout vDetailDistance;
     @InjectView(R.id.value_steps)
@@ -146,25 +145,35 @@ public class GraphFragment extends Fragment {
     }
 
     private void initViews() {
-        vStatsContainer.setClickable(true);
         vStatsContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (vNoData.getVisibility() == View.VISIBLE) {
-                    return; // I said no data, so no details :)
-                }
+                switchDetailed();
+            }
+        });
 
-                if (vDetailedContainer.getVisibility() == View.INVISIBLE) {
-                    revealDetailedStats();
-                } else {
-                    hideDetailedStats();
-                }
+        vDetailedClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchDetailed();
             }
         });
     }
 
+    private void switchDetailed() {
+        if (vNoData.getVisibility() == View.VISIBLE) {
+            return; // I said no data, so no details :)
+        }
+
+        if (vDetailedContainer.getVisibility() == View.INVISIBLE) {
+            revealDetailedStats();
+        } else {
+            hideDetailedStats();
+        }
+    }
+
     private void revealDetailedStats() {
-        final int finalRadius = (int) (vDetailedContainer.getHeight() * 1.4);
+        final int finalRadius = (int)(vDetailedContainer.getHeight() * 1.4);
         final int cx = vStatsContainer.getLeft() + (vStatsContainer.getWidth() / 2);
         final int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
 
@@ -213,19 +222,19 @@ public class GraphFragment extends Fragment {
     }
 
     private void hideDetailedStats() {
-        final int startRadius = (int) (vDetailedContainer.getHeight() * 1.4);
-        final int cx = vDetailedContainer.getWidth() / 2;
-        final int cy = vDetailedContainer.getHeight() / 2;
+        final int startRadius = (int)(vDetailedContainer.getHeight() * 1.4);
+        final int cx = vDetailedClose.getLeft() + (vDetailedClose.getWidth() / 2);
+        final int cy = vDetailedClose.getTop() + (vDetailedClose.getHeight() / 2);
 
-        // Base
-        ValueAnimator animUnderlay = ViewAnimationUtils.createCircularReveal(
+        // View
+        ValueAnimator animContainer = ViewAnimationUtils.createCircularReveal(
             vDetailedContainer,
             cx,
             cy,
             startRadius,
             0
         );
-        animUnderlay.addListener(new AnimatorListenerAdapter() {
+        animContainer.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
                 super.onAnimationStart(animation);
@@ -240,7 +249,7 @@ public class GraphFragment extends Fragment {
                 vDetailedContainer.setVisibility(View.INVISIBLE);
             }
         });
-        animUnderlay.start();
+        animContainer.start();
     }
 
     private int getDay() {
@@ -384,8 +393,8 @@ public class GraphFragment extends Fragment {
                     }
                 }
 
-                mWalk = (int) (walk / 1e9);
-                mRun = (int) (run / 1e9);
+                mWalk = (int)(walk / 1e9);
+                mRun = (int)(run / 1e9);
             }
 
             // Checkins
@@ -423,7 +432,7 @@ public class GraphFragment extends Fragment {
                 mSubLabel = format.format(calendar.getTime());
             }
 
-            MainActivity activity = (MainActivity) getActivity();
+            MainActivity activity = (MainActivity)getActivity();
             activity.setLabel(getDay(), mLabel, mSubLabel);
 
             // No data
@@ -464,7 +473,7 @@ public class GraphFragment extends Fragment {
             if (containerWidth > 0) {
                 for (Checkin checkin : mCheckins) {
                     final View layout = mInflater.inflate(R.layout.item_swarm, vCheckinsContainer, false);
-                    ImageView icon = (ImageView) layout.findViewById(R.id.icon);
+                    ImageView icon = (ImageView)layout.findViewById(R.id.icon);
 
                     int marginLeft = (int)Math.round((checkin.createdAt - mMidnight) * widthMilli);
                     int marginBottom = containerHeight - mPathDistance.getPixelValue(marginLeft);
@@ -550,28 +559,28 @@ public class GraphFragment extends Fragment {
             }
 
             // Detailed statistics
-            ((TextView) vDetailDistance.findViewById(R.id.label))
+            ((TextView)vDetailDistance.findViewById(R.id.label))
                 .setText(R.string.title_distance);
-            ((TextView) vDetailDistance.findViewById(R.id.value))
+            ((TextView)vDetailDistance.findViewById(R.id.value))
                 .setText(Utils.formatDistance(stepsDay));
-            ((TextView) vDetailDistance.findViewById(R.id.value_sub))
+            ((TextView)vDetailDistance.findViewById(R.id.value_sub))
                 .setText(distanceChange + " " + distanceString);
 
-            ((TextView) vDetailSteps.findViewById(R.id.label))
+            ((TextView)vDetailSteps.findViewById(R.id.label))
                 .setText(R.string.title_steps);
-            ((TextView) vDetailSteps.findViewById(R.id.value))
+            ((TextView)vDetailSteps.findViewById(R.id.value))
                 .setText(getString(R.string.stats_steps, stepsDay));
-            ((TextView) vDetailSteps.findViewById(R.id.value_sub))
+            ((TextView)vDetailSteps.findViewById(R.id.value_sub))
                 .setText(stepsChange + " " + stepsString);
 
-            ((TextView) vDetailWalk.findViewById(R.id.label))
+            ((TextView)vDetailWalk.findViewById(R.id.label))
                 .setText(R.string.title_walk);
-            ((TextView) vDetailWalk.findViewById(R.id.value))
+            ((TextView)vDetailWalk.findViewById(R.id.value))
                 .setText(getString(R.string.stats_activity, mWalk / 60));
 
-            ((TextView) vDetailRun.findViewById(R.id.label))
+            ((TextView)vDetailRun.findViewById(R.id.label))
                 .setText(R.string.title_run);
-            ((TextView) vDetailRun.findViewById(R.id.value))
+            ((TextView)vDetailRun.findViewById(R.id.value))
                 .setText(getString(R.string.stats_activity, mRun / 60));
         }
     }
