@@ -12,6 +12,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
@@ -53,6 +54,7 @@ public class GraphFragment extends Fragment {
     private Helper mHelper;
     private Preferences mPreferences;
     private LayoutInflater mInflater;
+    private Handler mHandler = new Handler();
     private long mMidnight = 0;
     private final ArrayList<XY> mPointsDistance = new ArrayList<XY>();
     private final ArrayList<XY> mPointsSteps = new ArrayList<XY>();
@@ -80,6 +82,8 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.progressbar)
     SmoothProgressBar vProgressBar;
     //
+    @InjectView(R.id.detailed_underlay)
+    View vDetailedUnderlay;
     @InjectView(R.id.detailed_container)
     RelativeLayout vDetailedContainer;
 
@@ -141,13 +145,50 @@ public class GraphFragment extends Fragment {
         vStatsContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int finalRadius = vDetailedContainer.getHeight();
-                int cx = vStatsContainer.getLeft() + (vStatsContainer.getWidth() / 2);
-                int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
+                if (vDetailedContainer.getVisibility() == View.INVISIBLE) {
+                    revealDetailedStats();
+                } else {
+                    hideDetailedStats();
+                }
+            }
+        });
+    }
 
-                ValueAnimator anim = ViewAnimationUtils
-                    .createCircularReveal(vDetailedContainer, cx, cy, 0, finalRadius);
-                anim.addListener(new AnimatorListenerAdapter() {
+    private void revealDetailedStats() {
+        final int finalRadius = (int) (vDetailedContainer.getHeight() * 1.4);
+        final int cx = vStatsContainer.getLeft() + (vStatsContainer.getWidth() / 2);
+        final int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
+
+        // Base
+        ValueAnimator animUnderlay = ViewAnimationUtils.createCircularReveal(
+            vDetailedUnderlay,
+            cx,
+            cy,
+            0,
+            finalRadius
+        );
+        animUnderlay.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+
+                vDetailedUnderlay.setVisibility(View.VISIBLE);
+            }
+        });
+        animUnderlay.start();
+
+        // View
+        Runnable containerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                ValueAnimator animContainer = ViewAnimationUtils.createCircularReveal(
+                    vDetailedContainer,
+                    cx,
+                    cy,
+                    0,
+                    finalRadius
+                );
+                animContainer.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationStart(Animator animation) {
                         super.onAnimationStart(animation);
@@ -155,9 +196,42 @@ public class GraphFragment extends Fragment {
                         vDetailedContainer.setVisibility(View.VISIBLE);
                     }
                 });
-                anim.start();
+                animContainer.start();
+            }
+        };
+
+        mHandler.postDelayed(containerRunnable, 50);
+    }
+
+    private void hideDetailedStats() {
+        final int startRadius = (int) (vDetailedContainer.getHeight() * 1.4);
+        final int cx = vDetailedContainer.getWidth() / 2;
+        final int cy = vDetailedContainer.getHeight() / 2;
+
+        // Base
+        ValueAnimator animUnderlay = ViewAnimationUtils.createCircularReveal(
+            vDetailedContainer,
+            cx,
+            cy,
+            startRadius,
+            0
+        );
+        animUnderlay.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+
+                vDetailedUnderlay.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+
+                vDetailedContainer.setVisibility(View.INVISIBLE);
             }
         });
+        animUnderlay.start();
     }
 
     private int getDay() {

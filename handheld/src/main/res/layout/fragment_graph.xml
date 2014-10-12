@@ -106,11 +106,19 @@
                 android:layout_marginTop="16dp" />
         </RelativeLayout>
 
+        <View
+            android:id="@+id/detailed_underlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            android:background="@drawable/bcg_card_overlay_violet" />
+
         <RelativeLayout
             android:id="@+id/detailed_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="invisible">
+            android:visibility="invisible"
+            android:background="@drawable/bcg_card_overlay_white" >
 
             <!-- TODO: Detailed statistics -->
         </RelativeLayout>
