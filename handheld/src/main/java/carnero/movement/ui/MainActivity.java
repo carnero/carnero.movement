@@ -609,7 +609,7 @@ public class MainActivity
             }
 
             // Map bounds
-            if (!mContainer.locations.isEmpty() && !mCheckins.isEmpty()) {
+            if (!mContainer.locations.isEmpty() || !mCheckins.isEmpty()) {
                 LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
                 LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
                 mBounds = new LatLngBounds(ne, sw);

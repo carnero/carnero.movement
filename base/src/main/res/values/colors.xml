@@ -11,9 +11,12 @@
     <!-- App -->
     <color name="bcg">@android:color/white</color>
     <color name="text">#ff212121</color> <!-- 87% -->
+    <color name="text_light">#ff616161</color>
+    <color name="text_lighter">#ff9e9e9e</color>
     <color name="text_label">#ffffffff</color>
     <color name="text_primary">#ffffffff</color>
     <color name="text_nodata">#ffcccccc</color>
+    <color name="divider">#ffeeeeee</color>
 
     <!-- Data visualisation -->
     <color name="graph_distance">#ffab47bc</color>
@@ -21,7 +24,6 @@
     <color name="graph_steps_light">#ffb2ebf2</color>
     <color name="graph_history">#ffbdbdbd</color>
 
-    <color name="graph_divider">#22000000</color>
     <color name="map_history_start">#ff9e9e9e</color>
     <color name="map_history_end">#ffab47bc</color>
 

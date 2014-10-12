@@ -7,6 +7,8 @@
 
     <string name="title_distance">Distance</string>
     <string name="title_steps">Steps</string>
+    <string name="title_walk">Walking</string>
+    <string name="title_run">Running</string>
 
     <string name="notification_ticker">Watching you moving...</string>
     <string name="notification_title">Movement</string>
@@ -19,6 +21,7 @@
     <string name="stats_change">%1$s <b>%2$s</b>\n%3$d steps <b>%4$s</b></string>
     <string name="stats_steps">%1$d steps</string>
     <string name="stats_lot">a lot</string>
+    <string name="stats_activity">%1$d mins</string>
 
     <string name="no_data">no data for this day</string>
 

@@ -85,7 +85,15 @@ public class GraphFragment extends Fragment {
     @InjectView(R.id.detailed_underlay)
     View vDetailedUnderlay;
     @InjectView(R.id.detailed_container)
-    RelativeLayout vDetailedContainer;
+    LinearLayout vDetailedContainer;
+    @InjectView(R.id.value_distance)
+    LinearLayout vDetailDistance;
+    @InjectView(R.id.value_steps)
+    LinearLayout vDetailSteps;
+    @InjectView(R.id.value_walk)
+    LinearLayout vDetailWalk;
+    @InjectView(R.id.value_run)
+    LinearLayout vDetailRun;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -145,6 +153,10 @@ public class GraphFragment extends Fragment {
         vStatsContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (vNoData.getVisibility() == View.VISIBLE) {
+                    return; // I said no data, so no details :)
+                }
+
                 if (vDetailedContainer.getVisibility() == View.INVISIBLE) {
                     revealDetailedStats();
                 } else {
@@ -495,6 +507,31 @@ public class GraphFragment extends Fragment {
             if (isAdded()) {
                 vProgressBar.setVisibility(View.INVISIBLE);
             }
+
+            // Detailed container
+            ((TextView) vDetailDistance.findViewById(R.id.label))
+                .setText(R.string.title_distance);
+            ((TextView) vDetailDistance.findViewById(R.id.value))
+                .setText(Utils.formatDistance(stepsDay));
+            ((TextView) vDetailDistance.findViewById(R.id.value_sub))
+                .setText("0%"); // TODO: change relative to prev day
+
+            ((TextView) vDetailSteps.findViewById(R.id.label))
+                .setText(R.string.title_steps);
+            ((TextView) vDetailSteps.findViewById(R.id.value))
+                .setText(getString(R.string.stats_steps, stepsDay));
+            ((TextView) vDetailSteps.findViewById(R.id.value_sub))
+                .setText("0%"); // TODO: change relative to prev day
+
+            ((TextView) vDetailWalk.findViewById(R.id.label))
+                .setText(R.string.title_walk);
+            ((TextView) vDetailWalk.findViewById(R.id.value))
+                .setText(getString(R.string.stats_activity, mWalk / 60));
+
+            ((TextView) vDetailRun.findViewById(R.id.label))
+                .setText(R.string.title_run);
+            ((TextView) vDetailRun.findViewById(R.id.value))
+                .setText(getString(R.string.stats_activity, mRun / 60));
         }
     }
 }

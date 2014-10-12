@@ -31,8 +31,15 @@
     </style>
 
     <style name="Text" parent="android:Widget.TextView">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text</item>
+    </style>
+
+    <style name="Text.Active">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/text_light</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
     </style>
 
     <style name="Text.Label">
@@ -47,7 +54,33 @@
         <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
+    <style name="Text.Value">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Text.Value.Label">
+        <item name="android:textColor">@color/text_light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <style name="Text.Value.Value">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:fontFamily">sans-serif-regular</item>
+    </style>
+
+    <style name="Text.Value.Value.Sub">
+        <item name="android:textColor">@color/text_lighter</item>
+    </style>
+
     <style name="Text.NoData">
         <item name="android:textColor">@color/text_nodata</item>
+    </style>
+
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@color/divider</item>
     </style>
 </resources>

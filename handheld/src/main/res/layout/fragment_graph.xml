@@ -36,16 +36,18 @@
             <LinearLayout
                 android:id="@+id/stats_container"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_below="@id/progressbar"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="horizontal"
                 android:gravity="end|center_vertical"
-                android:paddingEnd="16dp"
-                android:paddingStart="16dp">
+                android:padding="8dp" >
 
                 <TextView
                     android:id="@+id/stats_distance"
-                    style="@style/Text"
+                    style="@style/Text.Active"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
@@ -53,7 +55,7 @@
 
                 <TextView
                     android:id="@+id/stats_steps"
-                    style="@style/Text"
+                    style="@style/Text.Active"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -113,14 +115,30 @@
             android:visibility="invisible"
             android:background="@drawable/bcg_card_overlay_violet" />
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/detailed_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:visibility="invisible"
+            android:gravity="bottom"
+            android:padding="16dp"
+            android:clickable="true"
             android:background="@drawable/bcg_card_overlay_white" >
 
-            <!-- TODO: Detailed statistics -->
-        </RelativeLayout>
+            <!-- TODO: add "close" button to the upper right corner -->
+
+            <include layout="@layout/item_value_double"
+                android:id="@+id/value_distance" />
+            <View style="@style/Divider" />
+            <include layout="@layout/item_value_double"
+                android:id="@+id/value_steps" />
+            <View style="@style/Divider" />
+            <include layout="@layout/item_value"
+                android:id="@+id/value_walk" />
+            <View style="@style/Divider" />
+            <include layout="@layout/item_value"
+                android:id="@+id/value_run" />
+        </LinearLayout>
     </android.support.v7.widget.CardView>
 </FrameLayout>
