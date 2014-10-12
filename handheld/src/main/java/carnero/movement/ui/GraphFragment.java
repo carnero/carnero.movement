@@ -7,13 +7,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.*;
 import android.widget.FrameLayout.LayoutParams;
@@ -28,11 +33,9 @@ import carnero.movement.common.Preferences;
 import carnero.movement.common.Utils;
 import carnero.movement.common.graph.SplineGraph;
 import carnero.movement.common.graph.SplinePath;
-import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.model.XY;
-import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.StepsPath;
@@ -41,7 +44,6 @@ import carnero.movement.model.Location;
 import carnero.movement.model.MovementContainer;
 import carnero.movement.model.MovementData;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
 import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
@@ -61,12 +63,10 @@ public class GraphFragment extends Fragment {
     private String mLabel;
     private String mSubLabel;
     //
-    private float mMapStrokeWidth;
-    private int mMapColorStart;
-    private int mMapColorEnd;
-    //
     private static final String ARGS_DAY = "day";
     //
+    @InjectView(R.id.stats_container)
+    LinearLayout vStatsContainer;
     @InjectView(R.id.stats_steps)
     TextView vStatsSteps;
     @InjectView(R.id.stats_distance)
@@ -75,14 +75,13 @@ public class GraphFragment extends Fragment {
     SplineGraph vGraph;
     @InjectView(R.id.checkins_container)
     FrameLayout vCheckinsContainer;
-    @InjectView(R.id.separator)
-    View vSeparator;
-    @InjectView(R.id.map)
-    MapView vMap;
     @InjectView(R.id.no_data)
     View vNoData;
     @InjectView(R.id.progressbar)
     SmoothProgressBar vProgressBar;
+    //
+    @InjectView(R.id.detailed_container)
+    RelativeLayout vDetailedContainer;
 
     public static GraphFragment newInstance(int day) {
         Bundle arguments = new Bundle();
@@ -109,10 +108,6 @@ public class GraphFragment extends Fragment {
         calendar.set(Calendar.SECOND, 0);
 
         mMidnight = calendar.getTimeInMillis();
-
-        mMapStrokeWidth = getResources().getDimension(R.dimen.map_line_stroke);
-        mMapColorStart = getResources().getColor(R.color.map_history_start);
-        mMapColorEnd = getResources().getColor(R.color.map_history_end);
     }
 
     @Override
@@ -120,10 +115,8 @@ public class GraphFragment extends Fragment {
         View layout = inflater.inflate(R.layout.fragment_graph, container, false);
         ButterKnife.inject(this, layout);
 
-        MapsInitializer.initialize(getActivity());
-        vMap.onCreate(state);
-        initMap();
         initGraph();
+        initViews();
 
         return layout;
     }
@@ -131,40 +124,40 @@ public class GraphFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        vMap.onResume();
 
         new DataTask().start();
 
         App.getTracker().send(new HitBuilders.AppViewBuilder().build());
     }
 
-    @Override
-    public void onPause() {
-        vMap.onPause();
-        super.onPause();
-    }
-
-    @Override
-    public void onDestroyView() {
-        vMap.onDestroy();
-        super.onDestroyView();
-    }
-
-    private void initMap() {
-        final GoogleMap map = vMap.getMap();
-        map.setMyLocationEnabled(false);
-        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-        final UiSettings ui = map.getUiSettings();
-        ui.setMyLocationButtonEnabled(false);
-        ui.setCompassEnabled(false);
-        ui.setZoomControlsEnabled(false);
-    }
-
     private void initGraph() {
         mPaths.clear();
         mPaths.add(mPathSteps);
         mPaths.add(mPathDistance);
+    }
+
+    private void initViews() {
+        vStatsContainer.setClickable(true);
+        vStatsContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int finalRadius = vDetailedContainer.getHeight();
+                int cx = vStatsContainer.getLeft() + (vStatsContainer.getWidth() / 2);
+                int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
+
+                ValueAnimator anim = ViewAnimationUtils
+                    .createCircularReveal(vDetailedContainer, cx, cy, 0, finalRadius);
+                anim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        super.onAnimationStart(animation);
+
+                        vDetailedContainer.setVisibility(View.VISIBLE);
+                    }
+                });
+                anim.start();
+            }
+        });
     }
 
     private int getDay() {
@@ -196,10 +189,6 @@ public class GraphFragment extends Fragment {
         private float mLabelDistanceMax = Float.MIN_VALUE;
         private int mLabelStepsMin = Integer.MAX_VALUE;
         private int mLabelStepsMax = Integer.MIN_VALUE;
-        //
-        final private ArrayList<PolylineOptions> mPolylines = new ArrayList<PolylineOptions>();
-        final private ArrayList<MarkerOptions> mMarkers = new ArrayList<MarkerOptions>();
-        private LatLngBounds mBounds;
 
         @Override
         protected void onPreExecute() {
@@ -313,56 +302,6 @@ public class GraphFragment extends Fragment {
                 mRun = (int) (run / 1e9);
             }
 
-            // Pre-generate map polylines
-            if (mContainer.locations != null && !mContainer.locations.isEmpty()) {
-                final int colorStartR = Color.red(mMapColorStart);
-                final int colorStartG = Color.green(mMapColorStart);
-                final int colorStartB = Color.blue(mMapColorStart);
-
-                final double colorRStep = (Color.red(mMapColorEnd) - colorStartR) / (double)DateUtils.DAY_IN_MILLIS;
-                final double colorGStep = (Color.green(mMapColorEnd) - colorStartG) / (double)DateUtils.DAY_IN_MILLIS;
-                final double colorBStep = (Color.blue(mMapColorEnd) - colorStartB) / (double)DateUtils.DAY_IN_MILLIS;
-
-                double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-                double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-
-                LatLng latLngPrev = null;
-                for (Location model : mContainer.locations) {
-                    latBounds[0] = Math.min(latBounds[0], model.latitude);
-                    latBounds[1] = Math.max(latBounds[1], model.latitude);
-                    lonBounds[0] = Math.min(lonBounds[0], model.longitude);
-                    lonBounds[1] = Math.max(lonBounds[1], model.longitude);
-
-                    LatLng latLng = new LatLng(model.latitude, model.longitude);
-
-                    if (latLngPrev != null) {
-                        int color = Color.argb(
-                            255,
-                            (int)(colorStartB + (colorRStep * (model.time - mMidnight))),
-                            (int)(colorStartG + (colorGStep * (model.time - mMidnight))),
-                            (int)(colorStartB + (colorBStep * (model.time - mMidnight)))
-                        );
-
-                        final PolylineOptions polylineOpts = new PolylineOptions();
-                        polylineOpts.zIndex(1010);
-                        polylineOpts.width(mMapStrokeWidth);
-                        polylineOpts.color(color);
-                        polylineOpts.geodesic(true);
-
-                        polylineOpts.add(latLngPrev);
-                        polylineOpts.add(latLng);
-
-                        mPolylines.add(polylineOpts);
-                    }
-
-                    latLngPrev = latLng;
-                }
-
-                LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
-                LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
-                mBounds = new LatLngBounds(ne, sw);
-            }
-
             // Checkins
             ArrayList<Checkin> checkins = mHelper.getCheckinsForDay(getDay());
             if (checkins != null) {
@@ -370,26 +309,6 @@ public class GraphFragment extends Fragment {
                     mCheckins.clear();
                     mCheckins.addAll(checkins);
                 }
-            }
-
-            // Checkin markers
-            final BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.drawable.ic_checkin);
-
-            for (Checkin checkin : mCheckins) {
-                String title;
-                if (TextUtils.isEmpty(checkin.shout)) {
-                    title = checkin.name;
-                } else {
-                    title = "\"" + checkin.shout + "\" @ " + checkin.name;
-                }
-
-                final MarkerOptions markerOpts = new MarkerOptions();
-                markerOpts.position(new LatLng(checkin.latitude, checkin.longitude));
-                markerOpts.title(title);
-                markerOpts.icon(pin);
-                markerOpts.anchor(0.5f, 0.5f);
-
-                mMarkers.add(markerOpts);
             }
         }
 
@@ -427,8 +346,6 @@ public class GraphFragment extends Fragment {
                 vStatsDistance.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
                 vCheckinsContainer.setVisibility(View.GONE);
-                vSeparator.setVisibility(View.GONE);
-                vMap.setVisibility(View.GONE);
 
                 vNoData.setVisibility(View.VISIBLE);
 
@@ -499,40 +416,6 @@ public class GraphFragment extends Fragment {
             }
             vCheckinsContainer.bringToFront();
             vCheckinsContainer.setVisibility(View.VISIBLE);
-
-            // Locations
-            final GoogleMap map = vMap.getMap();
-            map.clear();
-
-            if (!mPolylines.isEmpty() && mBounds != null) {
-                for (PolylineOptions polylineOptions : mPolylines) {
-                    map.addPolyline(polylineOptions);
-                }
-
-                map.moveCamera(
-                    CameraUpdateFactory.newLatLngBounds(
-                        mBounds,
-                        getResources().getDimensionPixelSize(R.dimen.margin_map)
-                    )
-                );
-
-                if (map.getCameraPosition().zoom > 14) {
-                    map.moveCamera(CameraUpdateFactory.zoomTo(14));
-                }
-
-                vSeparator.setVisibility(View.VISIBLE);
-                vMap.setVisibility(View.VISIBLE);
-            } else {
-                vSeparator.setVisibility(View.GONE);
-                vMap.setVisibility(View.GONE);
-            }
-
-            // Checkins
-            if (!mMarkers.isEmpty()) {
-                for (MarkerOptions markerOptions : mMarkers) {
-                    map.addMarker(markerOptions);
-                }
-            }
 
             // Progress bar
             if (isAdded()) {

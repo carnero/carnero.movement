@@ -261,7 +261,7 @@ public abstract class SplinePath {
             DeltaPoint point = null;
 
             // Always start at the bottom
-            mPath.lineTo(
+            mPath.moveTo(
                 padding[3],
                 height + padding[0]
             );
@@ -271,7 +271,7 @@ public abstract class SplinePath {
                 point = mPixels.get(i);
 
                 if (first) {
-                    mPath.moveTo(
+                    mPath.lineTo(
                         point.x + padding[3],
                         point.y + padding[0]
                     );

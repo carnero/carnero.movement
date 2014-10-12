@@ -1,19 +1,20 @@
 package carnero.movement.ui;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.view.*;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
@@ -23,6 +24,10 @@ import carnero.movement.R;
 import carnero.movement.common.*;
 import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.remotelog.RemoteLog;
+import carnero.movement.db.Helper;
+import carnero.movement.model.Checkin;
+import carnero.movement.model.Location;
+import carnero.movement.model.MovementContainer;
 import carnero.movement.service.FoursquareService;
 import carnero.movement.service.LocationService;
 import com.foursquare.android.nativeoauth.FoursquareOAuth;
@@ -37,17 +42,25 @@ import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.AchievementBuffer;
 import com.google.android.gms.games.achievement.Achievements;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.*;
 import com.google.example.games.basegameutils.BaseGameActivity;
 
 public class MainActivity
     extends BaseGameActivity
     implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private PagesAdapter mPagerAdapter;
+    private Helper mMovementHelper;
     private Preferences mPreferences;
+    private PagesAdapter mPagerAdapter;
     private boolean mHasFsqToken = true;
     private GoogleApiClient mGoogleApiClient;
+    private MapDataTask mMapDataTask;
     private final HashMap<Long, Achvmnt> mAchievements = new HashMap<Long, Achvmnt>();
+    //
+    private float mMapStrokeWidth;
+    private int mMapColorStart;
+    private int mMapColorEnd;
     //
     private static final int HISTORY_PAGES = 31;
     private static final int REQUEST_FSQ_CONNECT = 1001;
@@ -58,6 +71,8 @@ public class MainActivity
     TextView vLabel;
     @InjectView(R.id.sub_label)
     TextView vSubLabel;
+    @InjectView(R.id.map)
+    MapView vMap;
     @InjectView(R.id.pager)
     ViewPager vPager;
 
@@ -69,6 +84,7 @@ public class MainActivity
         super.onCreate(state);
 
         // Init
+        mMovementHelper = Helper.getInstance();
         mPreferences = new Preferences();
         mGoogleApiClient = new GoogleApiClient.Builder(this)
             .addApi(Games.API)
@@ -78,6 +94,11 @@ public class MainActivity
             .build();
         mGoogleApiClient.connect();
 
+        // Load resources
+        mMapStrokeWidth = getResources().getDimension(R.dimen.map_line_stroke);
+        mMapColorStart = getResources().getColor(R.color.map_history_start);
+        mMapColorEnd = getResources().getColor(R.color.map_history_end);
+
         // Start service
         final Intent serviceIntent = new Intent(this, LocationService.class);
         startService(serviceIntent);
@@ -85,6 +106,11 @@ public class MainActivity
         // Init layout
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+
+        // Map
+        MapsInitializer.initialize(this);
+        vMap.onCreate(state);
+        initMap();
 
         // Set ViewPager
         mPagerAdapter = new PagesAdapter();
@@ -101,6 +127,7 @@ public class MainActivity
                     vSubLabel.setText(fragment.getSubLabel());
 
                     displayAchievements();
+                    displayMapData();
                 }
             }
 
@@ -119,12 +146,20 @@ public class MainActivity
     @Override
     protected void onResume() {
         super.onResume();
+        vMap.onResume();
 
         new MenuTask().start();
     }
 
     @Override
+    public void onPause() {
+        vMap.onPause();
+        super.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
+        vMap.onDestroy();
         super.onDestroy();
 
         if (mGoogleApiClient != null) {
@@ -231,6 +266,17 @@ public class MainActivity
         // TODO
     }
 
+    private void initMap() {
+        final GoogleMap map = vMap.getMap();
+        map.setMyLocationEnabled(false);
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        final UiSettings ui = map.getUiSettings();
+        ui.setMyLocationButtonEnabled(false);
+        ui.setCompassEnabled(false);
+        ui.setZoomControlsEnabled(false);
+    }
+
     public void setLabel(int day, String label, String subLabel) {
         if (day == getDay(vPager.getCurrentItem())) {
             vLabel.setText(label);
@@ -272,6 +318,16 @@ public class MainActivity
                 .displayImage(achvmnt.unlockedImageUrl, icon);
         }
         */
+    }
+
+    private void displayMapData() {
+        final int day = getDay(vPager.getCurrentItem());
+        if (mMapDataTask != null && mMapDataTask.getDay() != day) {
+            mMapDataTask.cancel(true);
+        }
+
+        mMapDataTask = new MapDataTask(day);
+        mMapDataTask.start();
     }
 
     private void startFsqConnection() {
@@ -434,6 +490,158 @@ public class MainActivity
                 mHasFsqToken = mHasToken;
                 invalidateOptionsMenu();
             }
+        }
+    }
+
+    private class MapDataTask extends BaseAsyncTask {
+
+        private MovementContainer mContainer;
+        private final ArrayList<Checkin> mCheckins = new ArrayList<Checkin>();
+        private int mDay;
+        //
+        final private ArrayList<PolylineOptions> mPolylines = new ArrayList<PolylineOptions>();
+        final private ArrayList<MarkerOptions> mMarkers = new ArrayList<MarkerOptions>();
+        private LatLngBounds mBounds;
+
+        public MapDataTask(int day) {
+            mDay = day;
+        }
+
+        @Override
+        public void inBackground() {
+            mContainer = mMovementHelper.getDataForDay(mDay);
+            if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
+                return;
+            }
+
+            // Midnight
+            final Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_MONTH, mDay);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+
+            long midnight = calendar.getTimeInMillis();
+
+            // Pre-generate map polylines
+            final int colorStartR = Color.red(mMapColorStart);
+            final int colorStartG = Color.green(mMapColorStart);
+            final int colorStartB = Color.blue(mMapColorStart);
+
+            final double colorRStep = (Color.red(mMapColorEnd) - colorStartR) / (double)DateUtils.DAY_IN_MILLIS;
+            final double colorGStep = (Color.green(mMapColorEnd) - colorStartG) / (double)DateUtils.DAY_IN_MILLIS;
+            final double colorBStep = (Color.blue(mMapColorEnd) - colorStartB) / (double)DateUtils.DAY_IN_MILLIS;
+
+            double[] latBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+            double[] lonBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+
+            LatLng latLngPrev = null;
+            for (Location model : mContainer.locations) {
+                LatLng latLng = new LatLng(model.latitude, model.longitude);
+
+                if (latLngPrev != null) {
+                    int color = Color.argb(
+                        255,
+                        (int)(colorStartB + (colorRStep * (model.time - midnight))),
+                        (int)(colorStartG + (colorGStep * (model.time - midnight))),
+                        (int)(colorStartB + (colorBStep * (model.time - midnight)))
+                    );
+
+                    final PolylineOptions polylineOpts = new PolylineOptions();
+                    polylineOpts.zIndex(1010);
+                    polylineOpts.width(mMapStrokeWidth);
+                    polylineOpts.color(color);
+                    polylineOpts.geodesic(true);
+
+                    polylineOpts.add(latLngPrev);
+                    polylineOpts.add(latLng);
+
+                    mPolylines.add(polylineOpts);
+                }
+
+                latLngPrev = latLng;
+
+                latBounds[0] = Math.min(latBounds[0], model.latitude);
+                latBounds[1] = Math.max(latBounds[1], model.latitude);
+                lonBounds[0] = Math.min(lonBounds[0], model.longitude);
+                lonBounds[1] = Math.max(lonBounds[1], model.longitude);
+            }
+
+            // Checkins
+            ArrayList<Checkin> checkins = mMovementHelper.getCheckinsForDay(mDay);
+            if (checkins != null) {
+                synchronized (mCheckins) {
+                    mCheckins.clear();
+                    mCheckins.addAll(checkins);
+                }
+            }
+
+            // Checkin markers
+            final BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.drawable.ic_checkin);
+
+            for (Checkin checkin : mCheckins) {
+                String title;
+                if (TextUtils.isEmpty(checkin.shout)) {
+                    title = checkin.name;
+                } else {
+                    title = "\"" + checkin.shout + "\" @ " + checkin.name;
+                }
+
+                final MarkerOptions markerOpts = new MarkerOptions();
+                markerOpts.position(new LatLng(checkin.latitude, checkin.longitude));
+                markerOpts.title(title);
+                markerOpts.icon(pin);
+                markerOpts.anchor(0.5f, 0.5f);
+
+                mMarkers.add(markerOpts);
+
+                latBounds[0] = Math.min(latBounds[0], checkin.latitude);
+                latBounds[1] = Math.max(latBounds[1], checkin.latitude);
+                lonBounds[0] = Math.min(lonBounds[0], checkin.longitude);
+                lonBounds[1] = Math.max(lonBounds[1], checkin.longitude);
+            }
+
+            // Map bounds
+            LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
+            LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
+            mBounds = new LatLngBounds(ne, sw);
+        }
+
+        @Override
+        public void postExecute() {
+            // Locations
+            final GoogleMap map = vMap.getMap();
+            map.clear();
+
+            // Polyline
+            for (PolylineOptions polylineOptions : mPolylines) {
+                map.addPolyline(polylineOptions);
+            }
+
+            // Checkins
+            if (!mMarkers.isEmpty()) {
+                for (MarkerOptions markerOptions : mMarkers) {
+                    map.addMarker(markerOptions);
+                }
+            }
+
+            // Center map
+            if (mBounds != null) {
+                map.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(
+                        mBounds,
+                        getResources().getDimensionPixelSize(R.dimen.margin_map)
+                    )
+                );
+
+                if (map.getCameraPosition().zoom > 14) {
+                    map.animateCamera(CameraUpdateFactory.zoomTo(14));
+                }
+            }
+        }
+
+        public int getDay() {
+            return mDay;
         }
     }
 }
