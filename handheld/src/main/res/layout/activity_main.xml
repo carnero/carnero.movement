@@ -51,6 +51,6 @@
             android:id="@+id/pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="140dp" />
+            android:layout_marginBottom="@dimen/map_size" />
     </FrameLayout>
 </LinearLayout>

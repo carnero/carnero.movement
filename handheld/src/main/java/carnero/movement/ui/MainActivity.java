@@ -14,14 +14,20 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.*;
+import carnero.movement.common.BaseAsyncTask;
+import carnero.movement.common.Constants;
+import carnero.movement.common.Preferences;
+import carnero.movement.common.Utils;
 import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
@@ -283,6 +289,7 @@ public class MainActivity
             vSubLabel.setText(subLabel);
 
             displayAchievements();
+            displayMapData();
         }
     }
 
@@ -602,9 +609,11 @@ public class MainActivity
             }
 
             // Map bounds
-            LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
-            LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
-            mBounds = new LatLngBounds(ne, sw);
+            if (!mContainer.locations.isEmpty() && !mCheckins.isEmpty()) {
+                LatLng ne = new LatLng(latBounds[0], lonBounds[0]);
+                LatLng sw = new LatLng(latBounds[1], lonBounds[1]);
+                mBounds = new LatLngBounds(ne, sw);
+            }
         }
 
         @Override
@@ -626,17 +635,23 @@ public class MainActivity
             }
 
             // Center map
+            int mapMargin = getResources().getDimensionPixelSize(R.dimen.margin_map);
+            map.setPadding(
+                mapMargin,
+                vMap.getHeight() - getResources().getDimensionPixelSize(R.dimen.map_size), // top
+                mapMargin,
+                mapMargin
+            );
+
             if (mBounds != null) {
                 map.animateCamera(
                     CameraUpdateFactory.newLatLngBounds(
                         mBounds,
-                        getResources().getDimensionPixelSize(R.dimen.margin_map)
+                        mapMargin
                     )
                 );
-
-                if (map.getCameraPosition().zoom > 14) {
-                    map.animateCamera(CameraUpdateFactory.zoomTo(14));
-                }
+            } else {
+                // TODO: center to my location, zoom 14
             }
         }
 
