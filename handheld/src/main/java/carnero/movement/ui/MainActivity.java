@@ -6,28 +6,28 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.ViewGroup;
+import android.view.*;
+import android.view.animation.PathInterpolator;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import carnero.movement.App;
 import carnero.movement.R;
-import carnero.movement.common.BaseAsyncTask;
-import carnero.movement.common.Constants;
-import carnero.movement.common.Preferences;
-import carnero.movement.common.Utils;
+import carnero.movement.common.*;
 import carnero.movement.common.model.Achvmnt;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
@@ -77,6 +77,8 @@ public class MainActivity
     TextView vLabel;
     @InjectView(R.id.sub_label)
     TextView vSubLabel;
+    @InjectView(R.id.achievements)
+    LinearLayout vAchievements;
     @InjectView(R.id.map)
     MapView vMap;
     @InjectView(R.id.pager)
@@ -132,7 +134,7 @@ public class MainActivity
                     vLabel.setText(fragment.getLabel());
                     vSubLabel.setText(fragment.getSubLabel());
 
-                    displayAchievements();
+                    hideAndDisplayAchievements();
                     displayMapData();
                 }
             }
@@ -288,13 +290,46 @@ public class MainActivity
             vLabel.setText(label);
             vSubLabel.setText(subLabel);
 
-            displayAchievements();
+            hideAndDisplayAchievements();
             displayMapData();
         }
     }
 
     private int getDay(int position) {
         return (position - HISTORY_PAGES + 1);
+    }
+
+    private void hideAndDisplayAchievements() {
+        final int count = vAchievements.getChildCount();
+
+        if (count > 0) {
+            final PathInterpolator interpolator = new PathInterpolator(0.0f, 0.7f, 0.9f, 1.0f);
+            final Path path = new Path();
+            path.moveTo(1, 1);
+            path.lineTo(0, 0);
+
+            for (int i = 0; i < count; i ++) {
+                View view = vAchievements.getChildAt(i);
+                View icon = view.findViewById(R.id.icon);
+
+                if (icon == null) {
+                    continue;
+                }
+
+                ObjectAnimator animator = ObjectAnimator.ofFloat(
+                    icon,
+                    View.SCALE_X,
+                    View.SCALE_Y,
+                    path
+                );
+                animator.addListener(new EndAnimatorListener(icon, count, i));
+                animator.setInterpolator(interpolator);
+                animator.setStartDelay((i + 1) * 75);
+                animator.start();
+            }
+        } else {
+            displayAchievements();
+        }
     }
 
     private void displayAchievements() {
@@ -313,18 +348,41 @@ public class MainActivity
             }
         }
 
-        /* TODO: add grid next to date
+        // Animation params
+        final PathInterpolator interpolator = new PathInterpolator(0.0f, 0.2f, 0.4f, 1.0f);
+        final Path path = new Path();
+        path.moveTo(0, 0);
+        path.lineTo(1, 1);
+
+        // Add views
         vAchievements.removeAllViews();
+
+        int cnt = 0;
         for (Achvmnt achvmnt : achievements) {
-            View view = mInflater.inflate(R.layout.item_achievement, vAchievements, false);
+            View view = LayoutInflater.from(this).inflate(R.layout.item_achievement, vAchievements, false);
+
             ImageView icon = (ImageView) view.findViewById(R.id.icon);
+            icon.setContentDescription(achvmnt.description);
 
             vAchievements.addView(view);
 
             ImageLoaderSingleton.getInstance()
                 .displayImage(achvmnt.unlockedImageUrl, icon);
+
+            ObjectAnimator animator = ObjectAnimator.ofFloat(
+                icon,
+                View.SCALE_X,
+                View.SCALE_Y,
+                path
+            );
+            animator.addListener(new StartAnimatorListener(icon));
+            animator.setInterpolator(interpolator);
+            animator.setStartDelay((achievements.size() - cnt) * 75);
+            animator.start();
+
+            cnt ++;
         }
-        */
+        vAchievements.setVisibility(View.VISIBLE);
     }
 
     private void displayMapData() {
@@ -426,6 +484,7 @@ public class MainActivity
                 achvmnt.state = achievement.getState();
                 achvmnt.lastChange = achievement.getLastUpdatedTimestamp();
                 achvmnt.unlockedImageUrl = achievement.getUnlockedImageUrl();
+                achvmnt.description = achievement.getDescription();
 
                 available.put(achvmnt.id, achvmnt.state);
                 if (achvmnt.state == Achievement.STATE_UNLOCKED) {
@@ -657,6 +716,72 @@ public class MainActivity
 
         public int getDay() {
             return mDay;
+        }
+    }
+
+    private class StartAnimatorListener implements Animator.AnimatorListener {
+
+        private View mView;
+
+        public StartAnimatorListener(View view) {
+            mView = view;
+        }
+
+        @Override
+        public void onAnimationStart(Animator animator) {
+            mView.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animator) {
+            // empty
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animator) {
+            // empty
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animator) {
+            // empty
+        }
+    }
+
+    private class EndAnimatorListener implements Animator.AnimatorListener {
+
+        private View mView;
+        private int mTotal;
+        private int mCurrent;
+
+        public EndAnimatorListener(View view, int total, int current) {
+            mView = view;
+            mTotal = total;
+            mCurrent = current;
+        }
+
+        @Override
+        public void onAnimationStart(Animator animator) {
+            // empty
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animator) {
+            mView.setVisibility(View.INVISIBLE);
+
+            if (mCurrent == (mTotal - 1)) {
+                displayAchievements();
+            }
+        }
+
+        @Override
+        public void onAnimationCancel(Animator animator) {
+            // empty
+        }
+
+        @Override
+        public void onAnimationRepeat(Animator animator) {
+            // empty
         }
     }
 }

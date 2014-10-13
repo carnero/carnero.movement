@@ -34,8 +34,17 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/label"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
             android:layout_toEndOf="@id/label" />
+        <LinearLayout
+            android:id="@+id/achievements"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_below="@id/sub_label"
+            android:layout_toEndOf="@id/label"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="8dp"
+            android:orientation="horizontal"
+            android:gravity="end|top" />
     </RelativeLayout>
 
     <FrameLayout

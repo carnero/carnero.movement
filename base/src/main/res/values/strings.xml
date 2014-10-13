@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Movement</string>
 
-    <string name="close">Close</string>
+    <string name="close">Back to graph</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
 
@@ -11,9 +11,9 @@
     <string name="title_walk">Walking</string>
     <string name="title_run">Running</string>
 
-    <string name="notification_ticker">Watching you moving...</string>
+    <string name="notification_ticker">Watching you moving…</string>
     <string name="notification_title">Movement</string>
-    <string name="notification_text">Watching you...</string>
+    <string name="notification_text">Watching you…</string>
     <string name="notification_distance">Distance: %1$s</string>
     <string name="notification_steps">Steps: %1$s</string>
     <string name="notification_activity">Walk: %1$d mins | Run: %2$s mins</string>

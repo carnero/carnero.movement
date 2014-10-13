@@ -6,4 +6,5 @@ public class Achvmnt {
     public int state;
     public long lastChange;
     public String unlockedImageUrl;
+    public String description;
 }
