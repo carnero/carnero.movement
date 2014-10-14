@@ -134,6 +134,7 @@ public class MainActivity
                     vLabel.setText(fragment.getLabel());
                     vSubLabel.setText(fragment.getSubLabel());
 
+                    setColors();
                     hideAndDisplayAchievements();
                     displayMapData();
                 }
@@ -290,6 +291,7 @@ public class MainActivity
             vLabel.setText(label);
             vSubLabel.setText(subLabel);
 
+            setColors();
             hideAndDisplayAchievements();
             displayMapData();
         }
@@ -297,6 +299,10 @@ public class MainActivity
 
     private int getDay(int position) {
         return (position - HISTORY_PAGES + 1);
+    }
+
+    private void setColors() {
+        // TODO: set colorPrimary, colorPrimaryDark according to goal reach
     }
 
     private void hideAndDisplayAchievements() {

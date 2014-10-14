@@ -562,7 +562,7 @@ public class GraphFragment extends Fragment {
             ((TextView)vDetailDistance.findViewById(R.id.label))
                 .setText(R.string.title_distance);
             ((TextView)vDetailDistance.findViewById(R.id.value))
-                .setText(Utils.formatDistance(stepsDay));
+                .setText(Utils.formatDistance(distanceDay));
             ((TextView)vDetailDistance.findViewById(R.id.value_sub))
                 .setText(distanceChange + " " + distanceString);
 
