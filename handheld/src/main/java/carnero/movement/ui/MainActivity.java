@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Path;
@@ -90,6 +91,11 @@ public class MainActivity
         setRequestedClients(BaseGameActivity.CLIENT_GAMES);
 
         super.onCreate(state);
+
+        final ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setElevation(0); // Otherwise it's raised above content
+        }
 
         // Init
         mMovementHelper = Helper.getInstance();

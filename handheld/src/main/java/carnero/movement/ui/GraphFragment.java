@@ -178,7 +178,7 @@ public class GraphFragment extends Fragment {
         final int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
 
         // Base
-        ValueAnimator animUnderlay = ViewAnimationUtils.createCircularReveal(
+        Animator animUnderlay = ViewAnimationUtils.createCircularReveal(
             vDetailedUnderlay,
             cx,
             cy,
@@ -199,7 +199,7 @@ public class GraphFragment extends Fragment {
         Runnable containerRunnable = new Runnable() {
             @Override
             public void run() {
-                ValueAnimator animContainer = ViewAnimationUtils.createCircularReveal(
+                Animator animContainer = ViewAnimationUtils.createCircularReveal(
                     vDetailedContainer,
                     cx,
                     cy,
@@ -227,7 +227,7 @@ public class GraphFragment extends Fragment {
         final int cy = vDetailedClose.getTop() + (vDetailedClose.getHeight() / 2);
 
         // View
-        ValueAnimator animContainer = ViewAnimationUtils.createCircularReveal(
+        Animator animContainer = ViewAnimationUtils.createCircularReveal(
             vDetailedContainer,
             cx,
             cy,
