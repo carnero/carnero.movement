@@ -94,13 +94,9 @@ public class FoursquareService extends Service {
             List<Checkin> checkins = checkinsResponse.getCheckins();
 
             if (checkins != null && !checkins.isEmpty()) {
-                RemoteLog.d("Received checkins: " + checkins.size());
-
                 for (Checkin checkin : checkins) {
                     mHelper.saveCheckin(checkin);
                 }
-            } else {
-                RemoteLog.d("Received checkins: none");
             }
         }
 

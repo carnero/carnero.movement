@@ -33,6 +33,7 @@ import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.model.XY;
+import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.StepsPath;
@@ -295,7 +296,7 @@ public class GraphFragment extends Fragment {
         @Override
         public void inBackground() {
             mContainer = mHelper.getDataForDay(getDay());
-            if (mContainer == null || mContainer.locations == null || mContainer.locations.isEmpty()) {
+            if (mContainer == null) {
                 return;
             }
 
@@ -435,8 +436,11 @@ public class GraphFragment extends Fragment {
             MainActivity activity = (MainActivity)getActivity();
             activity.setLabel(getDay(), mLabel, mSubLabel);
 
+            float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
+            int stepsDay = mLabelStepsMax - mLabelStepsMin;
+
             // No data
-            if (mContainer == null || mContainer.locations == null || mContainer.locations.size() < 2) {
+            if (mContainer == null || (distanceDay < 1 && stepsDay < 1)) {
                 vStatsSteps.setVisibility(View.GONE);
                 vStatsDistance.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
@@ -449,9 +453,6 @@ public class GraphFragment extends Fragment {
                 }
                 return;
             }
-
-            float distanceDay = mLabelDistanceMax - mLabelDistanceMin;
-            int stepsDay = mLabelStepsMax - mLabelStepsMin;
 
             vNoData.setVisibility(View.GONE);
             vStatsSteps.setText(getString(R.string.stats_steps, stepsDay));
@@ -517,61 +518,16 @@ public class GraphFragment extends Fragment {
                 vProgressBar.setVisibility(View.INVISIBLE);
             }
 
-            // Day to day change
-            double stepsPercent;
-            double distancePercent;
-            String stepsChange;
-            String distanceChange;
-
-            if (mChange.stepsChange > 1.0) {
-                stepsPercent = (mChange.stepsChange - 1.0) * 100f;
-                stepsChange = "↗";
-            } else if (mChange.stepsChange < 1.0) {
-                stepsPercent = (1.0 - mChange.stepsChange) * 100f;
-                stepsChange = "↘";
-            } else {
-                stepsPercent = 0;
-                stepsChange = "→";
-            }
-            if (mChange.distanceChange > 1.0) {
-                distancePercent = (mChange.distanceChange - 1.0) * 100f;
-                distanceChange = "↗";
-            } else if (mChange.distanceChange < 1.0) {
-                distancePercent = (1.0 - mChange.distanceChange) * 100f;
-                distanceChange = "↘";
-            } else {
-                distancePercent = 0;
-                distanceChange = "→";
-            }
-
-            String stepsString;
-            String distanceString;
-
-            if (stepsPercent < 700) {
-                stepsString = String.valueOf((int)stepsPercent) + "%";
-            } else {
-                stepsString = getString(R.string.stats_lot);
-            }
-            if (distancePercent < 700) {
-                distanceString = String.valueOf((int)distancePercent) + "%";
-            } else {
-                distanceString = getString(R.string.stats_lot);
-            }
-
             // Detailed statistics
             ((TextView)vDetailDistance.findViewById(R.id.label))
                 .setText(R.string.title_distance);
             ((TextView)vDetailDistance.findViewById(R.id.value))
                 .setText(Utils.formatDistance(distanceDay));
-            ((TextView)vDetailDistance.findViewById(R.id.value_sub))
-                .setText(distanceChange + " " + distanceString);
 
             ((TextView)vDetailSteps.findViewById(R.id.label))
                 .setText(R.string.title_steps);
             ((TextView)vDetailSteps.findViewById(R.id.value))
                 .setText(getString(R.string.stats_steps, stepsDay));
-            ((TextView)vDetailSteps.findViewById(R.id.value_sub))
-                .setText(stepsChange + " " + stepsString);
 
             ((TextView)vDetailWalk.findViewById(R.id.label))
                 .setText(R.string.title_walk);
@@ -582,6 +538,60 @@ public class GraphFragment extends Fragment {
                 .setText(R.string.title_run);
             ((TextView)vDetailRun.findViewById(R.id.value))
                 .setText(getString(R.string.stats_activity, mRun / 60));
+
+            // Day to day change
+
+            if (mChange != null) {
+                double stepsPercent;
+                double distancePercent;
+                String stepsChange;
+                String distanceChange;
+
+                if (mChange.stepsChange > 1.0) {
+                    stepsPercent = (mChange.stepsChange - 1.0) * 100f;
+                    stepsChange = "↗";
+                } else if (mChange.stepsChange < 1.0) {
+                    stepsPercent = (1.0 - mChange.stepsChange) * 100f;
+                    stepsChange = "↘";
+                } else {
+                    stepsPercent = 0;
+                    stepsChange = "→";
+                }
+                if (mChange.distanceChange > 1.0) {
+                    distancePercent = (mChange.distanceChange - 1.0) * 100f;
+                    distanceChange = "↗";
+                } else if (mChange.distanceChange < 1.0) {
+                    distancePercent = (1.0 - mChange.distanceChange) * 100f;
+                    distanceChange = "↘";
+                } else {
+                    distancePercent = 0;
+                    distanceChange = "→";
+                }
+
+                String stepsString;
+                String distanceString;
+
+                if (stepsPercent < 700) {
+                    stepsString = String.valueOf((int)stepsPercent) + "%";
+                } else {
+                    stepsString = getString(R.string.stats_lot);
+                }
+                if (distancePercent < 700) {
+                    distanceString = String.valueOf((int)distancePercent) + "%";
+                } else {
+                    distanceString = getString(R.string.stats_lot);
+                }
+
+                ((TextView)vDetailDistance.findViewById(R.id.value_sub))
+                    .setText(distanceChange + " " + distanceString);
+                ((TextView)vDetailSteps.findViewById(R.id.value_sub))
+                    .setText(stepsChange + " " + stepsString);
+            } else {
+                vDetailDistance.findViewById(R.id.value_sub)
+                    .setVisibility(View.GONE);
+                vDetailSteps.findViewById(R.id.value_sub)
+                    .setVisibility(View.GONE);
+            }
         }
     }
 }

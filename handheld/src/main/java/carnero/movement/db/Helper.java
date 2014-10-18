@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.*;
 import android.text.format.DateUtils;
 
 import carnero.movement.App;
@@ -17,6 +18,7 @@ import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.model.*;
+import carnero.movement.model.Location;
 
 public class Helper extends SQLiteOpenHelper {
 

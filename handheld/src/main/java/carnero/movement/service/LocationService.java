@@ -16,12 +16,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.text.AndroidCharacter;
 
 import carnero.movement.R;
 import carnero.movement.common.Constants;
@@ -64,7 +66,6 @@ public class LocationService
     private int mWatchX = 320;
     private int mWatchY = 320;
     private long mLastStepNanos;
-    private long mLastMotion;
     private long mLastSaveToDB = 0;
     private long mLastSentToWear = 0;
     private long mLastSentToNotification = 0;
@@ -81,8 +82,6 @@ public class LocationService
     private static final int sLocationDistanceThreshold = 250; // 250m
     private static final int sLocationTimeThresholdLong = 3 * 60 * 60 * 1000; // 3hr
     private static final int sLocationDistanceThresholdLong = 25; // 25m
-    private static final int sMotionWindowStart = 10 * 60 * 1000; // 10 min
-    private static final int sMotionWindowEnd = 45 * 60 * 1000; // 45 min
     //
     private static final int OBTAINED_STEPS = 0;
     private static final int OBTAINED_LOCATION = 1;
@@ -234,8 +233,6 @@ public class LocationService
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             // Register motion
-            mLastMotion = event.timestamp / 1000000; // ns → ms
-
             checkLocation();
 
             // Latest steps count
@@ -246,7 +243,6 @@ public class LocationService
                 mStepsSensor = 0;
             }
 
-            RemoteLog.d("Received steps: " + (steps - mStepsSensor) + ", real: " + steps);
             mSteps = mStepsStart + (steps - mStepsSensor);
 
             mPreferences.saveSteps(mSteps);
@@ -270,19 +266,6 @@ public class LocationService
 
     @Override
     public void onLocationChanged(Location location) {
-        if (mLocation == null) {
-            RemoteLog.d(
-                "Received location from " + location.getProvider() + "..."
-                    + " accuracy: " + String.format("%.0f", location.getAccuracy()) + "m"
-            );
-        } else {
-            RemoteLog.d(
-                "Received location from " + location.getProvider() + "..."
-                    + " accuracy: " + String.format("%.0f", location.getAccuracy()) + "m;"
-                    + " distance: " + String.format("%.1f", location.distanceTo(mLocation)) + "m"
-            );
-        }
-
         if (location.getAccuracy() > 1000) {
             return;
         }
@@ -389,15 +372,9 @@ public class LocationService
         synchronized (mLocationHistory) {
             Collections.sort(mLocationHistory, new LocationComparator());
 
-            long start = mLastMotion - sMotionWindowStart;
-            long end = mLastMotion + sMotionWindowEnd;
             for (Location location : mLocationHistory) {
                 if (mLocation != null && mLocation.getTime() >= location.getTime()) {
                     // Location from history is older than already processed location
-                    continue;
-                }
-                if (location.getTime() < start || location.getTime() > end) {
-                    // Location is not withing significant motion window
                     continue;
                 }
 
@@ -661,7 +638,6 @@ public class LocationService
         statusMap.putFloat("distance_today", today.distance);
         statusMap.putDouble("steps_change", today.stepsChange);
         statusMap.putDouble("distance_change", today.distanceChange);
-        statusMap.putLong("motion", mLastMotion);
         if (mMovement != null) {
             statusMap.putInt("activity", mMovement.type.ordinal());
         }

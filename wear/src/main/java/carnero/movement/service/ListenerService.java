@@ -101,8 +101,6 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
         final ArrayList<DataMap> summaryList = data.getDataMapArrayList("summary");
         final DataMap dataMap = summaryList.get(0);
 
-        long motion = dataMap.getLong("motion"); // debug
-
         container.stepsTotal = dataMap.getInt("steps_total");
         container.distanceTotal = dataMap.getFloat("distance_total");
         container.stepsToday = dataMap.getInt("steps_today");
@@ -238,13 +236,8 @@ public class ListenerService extends TeleportService implements GoogleApiClient.
             )
         );
 
-        int priority = Notification.PRIORITY_LOW;
-        if (motion > System.currentTimeMillis() - (30 * 60 * 1000)) {
-            priority = Notification.PRIORITY_HIGH;
-        }
-
         final Notification.Builder builder = new Notification.Builder(ListenerService.this)
-            .setPriority(priority)
+            .setPriority(Notification.PRIORITY_DEFAULT)
             .setOngoing(false)
             .setWhen(System.currentTimeMillis())
             .setSmallIcon(R.drawable.ic_notification)

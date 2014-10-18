@@ -8,8 +8,8 @@ android {
         applicationId "carnero.movement"
         minSdkVersion 20
         targetSdkVersion 21
-        versionCode 80
-        versionName "0.08.0"
+        versionCode 81
+        versionName "0.08.1"
     }
     buildTypes {
         release {
@@ -21,6 +21,6 @@ android {
 
 dependencies {
     compile project(':base')
-    compile 'com.android.support:support-v4:20.+'
+    compile 'com.android.support:support-v4:21.+'
     compile 'com.google.android.support:wearable:+'
 }
