@@ -28,4 +28,5 @@
 
     <string name="menu_foursquare">Connect Swarm</string>
     <string name="menu_achievements">My achievements</string>
+    <string name="menu_debug">Send logs</string>
 </resources>

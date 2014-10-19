@@ -1,5 +1,7 @@
 package carnero.movement.common;
 
+import android.util.Log;
+
 import carnero.movement.common.remotelog.RemoteLog;
 
 public class Application extends android.app.Application {
@@ -14,6 +16,9 @@ public class Application extends android.app.Application {
         sInstance = this;
 
         RemoteLog.init();
+        if (RemoteLog.isEnabled()) {
+            Log.e(Constants.TAG, "RemoteLog is ENABLED!");
+        }
     }
 
     public static Application get() {

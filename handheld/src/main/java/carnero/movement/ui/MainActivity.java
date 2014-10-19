@@ -194,6 +194,7 @@ public class MainActivity
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.menu_foursquare).setVisible(!mHasFsqToken);
         menu.findItem(R.id.menu_achievements).setVisible(mGoogleApiClient.isConnected());
+        menu.findItem(R.id.menu_debug).setVisible(RemoteLog.isEnabled());
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -207,6 +208,10 @@ public class MainActivity
                 return true;
             case R.id.menu_achievements:
                 startActivityForResult(Games.Achievements.getAchievementsIntent(getApiClient()), REQUEST_ACHIEVEMENTS);
+
+                return true;
+            case R.id.menu_debug:
+                RemoteLog.forceSendLogs();
 
                 return true;
             default:

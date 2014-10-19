@@ -88,10 +88,10 @@ public class LogHelper extends SQLiteOpenHelper {
             SQLiteDatabase.CONFLICT_IGNORE
         );
 
-        // trim log; 4 hrs
+        // trim log; 12 hrs
         getDatabaseRW().delete(
             TABLE_LOG,
-            ColumnsLog.TIME + " < " + (System.currentTimeMillis() - (4 * 60 * 60 * 1000)),
+            ColumnsLog.TIME + " < " + (System.currentTimeMillis() - (12 * 60 * 60 * 1000)),
             null
         );
 

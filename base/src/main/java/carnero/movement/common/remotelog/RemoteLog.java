@@ -23,7 +23,7 @@ import carnero.movement.common.remotelog.ui.DialogActivity;
  */
 public final class RemoteLog implements Thread.UncaughtExceptionHandler {
 
-    private static final boolean sEnabled = false;
+    private static final boolean sEnabled = true;
     private static String sTagDefault = Constants.TAG;
     private static LogHelper sHelper;
     private static Thread.UncaughtExceptionHandler sDefaultHandler;
@@ -33,6 +33,14 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
 
     static {
         sHelper = new LogHelper(Application.get());
+    }
+
+    public static boolean isEnabled() {
+        return sEnabled;
+    }
+
+    public static void forceSendLogs() {
+        new SendTask(true).start();
     }
 
     private static void storeIssue(FailureLevel level, String tag, String message) {
@@ -46,7 +54,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
         if (sLastCheck < (SystemClock.elapsedRealtime() - 5 * 1000)) {
             sLastCheck = SystemClock.elapsedRealtime();
 
-            new SendTask().start();
+            new SendTask(false).start();
         }
     }
 
@@ -56,13 +64,18 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
      */
     private static class SendTask extends BaseAsyncTask {
 
+        private boolean mForce = false;
         private boolean mStatus = true;
         private boolean mEnabled = true;
+
+        public SendTask(boolean force) {
+            mForce = force;
+        }
 
         @Override
         public void inBackground() {
             mEnabled = (Prefs.getLastEmail() < (System.currentTimeMillis() - 15 * 60 * 1000) && sHelper.isThereSomethingBad(FailureLevel.error));
-            if (!mEnabled) {
+            if (!mForce && !mEnabled) {
                 return; // do nothing
             }
 
@@ -85,7 +98,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
 
         @Override
         public void postExecute() {
-            if (!mEnabled) {
+            if (!mForce && !mEnabled) {
                 return; // do nothing
             }
 
@@ -109,7 +122,7 @@ public final class RemoteLog implements Thread.UncaughtExceptionHandler {
      * Set own uncaught exception handler to log crashes
      */
     public static void init() {
-        new SendTask().start();
+        new SendTask(false).start();
 
         sDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
         if (!(sDefaultHandler instanceof RemoteLog)) {

@@ -9,13 +9,16 @@
   ~ before the Municipal Court of Prague.
   -->
 <resources>
-    <string name="remotelog_dialog_title">Ooops!</string>
-	<string name="remotelog_dialog_description">We\'re sorry.\n
-\n
-Our developers made some mistake that led to troubles with this application. But stay calm. Application itself recorded important
-information about how it ran. You can now send this information to developers at Inmite if you wish. Also, if you have anything to say, do it.\n
-\n
-Do you want to send logs and help developers make this application better?</string>
+    <string name="remotelog_dialog_title">D\'oh!</string>
+	<string name="remotelog_dialog_description">We\'re sorry.\n\n
+        Our developers made some mistake that led to
+        troubles with this application. But stay calm.
+        Application itself recorded important
+        information about how it ran. You can
+        now send this information to developers, if you wish.
+        Also, if you have anything to say, do it.\n\n
+        Do you want to send logs and help our developers
+        make this application better?</string>
     <string name="remotelog_dialog_yes">Yes!</string>
     <string name="remotelog_dialog_no">Not interested</string>
 </resources>

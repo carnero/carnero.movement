@@ -11,4 +11,9 @@
         android:title="@string/menu_achievements"
         android:showAsAction="never"
         android:visible="false" />
+    <item
+        android:id="@+id/menu_debug"
+        android:title="@string/menu_debug"
+        android:showAsAction="never"
+        android:visible="false" />
 </menu>
