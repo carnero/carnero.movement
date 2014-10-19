@@ -9,7 +9,6 @@ import java.util.Locale;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -33,7 +32,6 @@ import carnero.movement.common.graph.SplinePath;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
 import carnero.movement.common.model.XY;
-import carnero.movement.common.remotelog.RemoteLog;
 import carnero.movement.db.Helper;
 import carnero.movement.graph.DistancePath;
 import carnero.movement.graph.StepsPath;
@@ -388,9 +386,9 @@ public class GraphFragment extends Fragment {
                 long run = 0;
                 for (Movement movement : movements) {
                     if (movement.type == MovementEnum.WALK) {
-                        walk += movement.end - movement.start;
+                        walk += movement.endElapsed - movement.startElapsed;
                     } else if (movement.type == MovementEnum.RUN) {
-                        run += movement.end - movement.start;
+                        run += movement.endElapsed - movement.startElapsed;
                     }
                 }
 

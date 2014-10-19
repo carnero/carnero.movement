@@ -3,7 +3,7 @@ package carnero.movement.db;
 public class Structure {
 
     public static final String name = "cc.movement";
-    public static final int version = 4;
+    public static final int version = 5;
 
     public static class Table {
 
@@ -36,11 +36,12 @@ public class Structure {
 
             public static final String ID = "_id"; // integer
             public static final String TYPE = "type"; // integer
+            public static final String TIMESTAMP = "timestamp"; // integer, ms
             public static final String START = "act_start"; // integer, ns
             public static final String END = "act_end"; // integer, ns
 
             public static final String[] projectionFull = new String[]{
-                ID, TYPE, START, END
+                ID, TYPE, TIMESTAMP, START, END
             };
         }
 
@@ -104,6 +105,8 @@ public class Structure {
         sql.append(" integer primary key autoincrement,");
         sql.append(Table.Activities.TYPE);
         sql.append(" integer not null,");
+        sql.append(Table.Activities.TIMESTAMP);
+        sql.append(" integer,");
         sql.append(Table.Activities.START);
         sql.append(" integer,");
         sql.append(Table.Activities.END);
@@ -115,6 +118,8 @@ public class Structure {
 
     public static String[] getActivitiesIndexes() {
         return new String[]{
+            "create index if not exists idx_timestamp on " + Table.Activities.name
+                + " (" + Table.Activities.TIMESTAMP + ")",
             "create index if not exists idx_start_end on " + Table.Activities.name
                 + " (" + Table.Activities.START + ", " + Table.Activities.END + ")"
         };

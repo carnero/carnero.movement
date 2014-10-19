@@ -11,19 +11,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.location.*;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.text.AndroidCharacter;
 
 import carnero.movement.R;
 import carnero.movement.common.Constants;
@@ -266,6 +261,19 @@ public class LocationService
 
     @Override
     public void onLocationChanged(Location location) {
+        RemoteLog.i(location.getProvider() + ": " + location.getAccuracy() + "...");
+
+        Bundle extras = location.getExtras();
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                /*
+                extras: networkLocationType: cell | wifi
+                extras: travelState: stationary
+                 */
+                RemoteLog.i("...extras: " + key + " = " + String.valueOf(extras.get(key)));
+            }
+        }
+
         if (location.getAccuracy() > 1000) {
             return;
         }
@@ -441,6 +449,8 @@ public class LocationService
             return;
         }
 
+        long currentTime = System.currentTimeMillis();
+
         // Cadence
         int delta = steps - stepsPrev; // steps
         double time = (event.timestamp - mLastStepNanos) / 1e9; // ns → seconds
@@ -466,7 +476,8 @@ public class LocationService
 
         // Save history
         final OnFootMetrics metrics = new OnFootMetrics();
-        metrics.timestamp = event.timestamp;
+        metrics.timestamp = currentTime;
+        metrics.elapsed = event.timestamp;
         metrics.steps = steps;
         metrics.cadence = cadence;
         metrics.length = length;
@@ -484,30 +495,30 @@ public class LocationService
         long run = 0;
 
         boolean first = true;
-        long prevTimestamp = event.timestamp - timeFrame; // Start of our time frame
+        long previousElapsed = event.timestamp - timeFrame; // Start of our time frame
         for (OnFootMetrics entry : mOnFootHistory) {
-            if (entry.timestamp < (event.timestamp - timeFrame)) { // Too old entry
+            if (entry.elapsed < (event.timestamp - timeFrame)) { // Too old entry
                 toDelete.add(entry);
                 continue;
             }
 
             if (first) { // Consider pause between start of time frame and first entry as STILL
-                still += (entry.timestamp - prevTimestamp);
+                still += (entry.elapsed - previousElapsed);
                 first = false;
 
-                prevTimestamp = entry.timestamp;
+                previousElapsed = entry.elapsed;
                 continue;
             }
 
             if (entry.cadence < Constants.CADENCE_WALK_MIN) {
-                still += (entry.timestamp - prevTimestamp);
+                still += (entry.elapsed - previousElapsed);
             } else if (entry.cadence < Constants.CADENCE_RUN_MIN) {
-                walk += (entry.timestamp - prevTimestamp);
+                walk += (entry.elapsed - previousElapsed);
             } else {
-                run += (entry.timestamp - prevTimestamp);
+                run += (entry.elapsed - previousElapsed);
             }
 
-            prevTimestamp = entry.timestamp;
+            previousElapsed = entry.elapsed;
         }
 
         // Delete old values
@@ -537,7 +548,7 @@ public class LocationService
         boolean noData = (mMovement == null);
         boolean change = (mMovement != null
             && mMovement.type != current
-            && (current.ordinal() > mMovement.type.ordinal() || event.timestamp > (mMovement.start + 15 * 1e9))
+            && (current.ordinal() > mMovement.type.ordinal() || event.timestamp > (mMovement.startElapsed + 15 * 1e9))
         ); // "Higher" type of activity or 15 secs after last activity change
 
         if (noData || change) {
@@ -547,10 +558,10 @@ public class LocationService
                 RemoteLog.d("Changing movement " + mMovement.type + " → " + current);
             }
 
-            mMovement = new Movement(current, event.timestamp);
+            mMovement = new Movement(current, currentTime, event.timestamp);
         }
 
-        mMovement.end = event.timestamp;
+        mMovement.endElapsed = event.timestamp;
         mLastStepNanos = event.timestamp;
     }
 
@@ -791,9 +802,9 @@ public class LocationService
                 long run = 0;
                 for (Movement movement : movements) {
                     if (movement.type == MovementEnum.WALK) {
-                        walk += movement.end - movement.start;
+                        walk += movement.endElapsed - movement.startElapsed;
                     } else if (movement.type == MovementEnum.RUN) {
-                        run += movement.end - movement.start;
+                        run += movement.endElapsed - movement.startElapsed;
                     }
                 }
 

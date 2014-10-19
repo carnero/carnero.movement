@@ -11,7 +11,6 @@ import android.view.View;
 import carnero.movement.common.R;
 import carnero.movement.common.model.Movement;
 import carnero.movement.common.model.MovementEnum;
-import carnero.movement.common.remotelog.RemoteLog;
 
 public class ActivitiesGraph extends View {
 
@@ -148,8 +147,8 @@ public class ActivitiesGraph extends View {
             int pxEnd;
 
             for (Movement activity : mActivities) {
-                pxStart = (int) Math.floor(((activity.start / 1e6) - mDayStart) * milliWidth);
-                pxEnd = (int) Math.ceil(((activity.end / 1e6) - mDayStart) * milliWidth);
+                pxStart = (int) Math.floor(((activity.startElapsed / 1e6) - mDayStart) * milliWidth);
+                pxEnd = (int) Math.ceil(((activity.endElapsed / 1e6) - mDayStart) * milliWidth);
 
                 if (pxStart < 0) {
                     pxStart = 0;

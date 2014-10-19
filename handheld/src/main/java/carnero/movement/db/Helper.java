@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.location.*;
 import android.text.format.DateUtils;
 
 import carnero.movement.App;
@@ -78,6 +77,15 @@ public class Helper extends SQLiteOpenHelper {
         }
 
         if (oldVersion < 4) {
+            db.execSQL(Structure.getActivitiesStructure());
+            for (String index : Structure.getActivitiesIndexes()) {
+                db.execSQL(index);
+            }
+        }
+
+        if (oldVersion < 5) {
+            db.execSQL("drop table " + Structure.Table.Activities.name);
+
             db.execSQL(Structure.getActivitiesStructure());
             for (String index : Structure.getActivitiesIndexes()) {
                 db.execSQL(index);
@@ -370,8 +378,9 @@ public class Helper extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(Structure.Table.Activities.TYPE, movement.type.ordinal());
-        values.put(Structure.Table.Activities.START, movement.start);
-        values.put(Structure.Table.Activities.END, movement.end);
+        values.put(Structure.Table.Activities.TIMESTAMP, movement.timestamp);
+        values.put(Structure.Table.Activities.START, movement.startElapsed);
+        values.put(Structure.Table.Activities.END, movement.endElapsed);
 
         long id = getDatabase().insert(
             Structure.Table.Activities.name,
@@ -393,9 +402,6 @@ public class Helper extends SQLiteOpenHelper {
     }
 
     public ArrayList<Movement> getMovements(long start, long end) {
-        start = start * 1000000; // ms → ns
-        end = end * 1000000; // ms → ns
-
         final ArrayList<Movement> data = new ArrayList<Movement>();
 
         Cursor cursor = null;
@@ -403,22 +409,24 @@ public class Helper extends SQLiteOpenHelper {
             cursor = getDatabase().query(
                 Structure.Table.Activities.name,
                 Structure.Table.Activities.projectionFull,
-                Structure.Table.Activities.START + " >= " + start
-                    + " and " + Structure.Table.Activities.START + " <= " + end,
+                Structure.Table.Activities.TIMESTAMP + " >= " + start
+                    + " and " + Structure.Table.Activities.TIMESTAMP + " <= " + end,
                 null, null, null,
                 Structure.Table.Activities.START + " asc"
             );
 
             if (cursor.moveToFirst()) {
                 int idxType = cursor.getColumnIndex(Structure.Table.Activities.TYPE);
+                int idxTimestamp = cursor.getColumnIndex(Structure.Table.Activities.TIMESTAMP);
                 int idxStart = cursor.getColumnIndex(Structure.Table.Activities.START);
                 int idxEnd = cursor.getColumnIndex(Structure.Table.Activities.END);
 
                 do {
                     Movement model = new Movement();
                     model.type = MovementEnum.values()[cursor.getInt(idxType)];
-                    model.start = cursor.getLong(idxStart);
-                    model.end = cursor.getLong(idxEnd);
+                    model.timestamp = cursor.getLong(idxTimestamp);
+                    model.startElapsed = cursor.getLong(idxStart);
+                    model.endElapsed = cursor.getLong(idxEnd);
 
                     data.add(model);
                 } while (cursor.moveToNext());

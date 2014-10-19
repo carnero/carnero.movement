@@ -4,7 +4,8 @@ import android.support.annotation.NonNull;
 
 public class OnFootMetrics implements Comparable<OnFootMetrics> {
 
-    public long timestamp; // ns
+    public long timestamp; // ms
+    public long elapsed; // ns
     public int steps;
     public double cadence; // spm
     public double length; // m
