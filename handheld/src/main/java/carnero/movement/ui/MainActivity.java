@@ -8,14 +8,15 @@ import java.util.concurrent.TimeUnit;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Path;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.*;
@@ -63,7 +64,7 @@ public class MainActivity
     private boolean mHasFsqToken = true;
     private GoogleApiClient mGoogleApiClient;
     private MapDataTask mMapDataTask;
-    private final HashMap<Long, Achvmnt> mAchievements = new HashMap<Long, Achvmnt>();
+    private final HashMap<Long, Achvmnt> mAchievements = new HashMap<>();
     //
     private float mMapStrokeWidth;
     private int mMapColorStart;
@@ -92,9 +93,10 @@ public class MainActivity
 
         super.onCreate(state);
 
-        final ActionBar actionBar = getActionBar();
-        if (actionBar != null) {
-            actionBar.setElevation(0); // Otherwise it's raised above content
+        final ActionBar actionBar = getSupportActionBar();
+        final UiToolsV21 v21Tools = UiToolsV21.getInstance();
+        if (actionBar != null && v21Tools != null) {
+            v21Tools.setElevation(actionBar, 0);
         }
 
         // Init
@@ -320,29 +322,26 @@ public class MainActivity
         final int count = vAchievements.getChildCount();
 
         if (count > 0) {
-            final PathInterpolator interpolator = new PathInterpolator(0.0f, 0.7f, 0.9f, 1.0f);
-            final Path path = new Path();
-            path.moveTo(1, 1);
-            path.lineTo(0, 0);
+            final UiToolsV21 v21Tools = UiToolsV21.getInstance();
 
-            for (int i = 0; i < count; i ++) {
-                View view = vAchievements.getChildAt(i);
+            for (int position = 0; position < count; position ++) {
+                View view = vAchievements.getChildAt(position);
                 View icon = view.findViewById(R.id.icon);
 
                 if (icon == null) {
                     continue;
                 }
 
-                ObjectAnimator animator = ObjectAnimator.ofFloat(
-                    icon,
-                    View.SCALE_X,
-                    View.SCALE_Y,
-                    path
-                );
-                animator.addListener(new EndAnimatorListener(icon, count, i));
-                animator.setInterpolator(interpolator);
-                animator.setStartDelay((i + 1) * 75);
-                animator.start();
+                EndAnimatorListener listener = new EndAnimatorListener(icon, count, position);
+                if (v21Tools != null) {
+                    v21Tools.setHideAchievementsAnimator(
+                        icon,
+                        position,
+                        listener
+                    );
+                } else {
+                    listener.onAnimationEnd(null);
+                }
             }
         } else {
             displayAchievements();
@@ -365,11 +364,7 @@ public class MainActivity
             }
         }
 
-        // Animation params
-        final PathInterpolator interpolator = new PathInterpolator(0.0f, 0.2f, 0.4f, 1.0f);
-        final Path path = new Path();
-        path.moveTo(0, 0);
-        path.lineTo(1, 1);
+        final UiToolsV21 v21Tools = UiToolsV21.getInstance();
 
         // Add views
         vAchievements.removeAllViews();
@@ -386,16 +381,17 @@ public class MainActivity
             ImageLoaderSingleton.getInstance()
                 .displayImage(achvmnt.unlockedImageUrl, icon);
 
-            ObjectAnimator animator = ObjectAnimator.ofFloat(
-                icon,
-                View.SCALE_X,
-                View.SCALE_Y,
-                path
-            );
-            animator.addListener(new StartAnimatorListener(icon));
-            animator.setInterpolator(interpolator);
-            animator.setStartDelay((achievements.size() - cnt) * 75);
-            animator.start();
+            StartAnimatorListener listener = new StartAnimatorListener(icon);
+            if (v21Tools != null) {
+                v21Tools.setDisplayAchievementsAnimator(
+                    icon,
+                    cnt,
+                    achievements.size(),
+                    listener
+                );
+            } else {
+                listener.onAnimationStart(null);
+            }
 
             cnt ++;
         }
@@ -736,7 +732,7 @@ public class MainActivity
         }
     }
 
-    private class StartAnimatorListener implements Animator.AnimatorListener {
+    protected class StartAnimatorListener implements Animator.AnimatorListener {
 
         private View mView;
 
@@ -765,7 +761,7 @@ public class MainActivity
         }
     }
 
-    private class EndAnimatorListener implements Animator.AnimatorListener {
+    protected class EndAnimatorListener implements Animator.AnimatorListener {
 
         private View mView;
         private int mTotal;

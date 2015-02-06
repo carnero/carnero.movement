@@ -1,18 +1,16 @@
 <resources>
-    <style name="MovementTheme" parent="Theme.AppCompat.Light">
+    <style name="MovementTheme" parent="android:Theme.Material.Light">
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowContentOverlay">@null</item>
 
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/accent</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
 
         <item name="android:textAppearanceLargePopupMenu">@style/PopupMenu.Large</item>
         <item name="android:textAppearanceSmallPopupMenu">@style/PopupMenu.Small</item>
-
-        <item name="android:actionBarWidgetTheme">@style/OverflowMenuText</item>
     </style>
 
     <style name="MovementTheme.Dialog">
@@ -24,15 +22,11 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="OverflowMenuText" parent="Theme.AppCompat.Light">
-        <item name="android:textColor">@color/primary_dark</item>
-    </style>
-
     <style name="PopupMenu" />
-    <style name="PopupMenu.Large" parent="@style/TextAppearance.AppCompat.Widget.PopupMenu.Large" >
+    <style name="PopupMenu.Large" parent="@android:style/TextAppearance.Material.Widget.PopupMenu.Large" >
         <item name="android:textColor">@color/text</item>
     </style>
-    <style name="PopupMenu.Small" parent="@style/TextAppearance.AppCompat.Widget.PopupMenu.Small" >
+    <style name="PopupMenu.Small" parent="@android:style/TextAppearance.Material.Widget.PopupMenu.Small" >
         <item name="android:textColor">@color/text</item>
     </style>
 

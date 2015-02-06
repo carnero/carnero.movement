@@ -172,83 +172,95 @@ public class GraphFragment extends Fragment {
     }
 
     private void revealDetailedStats() {
+        final UiToolsV21 v21Tools = UiToolsV21.getInstance();
         final int finalRadius = (int)(vDetailedContainer.getHeight() * 1.4);
         final int cx = vStatsContainer.getLeft() + (vStatsContainer.getWidth() / 2);
         final int cy = vStatsContainer.getTop() + (vStatsContainer.getHeight() / 2);
 
         // Base
-        Animator animUnderlay = ViewAnimationUtils.createCircularReveal(
-            vDetailedUnderlay,
-            cx,
-            cy,
-            0,
-            finalRadius
-        );
-        animUnderlay.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                super.onAnimationStart(animation);
+        if (v21Tools != null) {
+            Animator animUnderlay = v21Tools.getCircularAnimator(
+                vDetailedUnderlay,
+                cx,
+                cy,
+                0,
+                finalRadius
+            );
+            animUnderlay.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    super.onAnimationStart(animation);
 
-                vDetailedUnderlay.setVisibility(View.VISIBLE);
-            }
-        });
-        animUnderlay.start();
+                    vDetailedUnderlay.setVisibility(View.VISIBLE);
+                }
+            });
+            animUnderlay.start();
 
-        // View
-        Runnable containerRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Animator animContainer = ViewAnimationUtils.createCircularReveal(
-                    vDetailedContainer,
-                    cx,
-                    cy,
-                    0,
-                    finalRadius
-                );
-                animContainer.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        super.onAnimationStart(animation);
+            // View
+            Runnable containerRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    Animator animContainer = v21Tools.getCircularAnimator(
+                        vDetailedUnderlay,
+                        cx,
+                        cy,
+                        0,
+                        finalRadius
+                    );
+                    animContainer.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                            super.onAnimationStart(animation);
 
-                        vDetailedContainer.setVisibility(View.VISIBLE);
-                    }
-                });
-                animContainer.start();
-            }
-        };
+                            vDetailedContainer.setVisibility(View.VISIBLE);
+                        }
+                    });
+                    animContainer.start();
+                }
+            };
 
-        mHandler.postDelayed(containerRunnable, 50);
+            mHandler.postDelayed(containerRunnable, 50);
+        } else {
+            vDetailedUnderlay.setVisibility(View.VISIBLE);
+            vDetailedContainer.setVisibility(View.VISIBLE);
+        }
     }
 
     private void hideDetailedStats() {
+        final UiToolsV21 v21Tools = UiToolsV21.getInstance();
         final int startRadius = (int)(vDetailedContainer.getHeight() * 1.4);
         final int cx = vDetailedClose.getLeft() + (vDetailedClose.getWidth() / 2);
         final int cy = vDetailedClose.getTop() + (vDetailedClose.getHeight() / 2);
 
         // View
-        Animator animContainer = ViewAnimationUtils.createCircularReveal(
-            vDetailedContainer,
-            cx,
-            cy,
-            startRadius,
-            0
-        );
-        animContainer.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                super.onAnimationStart(animation);
+        if (v21Tools != null) {
+            Animator animContainer = v21Tools.getCircularAnimator(
+                vDetailedContainer,
+                cx,
+                cy,
+                startRadius,
+                0
+            );
+            animContainer.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    super.onAnimationStart(animation);
 
-                vDetailedUnderlay.setVisibility(View.INVISIBLE);
-            }
+                    vDetailedUnderlay.setVisibility(View.INVISIBLE);
+                }
 
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
 
-                vDetailedContainer.setVisibility(View.INVISIBLE);
-            }
-        });
-        animContainer.start();
+                    vDetailedContainer.setVisibility(View.INVISIBLE);
+                }
+            });
+            animContainer.start();
+        } else {
+            vDetailedUnderlay.setVisibility(View.INVISIBLE);
+            vDetailedContainer.setVisibility(View.INVISIBLE);
+        }
     }
 
     private int getDay() {

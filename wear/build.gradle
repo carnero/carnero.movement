@@ -2,20 +2,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.0.0"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         applicationId "carnero.movement"
         minSdkVersion 20
         targetSdkVersion 21
-        versionCode 81
-        versionName "0.08.1"
-    }
-    buildTypes {
-        release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
+        versionCode 82
+        versionName "0.08.2"
     }
 }
 
