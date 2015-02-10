@@ -1,5 +1,5 @@
 <resources>
-    <style name="MovementTheme" parent="Theme.AppCompat.Light">
+    <style name="MovementTheme" parent="Theme.AppCompat">
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowContentOverlay">@null</item>
@@ -24,7 +24,7 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="OverflowMenuText" parent="Theme.AppCompat.Light">
+    <style name="OverflowMenuText" parent="Theme.AppCompat">
         <item name="android:textColor">@color/primary_dark</item>
     </style>
 
@@ -37,31 +37,31 @@
     </style>
 
     <style name="Text" parent="android:Widget.TextView">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text</item>
     </style>
 
     <style name="Text.Active">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_light</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textAllCaps">true</item>
     </style>
 
     <style name="Text.Label">
-        <item name="android:textSize">34sp</item>
+        <item name="android:textSize">30sp</item>
         <item name="android:textColor">@color/text_label</item>
         <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="Text.Label.Sub">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/text_label</item>
         <item name="android:fontFamily">sans-serif-light</item>
     </style>
 
     <style name="Text.Value">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">16sp</item>
     </style>
 
     <style name="Text.Value.Label">

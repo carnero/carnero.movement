@@ -4,9 +4,10 @@
     <color name="white">@android:color/white</color>
 
     <!-- Material -->
-    <color name="primary">#ffce93d8</color>
-    <color name="primary_dark">#ffab47bc</color>
-    <color name="accent">#ffffffff</color>
+    <color name="primary">#ff000000</color>
+    <color name="primary_dark">#ff000000</color>
+    <color name="accent">#ffdddddd</color>
+    <color name="panel_top">#aa000000</color>
 
     <!-- App -->
     <color name="bcg">@android:color/white</color>

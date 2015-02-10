@@ -9,46 +9,11 @@
         android:id="@+id/action_bar"
         android:layout_width="match_parent"
         android:layout_height="78dp"
-        android:elevation="10dp"
-        android:background="@color/primary" />
+        android:background="@color/panel_top"
+        android:elevation="10dp" />
+
 
     <RelativeLayout
-        android:id="@+id/panel"
-        android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:background="@color/primary"
-        android:elevation="10dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp">
-
-        <TextView
-            android:id="@+id/label"
-            style="@style/Text.Label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true" />
-
-        <TextView
-            android:id="@+id/sub_label"
-            style="@style/Text.Label.Sub"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/label"
-            android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/label" />
-        <LinearLayout
-            android:id="@+id/achievements"
-            android:layout_width="match_parent"
-            android:layout_height="24dp"
-            android:layout_below="@id/sub_label"
-            android:layout_toEndOf="@id/label"
-            android:layout_marginTop="4dp"
-            android:layout_marginStart="8dp"
-            android:orientation="horizontal"
-            android:gravity="end|top" />
-    </RelativeLayout>
-
-    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -57,10 +22,48 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <RelativeLayout
+            android:id="@+id/panel"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:background="@color/panel_top"
+            android:elevation="10dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <TextView
+                android:id="@+id/label"
+                style="@style/Text.Label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true" />
+
+            <TextView
+                android:id="@+id/sub_label"
+                style="@style/Text.Label.Sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/label"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/label" />
+
+            <LinearLayout
+                android:id="@+id/achievements"
+                android:layout_width="match_parent"
+                android:layout_height="24dp"
+                android:layout_below="@id/sub_label"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_toEndOf="@id/label"
+                android:gravity="end|top"
+                android:orientation="horizontal" />
+        </RelativeLayout>
+
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/panel"
             android:layout_marginBottom="@dimen/map_size" />
-    </FrameLayout>
+    </RelativeLayout>
 </LinearLayout>

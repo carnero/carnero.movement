@@ -62,10 +62,8 @@ public class GraphFragment extends Fragment {
     //
     @InjectView(R.id.stats_container)
     LinearLayout vStatsContainer;
-    @InjectView(R.id.stats_steps)
-    TextView vStatsSteps;
-    @InjectView(R.id.stats_distance)
-    TextView vStatsDistance;
+    @InjectView(R.id.stats_active)
+    TextView vStatsActive;
     @InjectView(R.id.graph)
     SplineGraph vGraph;
     @InjectView(R.id.checkins_container)
@@ -451,8 +449,7 @@ public class GraphFragment extends Fragment {
 
             // No data
             if (mContainer == null || (distanceDay < 1 && stepsDay < 1)) {
-                vStatsSteps.setVisibility(View.GONE);
-                vStatsDistance.setVisibility(View.GONE);
+                vStatsActive.setVisibility(View.GONE);
                 vGraph.setVisibility(View.GONE);
                 vCheckinsContainer.setVisibility(View.GONE);
 
@@ -465,8 +462,10 @@ public class GraphFragment extends Fragment {
             }
 
             vNoData.setVisibility(View.GONE);
-            vStatsSteps.setText(getString(R.string.stats_steps, stepsDay));
-            vStatsDistance.setText(Utils.formatDistance(distanceDay));
+            vStatsActive.setText(getString(
+                R.string.stats_activity,
+                (mRun + mWalk) / 60
+            ));
 
             // Graph
             vGraph.setData(mPaths);
